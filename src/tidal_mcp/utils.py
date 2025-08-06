@@ -46,9 +46,9 @@ def format_duration(seconds: int | None) -> str:
         Formatted duration string (e.g., "3:45", "1:23:45")
     """
     # Handle invalid types
-    if not isinstance(seconds, (int, float)):
+    if not isinstance(seconds, int | float):
         return "0:00"
-    
+
     if seconds <= 0:
         return "0:00"
 
