@@ -22,9 +22,7 @@ from tidal_mcp.models import Track, Playlist, SearchResults
 @pytest.fixture
 def temp_session_file():
     """Create a temporary session file for testing."""
-    with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".json", delete=False
-    ) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         temp_path = Path(f.name)
     yield temp_path
     if temp_path.exists():
@@ -148,9 +146,7 @@ def create_sample_tidal_track(
     return track
 
 
-def create_sample_tidal_playlist(
-    playlist_id="playlist-uuid-123", name="Test Playlist"
-):
+def create_sample_tidal_playlist(playlist_id="playlist-uuid-123", name="Test Playlist"):
     """Create a sample tidalapi playlist for testing."""
     playlist = Mock()
     playlist.uuid = playlist_id
@@ -200,7 +196,6 @@ class TestAuthenticationFlow:
                 patch("webbrowser.open"),
                 patch("tidalapi.Session", return_value=mock_tidal_session),
             ):
-
                 # Mock token exchange response
                 mock_response = AsyncMock()
                 mock_response.status = 200
@@ -213,9 +208,7 @@ class TestAuthenticationFlow:
                 )
 
                 mock_session = AsyncMock()
-                mock_session.post.return_value.__aenter__.return_value = (
-                    mock_response
-                )
+                mock_session.post.return_value.__aenter__.return_value = mock_response
 
                 with patch("aiohttp.ClientSession", return_value=mock_session):
                     # Perform authentication
@@ -233,9 +226,7 @@ class TestAuthenticationFlow:
                     assert auth.session_file.exists()
                     with open(auth.session_file, "r") as f:
                         session_data = json.load(f)
-                        assert (
-                            session_data["access_token"] == "new_access_token"
-                        )
+                        assert session_data["access_token"] == "new_access_token"
                         assert session_data["user_id"] == "12345"
 
     @pytest.mark.asyncio
@@ -252,9 +243,7 @@ class TestAuthenticationFlow:
                 "refresh_token": "saved_refresh_token",
                 "user_id": "12345",
                 "country_code": "US",
-                "expires_at": (
-                    datetime.now() + timedelta(hours=1)
-                ).isoformat(),
+                "expires_at": (datetime.now() + timedelta(hours=1)).isoformat(),
             }
 
             with open(temp_session_file, "w") as f:
@@ -275,14 +264,10 @@ class TestAuthenticationFlow:
                 assert result is True
 
     @pytest.mark.asyncio
-    async def test_token_refresh_flow(
-        self, integrated_auth, mock_tidal_session
-    ):
+    async def test_token_refresh_flow(self, integrated_auth, mock_tidal_session):
         """Test automatic token refresh flow."""
         # Set token to expired
-        integrated_auth.token_expires_at = datetime.now() - timedelta(
-            minutes=1
-        )
+        integrated_auth.token_expires_at = datetime.now() - timedelta(minutes=1)
 
         # Mock refresh response
         mock_response = AsyncMock()
@@ -377,34 +362,25 @@ class TestSearchIntegration:
         assert playlist.title == "Search Playlist"
 
     @pytest.mark.asyncio
-    async def test_search_with_pagination(
-        self, integrated_service, mock_tidal_session
-    ):
+    async def test_search_with_pagination(self, integrated_service, mock_tidal_session):
         """Test search with pagination support."""
         # Create multiple tracks
         tracks = [
-            create_sample_tidal_track(i, f"Track {i}", f"Artist {i}")
-            for i in range(10)
+            create_sample_tidal_track(i, f"Track {i}", f"Artist {i}") for i in range(10)
         ]
 
         mock_tidal_session.search.return_value = {"tracks": tracks}
 
         # Search with pagination
-        page1 = await integrated_service.search_tracks(
-            "query", limit=3, offset=0
-        )
-        page2 = await integrated_service.search_tracks(
-            "query", limit=3, offset=3
-        )
+        page1 = await integrated_service.search_tracks("query", limit=3, offset=0)
+        page2 = await integrated_service.search_tracks("query", limit=3, offset=3)
 
         assert len(page1) == 3
         assert len(page2) == 3
         assert page1[0].id != page2[0].id  # Different tracks
 
     @pytest.mark.asyncio
-    async def test_search_error_recovery(
-        self, integrated_service, mock_tidal_session
-    ):
+    async def test_search_error_recovery(self, integrated_service, mock_tidal_session):
         """Test search error handling and recovery."""
         # First call fails, second succeeds
         mock_tidal_session.search.side_effect = [
@@ -430,9 +406,7 @@ class TestPlaylistManagementIntegration:
     ):
         """Test complete playlist management lifecycle."""
         # Mock playlist creation
-        new_playlist = create_sample_tidal_playlist(
-            "new-playlist", "My New Playlist"
-        )
+        new_playlist = create_sample_tidal_playlist("new-playlist", "My New Playlist")
         mock_tidal_session.user.create_playlist.return_value = new_playlist
 
         # 1. Create playlist
@@ -442,9 +416,7 @@ class TestPlaylistManagementIntegration:
 
         assert created_playlist is not None
         assert created_playlist.title == "My New Playlist"
-        assert (
-            created_playlist.description == "Description for My New Playlist"
-        )
+        assert created_playlist.description == "Description for My New Playlist"
         mock_tidal_session.user.create_playlist.assert_called_once_with(
             "My New Playlist", "Test description"
         )
@@ -473,19 +445,15 @@ class TestPlaylistManagementIntegration:
 
         # 4. Remove tracks from playlist
         with patch("tidal_mcp.utils.validate_tidal_id", return_value=True):
-            remove_success = (
-                await integrated_service.remove_tracks_from_playlist(
-                    "new-playlist", [0]
-                )
+            remove_success = await integrated_service.remove_tracks_from_playlist(
+                "new-playlist", [0]
             )
             assert remove_success is True
             new_playlist.remove_by_index.assert_called_once_with(0)
 
         # 5. Delete playlist
         with patch("tidal_mcp.utils.validate_tidal_id", return_value=True):
-            delete_success = await integrated_service.delete_playlist(
-                "new-playlist"
-            )
+            delete_success = await integrated_service.delete_playlist("new-playlist")
             assert delete_success is True
             new_playlist.delete.assert_called_once()
 
@@ -516,9 +484,7 @@ class TestPlaylistManagementIntegration:
         self, integrated_service, mock_tidal_session
     ):
         """Test playlist track operations."""
-        playlist = create_sample_tidal_playlist(
-            "test-playlist", "Test Playlist"
-        )
+        playlist = create_sample_tidal_playlist("test-playlist", "Test Playlist")
         tracks = [
             create_sample_tidal_track(1, "Track 1"),
             create_sample_tidal_track(2, "Track 2"),
@@ -562,15 +528,9 @@ class TestFavoritesIntegration:
         favorite_album.explicit = False
 
         # Set up favorites
-        mock_tidal_session.user.favorites.tracks.return_value = [
-            favorite_track
-        ]
-        mock_tidal_session.user.favorites.albums.return_value = [
-            favorite_album
-        ]
-        mock_tidal_session.user.favorites.artists.return_value = [
-            favorite_track.artist
-        ]
+        mock_tidal_session.user.favorites.tracks.return_value = [favorite_track]
+        mock_tidal_session.user.favorites.albums.return_value = [favorite_album]
+        mock_tidal_session.user.favorites.artists.return_value = [favorite_track.artist]
 
         # 1. Get favorite tracks
         fav_tracks = await integrated_service.get_user_favorites("tracks")
@@ -592,9 +552,7 @@ class TestFavoritesIntegration:
         mock_tidal_session.track.return_value = new_track
 
         with patch("tidal_mcp.utils.validate_tidal_id", return_value=True):
-            add_success = await integrated_service.add_to_favorites(
-                "789", "track"
-            )
+            add_success = await integrated_service.add_to_favorites("789", "track")
             assert add_success is True
             favorites = mock_tidal_session.user.favorites
             favorites.add_track.assert_called_once_with(new_track)
@@ -633,18 +591,14 @@ class TestRecommendationsIntegration:
         favorite_tracks[0].get_track_radio.return_value = radio_tracks
 
         # Get recommendations
-        recommendations = await integrated_service.get_recommended_tracks(
-            limit=3
-        )
+        recommendations = await integrated_service.get_recommended_tracks(limit=3)
 
         assert len(recommendations) == 3
         assert all(isinstance(t, Track) for t in recommendations)
         assert recommendations[0].title == "Radio Track 1"
 
     @pytest.mark.asyncio
-    async def test_track_radio_flow(
-        self, integrated_service, mock_tidal_session
-    ):
+    async def test_track_radio_flow(self, integrated_service, mock_tidal_session):
         """Test track-based radio functionality."""
         seed_track = create_sample_tidal_track(123, "Seed Track")
         radio_tracks = [
@@ -663,9 +617,7 @@ class TestRecommendationsIntegration:
             assert radio[1].title == "Radio Track 2"
 
     @pytest.mark.asyncio
-    async def test_artist_radio_flow(
-        self, integrated_service, mock_tidal_session
-    ):
+    async def test_artist_radio_flow(self, integrated_service, mock_tidal_session):
         """Test artist-based radio functionality."""
         artist = Mock()
         artist.id = 456
@@ -696,9 +648,7 @@ class TestDetailedContentRetrieval:
         self, integrated_service, mock_tidal_session
     ):
         """Test complete track information retrieval."""
-        track = create_sample_tidal_track(
-            123456, "Detailed Track", "Detailed Artist"
-        )
+        track = create_sample_tidal_track(123456, "Detailed Track", "Detailed Artist")
         mock_tidal_session.track.return_value = track
 
         with patch("tidal_mcp.utils.validate_tidal_id", return_value=True):
@@ -720,9 +670,7 @@ class TestDetailedContentRetrieval:
             assert retrieved_track.album.title == "Test Album"
 
     @pytest.mark.asyncio
-    async def test_album_with_tracks_flow(
-        self, integrated_service, mock_tidal_session
-    ):
+    async def test_album_with_tracks_flow(self, integrated_service, mock_tidal_session):
         """Test album retrieval with track information."""
         album = Mock()
         album.id = 456
@@ -859,9 +807,7 @@ class TestErrorHandlingAndRecovery:
     ):
         """Test handling of authentication expiry during operations."""
         # Set token to expire soon
-        integrated_auth.token_expires_at = datetime.now() + timedelta(
-            seconds=30
-        )
+        integrated_auth.token_expires_at = datetime.now() + timedelta(seconds=30)
 
         # Mock refresh response
         mock_response = AsyncMock()
@@ -891,9 +837,7 @@ class TestErrorHandlingAndRecovery:
             assert len(results) == 1
 
     @pytest.mark.asyncio
-    async def test_network_error_recovery(
-        self, integrated_service, mock_tidal_session
-    ):
+    async def test_network_error_recovery(self, integrated_service, mock_tidal_session):
         """Test recovery from network errors."""
         # First call fails with network error, second succeeds
         call_count = 0
@@ -944,27 +888,21 @@ class TestConcurrentOperations:
     """Test concurrent operations and thread safety."""
 
     @pytest.mark.asyncio
-    async def test_concurrent_searches(
-        self, integrated_service, mock_tidal_session
-    ):
+    async def test_concurrent_searches(self, integrated_service, mock_tidal_session):
         """Test multiple concurrent search operations."""
 
         # Mock different search results for each query
         def search_side_effect(query, models=None):
             track_id = hash(query) % 1000
             return {
-                "tracks": [
-                    create_sample_tidal_track(track_id, f"Track for {query}")
-                ]
+                "tracks": [create_sample_tidal_track(track_id, f"Track for {query}")]
             }
 
         mock_tidal_session.search.side_effect = search_side_effect
 
         # Perform concurrent searches
         queries = ["query1", "query2", "query3", "query4", "query5"]
-        search_tasks = [
-            integrated_service.search_tracks(query) for query in queries
-        ]
+        search_tasks = [integrated_service.search_tracks(query) for query in queries]
 
         results = await asyncio.gather(*search_tasks)
 
@@ -994,9 +932,7 @@ class TestConcurrentOperations:
 
         # Perform concurrent playlist operations
         create_tasks = [
-            integrated_service.create_playlist(
-                f"Playlist {i}", f"Description {i}"
-            )
+            integrated_service.create_playlist(f"Playlist {i}", f"Description {i}")
             for i in range(3)
         ]
 
@@ -1006,8 +942,7 @@ class TestConcurrentOperations:
         assert len(created_playlists) == 3
         assert all(p is not None for p in created_playlists)
         assert all(
-            f"Test Playlist {i}" in p.title
-            for i, p in enumerate(created_playlists)
+            f"Test Playlist {i}" in p.title for i, p in enumerate(created_playlists)
         )
 
 

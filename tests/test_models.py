@@ -56,10 +56,7 @@ class TestArtist:
         assert artist.id == "789"
         assert artist.name == "API Artist"
         assert artist.url == "https://tidal.com/browse/artist/789"
-        assert (
-            artist.picture
-            == "https://resources.tidal.com/images/artist_pic.jpg"
-        )
+        assert artist.picture == "https://resources.tidal.com/images/artist_pic.jpg"
         assert artist.popularity == 92
 
     def test_artist_from_api_data_minimal(self):
@@ -519,15 +516,11 @@ class TestPlaylist:
     def test_playlist_formatted_duration(self):
         """Test playlist formatted duration property."""
         # Test duration under 1 hour
-        playlist_short = Playlist(
-            id="1", title="Short", duration=1800
-        )  # 30:00
+        playlist_short = Playlist(id="1", title="Short", duration=1800)  # 30:00
         assert playlist_short.formatted_duration == "30:00"
 
         # Test duration over 1 hour
-        playlist_long = Playlist(
-            id="2", title="Long", duration=3665
-        )  # 1:01:05
+        playlist_long = Playlist(id="2", title="Long", duration=3665)  # 1:01:05
         assert playlist_long.formatted_duration == "1:01:05"
 
         # Test zero duration
@@ -741,9 +734,7 @@ class TestModelEdgeCases:
             "album": {
                 "id": 2,
                 "title": "Circular Album",
-                "artists": [
-                    {"id": 10, "name": "Shared Artist"}
-                ],  # Same artist
+                "artists": [{"id": 10, "name": "Shared Artist"}],  # Same artist
             },
         }
 

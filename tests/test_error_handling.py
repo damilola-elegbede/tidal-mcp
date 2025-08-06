@@ -50,9 +50,7 @@ class TestAuthenticationErrors:
             TidalAuth, "_exchange_code_for_tokens", new_callable=AsyncMock
         ) as mock_exchange:
             # Simulate malformed response
-            mock_exchange.side_effect = json.JSONDecodeError(
-                "Invalid JSON", "", 0
-            )
+            mock_exchange.side_effect = json.JSONDecodeError("Invalid JSON", "", 0)
 
             auth = TidalAuth()
             result = await auth._oauth2_flow()
@@ -82,9 +80,7 @@ class TestAuthenticationErrors:
 
         mock_response = AsyncMock()
         mock_response.status = 400
-        mock_response.text = AsyncMock(
-            return_value='{"error": "invalid_grant"}'
-        )
+        mock_response.text = AsyncMock(return_value='{"error": "invalid_grant"}')
 
         mock_session = AsyncMock()
         mock_session.post.return_value.__aenter__.return_value = mock_response
@@ -117,9 +113,7 @@ class TestAuthenticationErrors:
         auth.access_token = "test_token"
 
         # Mock permission error on file write
-        with patch(
-            "builtins.open", side_effect=PermissionError("Permission denied")
-        ):
+        with patch("builtins.open", side_effect=PermissionError("Permission denied")):
             # Should not raise exception, just log error
             auth._save_session()
 
@@ -131,9 +125,7 @@ class TestAuthenticationErrors:
         with patch("aiohttp.ClientSession") as mock_session_class:
             mock_session = AsyncMock()
             mock_session_class.return_value = mock_session
-            mock_session.post.side_effect = asyncio.TimeoutError(
-                "Request timeout"
-            )
+            mock_session.post.side_effect = asyncio.TimeoutError("Request timeout")
 
             result = await auth.refresh_access_token()
             assert result is False
@@ -147,18 +139,14 @@ class TestServiceLayerErrors:
         """Create mock auth that fails."""
         auth = Mock(spec=TidalAuth)
         auth.ensure_valid_token = AsyncMock(return_value=False)
-        auth.get_tidal_session.side_effect = TidalAuthError(
-            "Not authenticated"
-        )
+        auth.get_tidal_session.side_effect = TidalAuthError("Not authenticated")
         return auth
 
     @pytest.fixture
     def mock_auth_expired(self):
         """Create mock auth with expired token."""
         auth = Mock(spec=TidalAuth)
-        auth.ensure_valid_token = AsyncMock(
-            side_effect=TidalAuthError("Token expired")
-        )
+        auth.ensure_valid_token = AsyncMock(side_effect=TidalAuthError("Token expired"))
         return auth
 
     @pytest.mark.asyncio
@@ -181,9 +169,7 @@ class TestServiceLayerErrors:
         """Test service with Tidal API errors."""
         mock_session = Mock()
         mock_session.search.side_effect = Exception("Tidal API error")
-        mock_session.playlist.side_effect = Exception(
-            "Playlist not accessible"
-        )
+        mock_session.playlist.side_effect = Exception("Playlist not accessible")
         mock_session.user.favorites.tracks.side_effect = Exception(
             "Favorites unavailable"
         )
@@ -238,16 +224,12 @@ class TestServiceLayerErrors:
         valid_track.audio_quality = "LOSSLESS"
         valid_track.artist = Mock(id=1, name="Artist")
         valid_track.artists = [valid_track.artist]
-        valid_track.album = Mock(
-            id=1, name="Album", artists=[valid_track.artist]
-        )
+        valid_track.album = Mock(id=1, name="Album", artists=[valid_track.artist])
 
         invalid_track = Mock()
         invalid_track.id = None  # This will cause conversion to fail
 
-        mock_session.search.return_value = {
-            "tracks": [valid_track, invalid_track]
-        }
+        mock_session.search.return_value = {"tracks": [valid_track, invalid_track]}
         mock_auth.get_tidal_session.return_value = mock_session
         service = TidalService(auth=mock_auth)
 
@@ -316,19 +298,11 @@ class TestServerToolErrors:
     async def test_server_tool_service_errors(self):
         """Test server tools with service layer errors."""
         mock_service = Mock()
-        mock_service.search_tracks.side_effect = Exception(
-            "Search service error"
-        )
-        mock_service.create_playlist.side_effect = Exception(
-            "Playlist creation error"
-        )
-        mock_service.get_user_favorites.side_effect = Exception(
-            "Favorites error"
-        )
+        mock_service.search_tracks.side_effect = Exception("Search service error")
+        mock_service.create_playlist.side_effect = Exception("Playlist creation error")
+        mock_service.get_user_favorites.side_effect = Exception("Favorites error")
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             result = await tidal_search("query", "tracks")
             assert "error" in result
             assert "Search failed" in result["error"]
@@ -347,9 +321,7 @@ class TestServerToolErrors:
         mock_service = Mock()
         mock_service.search_tracks = AsyncMock(return_value=[])
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             # Test with empty track list
             result = await tidal_add_to_playlist("playlist123", [])
             assert result["success"] is False
@@ -399,9 +371,7 @@ class TestModelValidationErrors:
         album = Album(id="1", title="Test Album", artists=[artist])
 
         # Create track with both artist and album
-        track = Track(
-            id="1", title="Test Track", artists=[artist], album=album
-        )
+        track = Track(id="1", title="Test Track", artists=[artist], album=album)
 
         # Test serialization doesn't cause infinite recursion
         track_dict = track.to_dict()
@@ -507,9 +477,7 @@ class TestConcurrencyErrors:
         mock_service.search_tracks.side_effect = Exception("Service error")
 
         async def failing_search():
-            with patch(
-                "tidal_mcp.server.ensure_service", return_value=mock_service
-            ):
+            with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
                 return await tidal_search("query", "tracks")
 
         # Run concurrent failing searches
@@ -534,14 +502,10 @@ class TestConcurrencyErrors:
             return [Track(id="1", title="Success Track")]
 
         mock_service = Mock()
-        mock_service.search_tracks = AsyncMock(
-            side_effect=alternating_behavior
-        )
+        mock_service.search_tracks = AsyncMock(side_effect=alternating_behavior)
 
         async def search_operation():
-            with patch(
-                "tidal_mcp.server.ensure_service", return_value=mock_service
-            ):
+            with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
                 return await tidal_search("query", "tracks")
 
         # Run multiple operations
@@ -569,9 +533,7 @@ class TestResourceExhaustionScenarios:
         try:
             # Create many large track objects
             for i in range(10000):
-                artists = [
-                    Artist(id=str(j), name=f"Artist {j}") for j in range(10)
-                ]
+                artists = [Artist(id=str(j), name=f"Artist {j}") for j in range(10)]
                 track = Track(
                     id=str(i),
                     title=f"Large Track {i}" * 10,  # Long title
@@ -595,9 +557,7 @@ class TestResourceExhaustionScenarios:
         auth.session_file = temp_session_file
 
         # Mock file operations to simulate descriptor exhaustion
-        with patch(
-            "builtins.open", side_effect=OSError("Too many open files")
-        ):
+        with patch("builtins.open", side_effect=OSError("Too many open files")):
             # Should handle file errors gracefully
             auth._load_session()
             assert auth.access_token is None

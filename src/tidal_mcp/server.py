@@ -31,18 +31,17 @@ async def ensure_service() -> TidalService:
     if not auth_manager:
         # Check for custom client credentials in environment
         import os
+
         client_id = os.getenv("TIDAL_CLIENT_ID")
         client_secret = os.getenv("TIDAL_CLIENT_SECRET")
-        auth_manager = TidalAuth(client_id=client_id,
-                                 client_secret=client_secret)
+        auth_manager = TidalAuth(client_id=client_id, client_secret=client_secret)
 
     if not tidal_service:
         tidal_service = TidalService(auth_manager)
 
     # Ensure authentication
     if not auth_manager.is_authenticated():
-        raise TidalAuthError(
-            "Not authenticated. Please run tidal_login first.")
+        raise TidalAuthError("Not authenticated. Please run tidal_login first.")
 
     return tidal_service
 
@@ -73,13 +72,13 @@ async def tidal_login() -> Dict[str, Any]:
             return {
                 "success": True,
                 "message": "Successfully authenticated with Tidal",
-                "user": user_info
+                "user": user_info,
             }
         else:
             return {
                 "success": False,
                 "message": "Authentication failed. Please try again.",
-                "user": None
+                "user": None,
             }
 
     except Exception as e:
@@ -87,16 +86,13 @@ async def tidal_login() -> Dict[str, Any]:
         return {
             "success": False,
             "message": f"Authentication error: {str(e)}",
-            "user": None
+            "user": None,
         }
 
 
 @mcp.tool()
 async def tidal_search(
-    query: str,
-    content_type: str = "all",
-    limit: int = 20,
-    offset: int = 0
+    query: str, content_type: str = "all", limit: int = 20, offset: int = 0
 ) -> Dict[str, Any]:
     """
     Search for content on Tidal.
@@ -121,10 +117,8 @@ async def tidal_search(
             return {
                 "query": query,
                 "content_type": content_type,
-                "results": {
-                    "tracks": [track.to_dict() for track in tracks]
-                },
-                "total_results": len(tracks)
+                "results": {"tracks": [track.to_dict() for track in tracks]},
+                "total_results": len(tracks),
             }
 
         elif content_type == "albums":
@@ -132,10 +126,8 @@ async def tidal_search(
             return {
                 "query": query,
                 "content_type": content_type,
-                "results": {
-                    "albums": [album.to_dict() for album in albums]
-                },
-                "total_results": len(albums)
+                "results": {"albums": [album.to_dict() for album in albums]},
+                "total_results": len(albums),
             }
 
         elif content_type == "artists":
@@ -143,10 +135,8 @@ async def tidal_search(
             return {
                 "query": query,
                 "content_type": content_type,
-                "results": {
-                    "artists": [artist.to_dict() for artist in artists]
-                },
-                "total_results": len(artists)
+                "results": {"artists": [artist.to_dict() for artist in artists]},
+                "total_results": len(artists),
             }
 
         elif content_type == "playlists":
@@ -157,7 +147,7 @@ async def tidal_search(
                 "results": {
                     "playlists": [playlist.to_dict() for playlist in playlists]
                 },
-                "total_results": len(playlists)
+                "total_results": len(playlists),
             }
 
         else:  # "all" or any other value
@@ -166,7 +156,7 @@ async def tidal_search(
                 "query": query,
                 "content_type": "all",
                 "results": search_results.to_dict(),
-                "total_results": search_results.total_results
+                "total_results": search_results.total_results,
             }
 
     except TidalAuthError as e:
@@ -196,15 +186,9 @@ async def tidal_get_playlist(
         playlist = await service.get_playlist(playlist_id, include_tracks)
 
         if playlist:
-            return {
-                "success": True,
-                "playlist": playlist.to_dict()
-            }
+            return {"success": True, "playlist": playlist.to_dict()}
         else:
-            return {
-                "success": False,
-                "error": f"Playlist not found: {playlist_id}"
-            }
+            return {"success": False, "error": f"Playlist not found: {playlist_id}"}
 
     except TidalAuthError as e:
         return {"error": f"Authentication required: {str(e)}"}
@@ -214,9 +198,7 @@ async def tidal_get_playlist(
 
 
 @mcp.tool()
-async def tidal_create_playlist(
-    title: str, description: str = ""
-) -> Dict[str, Any]:
+async def tidal_create_playlist(title: str, description: str = "") -> Dict[str, Any]:
     """
     Create a new Tidal playlist.
 
@@ -235,13 +217,10 @@ async def tidal_create_playlist(
             return {
                 "success": True,
                 "message": f"Created playlist '{title}'",
-                "playlist": playlist.to_dict()
+                "playlist": playlist.to_dict(),
             }
         else:
-            return {
-                "success": False,
-                "error": f"Failed to create playlist '{title}'"
-            }
+            return {"success": False, "error": f"Failed to create playlist '{title}'"}
 
     except TidalAuthError as e:
         return {"error": f"Authentication required: {str(e)}"}
@@ -268,23 +247,19 @@ async def tidal_add_to_playlist(
         service = await ensure_service()
 
         if not track_ids:
-            return {
-                "success": False,
-                "error": "No track IDs provided"
-            }
+            return {"success": False, "error": "No track IDs provided"}
 
         success = await service.add_tracks_to_playlist(playlist_id, track_ids)
 
         if success:
             return {
                 "success": True,
-                "message": (f"Added {len(track_ids)} tracks to "
-                            f"playlist {playlist_id}")
+                "message": (f"Added {len(track_ids)} tracks to playlist {playlist_id}"),
             }
         else:
             return {
                 "success": False,
-                "error": f"Failed to add tracks to playlist {playlist_id}"
+                "error": f"Failed to add tracks to playlist {playlist_id}",
             }
 
     except TidalAuthError as e:
@@ -313,24 +288,21 @@ async def tidal_remove_from_playlist(
         service = await ensure_service()
 
         if not track_indices:
-            return {
-                "success": False,
-                "error": "No track indices provided"
-            }
+            return {"success": False, "error": "No track indices provided"}
 
-        success = await service.remove_tracks_from_playlist(
-            playlist_id, track_indices)
+        success = await service.remove_tracks_from_playlist(playlist_id, track_indices)
 
         if success:
             return {
                 "success": True,
-                "message": (f"Removed {len(track_indices)} tracks from "
-                            f"playlist {playlist_id}")
+                "message": (
+                    f"Removed {len(track_indices)} tracks from playlist {playlist_id}"
+                ),
             }
         else:
             return {
                 "success": False,
-                "error": f"Failed to remove tracks from playlist {playlist_id}"
+                "error": f"Failed to remove tracks from playlist {playlist_id}",
             }
 
     except TidalAuthError as e:
@@ -342,9 +314,7 @@ async def tidal_remove_from_playlist(
 
 @mcp.tool()
 async def tidal_get_favorites(
-    content_type: str = "tracks",
-    limit: int = 50,
-    offset: int = 0
+    content_type: str = "tracks", limit: int = 50, offset: int = 0
 ) -> Dict[str, Any]:
     """
     Get user's favorite content from Tidal.
@@ -363,13 +333,12 @@ async def tidal_get_favorites(
         limit = min(max(1, limit), 100)  # Clamp between 1 and 100
         offset = max(0, offset)
 
-        favorites = await service.get_user_favorites(content_type, limit,
-                                                     offset)
+        favorites = await service.get_user_favorites(content_type, limit, offset)
 
         # Convert to dictionaries
         favorites_dict = []
         for item in favorites:
-            if hasattr(item, 'to_dict'):
+            if hasattr(item, "to_dict"):
                 favorites_dict.append(item.to_dict())
             else:
                 favorites_dict.append(item)
@@ -377,7 +346,7 @@ async def tidal_get_favorites(
         return {
             "content_type": content_type,
             "favorites": favorites_dict,
-            "total_results": len(favorites_dict)
+            "total_results": len(favorites_dict),
         }
 
     except TidalAuthError as e:
@@ -388,9 +357,7 @@ async def tidal_get_favorites(
 
 
 @mcp.tool()
-async def tidal_add_favorite(
-    item_id: str, content_type: str
-) -> Dict[str, Any]:
+async def tidal_add_favorite(item_id: str, content_type: str) -> Dict[str, Any]:
     """
     Add an item to user's Tidal favorites.
 
@@ -409,14 +376,12 @@ async def tidal_add_favorite(
         if success:
             return {
                 "success": True,
-                "message": (f"Added {content_type} {item_id} to "
-                            "favorites")
+                "message": (f"Added {content_type} {item_id} to favorites"),
             }
         else:
             return {
                 "success": False,
-                "error": (f"Failed to add {content_type} {item_id} to "
-                          "favorites")
+                "error": (f"Failed to add {content_type} {item_id} to favorites"),
             }
 
     except TidalAuthError as e:
@@ -427,9 +392,7 @@ async def tidal_add_favorite(
 
 
 @mcp.tool()
-async def tidal_remove_favorite(
-    item_id: str, content_type: str
-) -> Dict[str, Any]:
+async def tidal_remove_favorite(item_id: str, content_type: str) -> Dict[str, Any]:
     """
     Remove an item from user's Tidal favorites.
 
@@ -448,14 +411,12 @@ async def tidal_remove_favorite(
         if success:
             return {
                 "success": True,
-                "message": (f"Removed {content_type} {item_id} from "
-                            "favorites")
+                "message": (f"Removed {content_type} {item_id} from favorites"),
             }
         else:
             return {
                 "success": False,
-                "error": (f"Failed to remove {content_type} {item_id} from "
-                          "favorites")
+                "error": (f"Failed to remove {content_type} {item_id} from favorites"),
             }
 
     except TidalAuthError as e:
@@ -485,7 +446,7 @@ async def tidal_get_recommendations(limit: int = 50) -> Dict[str, Any]:
 
         return {
             "recommendations": [track.to_dict() for track in tracks],
-            "total_results": len(tracks)
+            "total_results": len(tracks),
         }
 
     except TidalAuthError as e:
@@ -496,9 +457,7 @@ async def tidal_get_recommendations(limit: int = 50) -> Dict[str, Any]:
 
 
 @mcp.tool()
-async def tidal_get_track_radio(
-    track_id: str, limit: int = 50
-) -> Dict[str, Any]:
+async def tidal_get_track_radio(track_id: str, limit: int = 50) -> Dict[str, Any]:
     """
     Get radio tracks based on a seed track.
 
@@ -519,7 +478,7 @@ async def tidal_get_track_radio(
         return {
             "seed_track_id": track_id,
             "radio_tracks": [track.to_dict() for track in tracks],
-            "total_results": len(tracks)
+            "total_results": len(tracks),
         }
 
     except TidalAuthError as e:
@@ -530,9 +489,7 @@ async def tidal_get_track_radio(
 
 
 @mcp.tool()
-async def tidal_get_user_playlists(
-    limit: int = 50, offset: int = 0
-) -> Dict[str, Any]:
+async def tidal_get_user_playlists(limit: int = 50, offset: int = 0) -> Dict[str, Any]:
     """
     Get user's Tidal playlists.
 
@@ -552,7 +509,7 @@ async def tidal_get_user_playlists(
 
         return {
             "playlists": [playlist.to_dict() for playlist in playlists],
-            "total_results": len(playlists)
+            "total_results": len(playlists),
         }
 
     except TidalAuthError as e:
@@ -578,15 +535,9 @@ async def tidal_get_track(track_id: str) -> Dict[str, Any]:
         track = await service.get_track(track_id)
 
         if track:
-            return {
-                "success": True,
-                "track": track.to_dict()
-            }
+            return {"success": True, "track": track.to_dict()}
         else:
-            return {
-                "success": False,
-                "error": f"Track not found: {track_id}"
-            }
+            return {"success": False, "error": f"Track not found: {track_id}"}
 
     except TidalAuthError as e:
         return {"error": f"Authentication required: {str(e)}"}
@@ -596,9 +547,7 @@ async def tidal_get_track(track_id: str) -> Dict[str, Any]:
 
 
 @mcp.tool()
-async def tidal_get_album(
-    album_id: str, include_tracks: bool = True
-) -> Dict[str, Any]:
+async def tidal_get_album(album_id: str, include_tracks: bool = True) -> Dict[str, Any]:
     """
     Get detailed information about a specific album.
 
@@ -615,15 +564,9 @@ async def tidal_get_album(
         album = await service.get_album(album_id, include_tracks)
 
         if album:
-            return {
-                "success": True,
-                "album": album.to_dict()
-            }
+            return {"success": True, "album": album.to_dict()}
         else:
-            return {
-                "success": False,
-                "error": f"Album not found: {album_id}"
-            }
+            return {"success": False, "error": f"Album not found: {album_id}"}
 
     except TidalAuthError as e:
         return {"error": f"Authentication required: {str(e)}"}
@@ -648,15 +591,9 @@ async def tidal_get_artist(artist_id: str) -> Dict[str, Any]:
         artist = await service.get_artist(artist_id)
 
         if artist:
-            return {
-                "success": True,
-                "artist": artist.to_dict()
-            }
+            return {"success": True, "artist": artist.to_dict()}
         else:
-            return {
-                "success": False,
-                "error": f"Artist not found: {artist_id}"
-            }
+            return {"success": False, "error": f"Artist not found: {artist_id}"}
 
     except TidalAuthError as e:
         return {"error": f"Authentication required: {str(e)}"}
@@ -669,7 +606,7 @@ def main():
     """Main entry point for the Tidal MCP server."""
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
     logger.info("Starting Tidal MCP Server with FastMCP")

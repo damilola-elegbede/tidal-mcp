@@ -27,10 +27,10 @@ def sanitize_query(query: str) -> str:
         return ""
 
     # Remove extra whitespace and normalize
-    sanitized = re.sub(r'\s+', ' ', query.strip())
+    sanitized = re.sub(r"\s+", " ", query.strip())
 
     # Remove potentially problematic characters for API
-    sanitized = re.sub(r'[<>{}[\]\\]', '', sanitized)
+    sanitized = re.sub(r"[<>{}[\]\\]", "", sanitized)
 
     return sanitized
 
@@ -72,7 +72,7 @@ def parse_duration(duration_str: str) -> int:
         return 0
 
     try:
-        parts = duration_str.split(':')
+        parts = duration_str.split(":")
         if len(parts) == 2:  # MM:SS
             minutes, seconds = map(int, parts)
             # Validate non-negative values
@@ -104,7 +104,7 @@ def format_file_size(bytes_size: int) -> str:
     if bytes_size == 0:
         return "0 B"
 
-    size_units = ['B', 'KB', 'MB', 'GB', 'TB']
+    size_units = ["B", "KB", "MB", "GB", "TB"]
     unit_index = 0
     size = float(bytes_size)
 
@@ -133,7 +133,7 @@ def safe_get(data: Dict[str, Any], key: str, default: Any = None) -> Any:
     if not isinstance(data, dict):
         return default
 
-    keys = key.split('.')
+    keys = key.split(".")
     current = data
 
     for k in keys:
@@ -145,8 +145,7 @@ def safe_get(data: Dict[str, Any], key: str, default: Any = None) -> Any:
     return current
 
 
-def truncate_text(text: str, max_length: int = 100,
-                  suffix: str = "...") -> str:
+def truncate_text(text: str, max_length: int = 100, suffix: str = "...") -> str:
     """
     Truncate text to specified length with suffix.
 
@@ -167,7 +166,7 @@ def truncate_text(text: str, max_length: int = 100,
     if len(suffix) >= max_length:
         return text[:max_length]
 
-    return text[:max_length - len(suffix)] + suffix
+    return text[: max_length - len(suffix)] + suffix
 
 
 def validate_tidal_id(tidal_id: str) -> bool:
@@ -202,14 +201,14 @@ def extract_tidal_id_from_url(url: str) -> Optional[str]:
 
     # Pattern to match Tidal URLs with IDs
     patterns = [
-        r'tidal\.com/browse/track/(\d+)',
-        r'tidal\.com/browse/album/(\d+)',
-        r'tidal\.com/browse/artist/(\d+)',
-        r'tidal\.com/browse/playlist/([a-f0-9-]+)',
-        r'tidal\.com/track/(\d+)',
-        r'tidal\.com/album/(\d+)',
-        r'tidal\.com/artist/(\d+)',
-        r'tidal\.com/playlist/([a-f0-9-]+)'
+        r"tidal\.com/browse/track/(\d+)",
+        r"tidal\.com/browse/album/(\d+)",
+        r"tidal\.com/browse/artist/(\d+)",
+        r"tidal\.com/browse/playlist/([a-f0-9-]+)",
+        r"tidal\.com/track/(\d+)",
+        r"tidal\.com/album/(\d+)",
+        r"tidal\.com/artist/(\d+)",
+        r"tidal\.com/playlist/([a-f0-9-]+)",
     ]
 
     for pattern in patterns:
@@ -236,20 +235,25 @@ def normalize_quality_string(quality: str) -> str:
     quality_upper = quality.upper()
 
     quality_map = {
-        'LOW': 'LOW',
-        'HIGH': 'HIGH',
-        'LOSSLESS': 'LOSSLESS',
-        'HI_RES': 'HI_RES',
-        'MASTER': 'MASTER',
-        'MQA': 'MASTER'
+        "LOW": "LOW",
+        "HIGH": "HIGH",
+        "LOSSLESS": "LOSSLESS",
+        "HI_RES": "HI_RES",
+        "MASTER": "MASTER",
+        "MQA": "MASTER",
     }
 
     return quality_map.get(quality_upper, quality_upper)
 
 
-def build_search_url(base_url: str, query: str, content_types: List[str],
-                     limit: int = 20, offset: int = 0,
-                     country_code: str = "US") -> str:
+def build_search_url(
+    base_url: str,
+    query: str,
+    content_types: List[str],
+    limit: int = 20,
+    offset: int = 0,
+    country_code: str = "US",
+) -> str:
     """
     Build search API URL with parameters.
 
@@ -268,22 +272,22 @@ def build_search_url(base_url: str, query: str, content_types: List[str],
         return base_url
 
     params = {
-        'query': quote(query),
-        'limit': str(limit),
-        'offset': str(offset),
-        'types': ','.join(content_types).upper(),
-        'countryCode': country_code
+        "query": quote(query),
+        "limit": str(limit),
+        "offset": str(offset),
+        "types": ",".join(content_types).upper(),
+        "countryCode": country_code,
     }
 
-    param_string = '&'.join(f"{key}={value}" for key, value in params.items())
-    separator = '&' if '?' in base_url else '?'
+    param_string = "&".join(f"{key}={value}" for key, value in params.items())
+    separator = "&" if "?" in base_url else "?"
 
     return f"{base_url}{separator}{param_string}"
 
 
-def filter_explicit_content(items: List[Dict[str, Any]],
-                            allow_explicit: bool = True
-                            ) -> List[Dict[str, Any]]:
+def filter_explicit_content(
+    items: List[Dict[str, Any]], allow_explicit: bool = True
+) -> List[Dict[str, Any]]:
     """
     Filter explicit content from results.
 
@@ -297,7 +301,7 @@ def filter_explicit_content(items: List[Dict[str, Any]],
     if allow_explicit:
         return items
 
-    return [item for item in items if not item.get('explicit', False)]
+    return [item for item in items if not item.get("explicit", False)]
 
 
 def merge_artist_names(artists: List[Dict[str, Any]]) -> str:
@@ -315,7 +319,7 @@ def merge_artist_names(artists: List[Dict[str, Any]]) -> str:
 
     names = []
     for artist in artists:
-        name = artist.get('name', '').strip()
+        name = artist.get("name", "").strip()
         if name:
             names.append(name)
 
@@ -334,38 +338,36 @@ def calculate_playlist_stats(tracks: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
     if not tracks:
         return {
-            'total_tracks': 0,
-            'total_duration': 0,
-            'explicit_tracks': 0,
-            'unique_artists': 0,
-            'unique_albums': 0
+            "total_tracks": 0,
+            "total_duration": 0,
+            "explicit_tracks": 0,
+            "unique_artists": 0,
+            "unique_albums": 0,
         }
 
-    total_duration = sum(track.get('duration', 0) for track in tracks)
-    explicit_tracks = sum(
-        1 for track in tracks if track.get('explicit', False)
-    )
+    total_duration = sum(track.get("duration", 0) for track in tracks)
+    explicit_tracks = sum(1 for track in tracks if track.get("explicit", False))
 
     artists = set()
     albums = set()
 
     for track in tracks:
         # Collect unique artists
-        track_artists = track.get('artists', [])
+        track_artists = track.get("artists", [])
         if isinstance(track_artists, list):
             for artist in track_artists:
-                if isinstance(artist, dict) and 'name' in artist:
-                    artists.add(artist['name'])
+                if isinstance(artist, dict) and "name" in artist:
+                    artists.add(artist["name"])
 
         # Collect unique albums
-        album = track.get('album')
-        if isinstance(album, dict) and 'title' in album:
-            albums.add(album['title'])
+        album = track.get("album")
+        if isinstance(album, dict) and "title" in album:
+            albums.add(album["title"])
 
     return {
-        'total_tracks': len(tracks),
-        'total_duration': total_duration,
-        'explicit_tracks': explicit_tracks,
-        'unique_artists': len(artists),
-        'unique_albums': len(albums)
+        "total_tracks": len(tracks),
+        "total_duration": total_duration,
+        "explicit_tracks": explicit_tracks,
+        "unique_artists": len(artists),
+        "unique_albums": len(albums),
     }

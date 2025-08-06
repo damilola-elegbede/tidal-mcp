@@ -9,7 +9,6 @@ configurations and reporting.
 import sys
 import subprocess
 import argparse
-from pathlib import Path
 
 
 def run_command(cmd, cwd=None):
@@ -25,51 +24,44 @@ def main():
         "--type",
         choices=["unit", "integration", "all", "auth", "service", "coverage"],
         default="all",
-        help="Type of tests to run"
+        help="Type of tests to run",
     )
     parser.add_argument(
-        "--verbose", "-v",
-        action="store_true",
-        help="Enable verbose output"
+        "--verbose", "-v", action="store_true", help="Enable verbose output"
     )
     parser.add_argument(
-        "--parallel", "-p",
-        action="store_true",
-        help="Run tests in parallel"
+        "--parallel", "-p", action="store_true", help="Run tests in parallel"
     )
     parser.add_argument(
-        "--coverage", "-c",
-        action="store_true", 
-        help="Generate coverage report"
+        "--coverage", "-c", action="store_true", help="Generate coverage report"
     )
-    parser.add_argument(
-        "--file",
-        help="Run specific test file"
-    )
-    
+    parser.add_argument("--file", help="Run specific test file")
+
     args = parser.parse_args()
-    
+
     # Base pytest command
     cmd = ["python", "-m", "pytest"]
-    
+
     # Add verbosity
     if args.verbose:
         cmd.append("-v")
     else:
         cmd.append("-q")
-    
+
     # Add parallel execution
     if args.parallel:
         cmd.extend(["-n", "auto"])
-    
+
     # Add coverage if requested
     if args.coverage or args.type == "coverage":
-        cmd.extend([
-            "--cov=src/tidal_mcp",
-            "--cov-report=html:htmlcov",
-            "--cov-report=term-missing"
-        ])
-    
+        cmd.extend(
+            [
+                "--cov=src/tidal_mcp",
+                "--cov-report=html:htmlcov",
+                "--cov-report=term-missing",
+            ]
+        )
+
     # Select test type
     if args.file:
         cmd.append(f"tests/{args.file}")
@@ -82,24 +74,26 @@ def main():
     elif args.type == "service":
         cmd.append("tests/test_service.py")
     elif args.type == "coverage":
-        cmd.extend([
-            "--cov=src/tidal_mcp",
-            "--cov-report=html:htmlcov", 
-            "--cov-report=term-missing",
-            "--cov-fail-under=80"
-        ])
+        cmd.extend(
+            [
+                "--cov=src/tidal_mcp",
+                "--cov-report=html:htmlcov",
+                "--cov-report=term-missing",
+                "--cov-fail-under=80",
+            ]
+        )
     else:  # all
         cmd.append("tests/")
-    
+
     # Run the tests
     success = run_command(cmd)
-    
+
     if not success:
         print("\n❌ Tests failed!")
         sys.exit(1)
     else:
         print("\n✅ All tests passed!")
-        
+
         if args.coverage or args.type == "coverage":
             print("\n📊 Coverage report generated in htmlcov/index.html")
 

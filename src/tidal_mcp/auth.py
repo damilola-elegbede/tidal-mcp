@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 class TidalAuthError(Exception):
     """Custom exception for Tidal authentication errors."""
+
     pass
 
 
@@ -42,8 +43,9 @@ class TidalAuth:
     CLIENT_ID = "zU4XHVVkc2tDPo4t"  # Tidal's public client ID
     REDIRECT_URI = "http://localhost:8080/callback"
 
-    def __init__(self, client_id: Optional[str] = None,
-                 client_secret: Optional[str] = None):
+    def __init__(
+        self, client_id: Optional[str] = None, client_secret: Optional[str] = None
+    ):
         """
         Initialize Tidal authentication manager.
 
@@ -75,20 +77,19 @@ class TidalAuth:
         """Load saved session from file if it exists."""
         try:
             if self.session_file.exists():
-                with open(self.session_file, 'r') as f:
+                with open(self.session_file, "r") as f:
                     session_data = json.load(f)
 
-                self.access_token = session_data.get('access_token')
-                self.refresh_token = session_data.get('refresh_token')
-                self.session_id = session_data.get('session_id')
-                self.user_id = session_data.get('user_id')
-                self.country_code = session_data.get('country_code', 'US')
+                self.access_token = session_data.get("access_token")
+                self.refresh_token = session_data.get("refresh_token")
+                self.session_id = session_data.get("session_id")
+                self.user_id = session_data.get("user_id")
+                self.country_code = session_data.get("country_code", "US")
 
                 # Parse expiration time
-                expires_str = session_data.get('expires_at')
+                expires_str = session_data.get("expires_at")
                 if expires_str:
-                    self.token_expires_at = datetime.fromisoformat(
-                        expires_str)
+                    self.token_expires_at = datetime.fromisoformat(expires_str)
 
                 logger.info("Loaded existing session from file")
 
@@ -102,19 +103,18 @@ class TidalAuth:
         """Save current session to file."""
         try:
             session_data = {
-                'access_token': self.access_token,
-                'refresh_token': self.refresh_token,
-                'session_id': self.session_id,
-                'user_id': self.user_id,
-                'country_code': self.country_code,
-                'expires_at': (
-                    self.token_expires_at.isoformat()
-                    if self.token_expires_at else None
+                "access_token": self.access_token,
+                "refresh_token": self.refresh_token,
+                "session_id": self.session_id,
+                "user_id": self.user_id,
+                "country_code": self.country_code,
+                "expires_at": (
+                    self.token_expires_at.isoformat() if self.token_expires_at else None
                 ),
-                'saved_at': datetime.now().isoformat()
+                "saved_at": datetime.now().isoformat(),
             }
 
-            with open(self.session_file, 'w') as f:
+            with open(self.session_file, "w") as f:
                 json.dump(session_data, f, indent=2)
 
             # Set restrictive permissions (readable only by owner)
@@ -141,14 +141,20 @@ class TidalAuth:
             Tuple of (code_verifier, code_challenge)
         """
         # Generate code verifier (43-128 characters, URL-safe)
-        code_verifier = base64.urlsafe_b64encode(
-            secrets.token_bytes(32)
-        ).decode('utf-8').rstrip('=')
+        code_verifier = (
+            base64.urlsafe_b64encode(secrets.token_bytes(32))
+            .decode("utf-8")
+            .rstrip("=")
+        )
 
         # Generate code challenge (SHA256 hash of verifier, base64 encoded)
-        code_challenge = base64.urlsafe_b64encode(
-            hashlib.sha256(code_verifier.encode('utf-8')).digest()
-        ).decode('utf-8').rstrip('=')
+        code_challenge = (
+            base64.urlsafe_b64encode(
+                hashlib.sha256(code_verifier.encode("utf-8")).digest()
+            )
+            .decode("utf-8")
+            .rstrip("=")
+        )
 
         return code_verifier, code_challenge
 
@@ -184,9 +190,9 @@ class TidalAuth:
 
             # Try to load session using access token
             if self.tidal_session.load_oauth_session(
-                token_type='Bearer',
+                token_type="Bearer",
                 access_token=self.access_token,
-                refresh_token=self.refresh_token
+                refresh_token=self.refresh_token,
             ):
                 # Verify session is valid by making a test reques
                 try:
@@ -216,18 +222,16 @@ class TidalAuth:
 
             # Generate authorization URL
             auth_params = {
-                'response_type': 'code',
-                'client_id': self.client_id,
-                'redirect_uri': self.REDIRECT_URI,
-                'scope': 'r_usr w_usr w_sub',
-                'code_challenge': code_challenge,
-                'code_challenge_method': 'S256',
-                'state': secrets.token_urlsafe(32)
+                "response_type": "code",
+                "client_id": self.client_id,
+                "redirect_uri": self.REDIRECT_URI,
+                "scope": "r_usr w_usr w_sub",
+                "code_challenge": code_challenge,
+                "code_challenge_method": "S256",
+                "state": secrets.token_urlsafe(32),
             }
 
-            auth_url = (
-                f"{self.OAUTH_BASE_URL}/auth?{urlencode(auth_params)}"
-            )
+            auth_url = f"{self.OAUTH_BASE_URL}/auth?{urlencode(auth_params)}"
 
             print("\nOpening browser for Tidal authentication...")
             print("If the browser doesn't open automatically, visit:")
@@ -242,9 +246,7 @@ class TidalAuth:
                 raise TidalAuthError("Failed to capture authorization code")
 
             # Exchange code for tokens
-            success = await self._exchange_code_for_tokens(
-                auth_code, code_verifier
-            )
+            success = await self._exchange_code_for_tokens(auth_code, code_verifier)
             return success
 
         except Exception as e:
@@ -262,52 +264,43 @@ class TidalAuth:
             nonlocal auth_code
 
             # Extract authorization code from callback
-            code = request.query.get('code')
-            error = request.query.get('error')
+            code = request.query.get("code")
+            error = request.query.get("error")
 
             if error:
                 logger.error(f"OAuth2 error: {error}")
-                return web.Response(
-                    text=f"Authentication failed: {error}",
-                    status=400
-                )
+                return web.Response(text=f"Authentication failed: {error}", status=400)
 
             if code:
                 auth_code = code
                 logger.info("Authorization code received")
                 return web.Response(
-                    text=(
-                        "Authentication successful! You can close this "
-                        "window."
-                    ),
-                    content_type='text/html'
+                    text=("Authentication successful! You can close this window."),
+                    content_type="text/html",
                 )
 
-            return web.Response(
-                text="No authorization code received",
-                status=400
-            )
+            return web.Response(text="No authorization code received", status=400)
 
         try:
             app = web.Application()
-            app.router.add_get('/callback', callback_handler)
+            app.router.add_get("/callback", callback_handler)
 
             # Start server
             runner = web.AppRunner(app)
             await runner.setup()
-            site = web.TCPSite(runner, 'localhost', 8080)
+            site = web.TCPSite(runner, "localhost", 8080)
             await site.start()
 
-            logger.info(
-                "Local callback server started on http://localhost:8080"
-            )
+            logger.info("Local callback server started on http://localhost:8080")
 
             # Wait for callback (with timeout)
             timeout = 300  # 5 minutes
             start_time = asyncio.get_event_loop().time()
 
-            while (auth_code is None and
-                   (asyncio.get_event_loop().time() - start_time) < timeout):
+            while (
+                auth_code is None
+                and (asyncio.get_event_loop().time() - start_time) < timeout
+            ):
                 await asyncio.sleep(1)
 
             # Cleanup
@@ -322,43 +315,37 @@ class TidalAuth:
             logger.error(f"Failed to capture auth code: {e}")
             return None
 
-    async def _exchange_code_for_tokens(self, auth_code: str,
-                                        code_verifier: str) -> bool:
+    async def _exchange_code_for_tokens(
+        self, auth_code: str, code_verifier: str
+    ) -> bool:
         """Exchange authorization code for access and refresh tokens."""
         try:
             token_data = {
-                'grant_type': 'authorization_code',
-                'client_id': self.client_id,
-                'code': auth_code,
-                'redirect_uri': self.REDIRECT_URI,
-                'code_verifier': code_verifier,
+                "grant_type": "authorization_code",
+                "client_id": self.client_id,
+                "code": auth_code,
+                "redirect_uri": self.REDIRECT_URI,
+                "code_verifier": code_verifier,
             }
 
             async with aiohttp.ClientSession() as session:
                 async with session.post(
                     self.TOKEN_URL,
                     data=token_data,
-                    headers={
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    }
+                    headers={"Content-Type": "application/x-www-form-urlencoded"},
                 ) as response:
-
                     if response.status != 200:
                         error_text = await response.text()
-                        raise TidalAuthError(
-                            f"Token exchange failed: {error_text}"
-                        )
+                        raise TidalAuthError(f"Token exchange failed: {error_text}")
 
                     token_response = await response.json()
 
             # Extract token information
-            self.access_token = token_response.get('access_token')
-            self.refresh_token = token_response.get('refresh_token')
+            self.access_token = token_response.get("access_token")
+            self.refresh_token = token_response.get("refresh_token")
 
-            expires_in = token_response.get('expires_in', 3600)
-            self.token_expires_at = (
-                datetime.now() + timedelta(seconds=expires_in)
-            )
+            expires_in = token_response.get("expires_in", 3600)
+            self.token_expires_at = datetime.now() + timedelta(seconds=expires_in)
 
             if not self.access_token:
                 raise TidalAuthError("No access token received")
@@ -367,9 +354,9 @@ class TidalAuth:
             self.tidal_session = tidalapi.Session()
 
             if self.tidal_session.load_oauth_session(
-                token_type='Bearer',
+                token_type="Bearer",
                 access_token=self.access_token,
-                refresh_token=self.refresh_token
+                refresh_token=self.refresh_token,
             ):
                 # Get user information
                 user = self.tidal_session.user
@@ -380,9 +367,7 @@ class TidalAuth:
                 # Save session
                 self._save_session()
 
-                logger.info(
-                    f"Authentication successful for user {self.user_id}"
-                )
+                logger.info(f"Authentication successful for user {self.user_id}")
                 return True
             else:
                 error_msg = "Failed to initialize Tidal session with tokens"
@@ -402,8 +387,7 @@ class TidalAuth:
         if not self.access_token:
             return False
 
-        if (self.token_expires_at and
-                datetime.now() >= self.token_expires_at):
+        if self.token_expires_at and datetime.now() >= self.token_expires_at:
             return False
 
         # Check if tidalapi session is valid
@@ -433,20 +417,17 @@ class TidalAuth:
             logger.info("Refreshing access token...")
 
             token_data = {
-                'grant_type': 'refresh_token',
-                'client_id': self.client_id,
-                'refresh_token': self.refresh_token,
+                "grant_type": "refresh_token",
+                "client_id": self.client_id,
+                "refresh_token": self.refresh_token,
             }
 
             async with aiohttp.ClientSession() as session:
                 async with session.post(
                     self.TOKEN_URL,
                     data=token_data,
-                    headers={
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    }
+                    headers={"Content-Type": "application/x-www-form-urlencoded"},
                 ) as response:
-
                     if response.status != 200:
                         error_text = await response.text()
                         logger.error(f"Token refresh failed: {error_text}")
@@ -455,24 +436,22 @@ class TidalAuth:
                     token_response = await response.json()
 
             # Update tokens
-            self.access_token = token_response.get('access_token')
+            self.access_token = token_response.get("access_token")
 
             # Refresh token might be rotated
-            new_refresh_token = token_response.get('refresh_token')
+            new_refresh_token = token_response.get("refresh_token")
             if new_refresh_token:
                 self.refresh_token = new_refresh_token
 
-            expires_in = token_response.get('expires_in', 3600)
-            self.token_expires_at = (
-                datetime.now() + timedelta(seconds=expires_in)
-            )
+            expires_in = token_response.get("expires_in", 3600)
+            self.token_expires_at = datetime.now() + timedelta(seconds=expires_in)
 
             # Update tidalapi session
             if self.tidal_session:
                 self.tidal_session.load_oauth_session(
-                    token_type='Bearer',
+                    token_type="Bearer",
                     access_token=self.access_token,
-                    refresh_token=self.refresh_token
+                    refresh_token=self.refresh_token,
                 )
 
             # Save updated session
@@ -516,7 +495,7 @@ class TidalAuth:
 
         return {
             "Authorization": f"Bearer {self.access_token}",
-            "X-Tidal-Token": self.access_token
+            "X-Tidal-Token": self.access_token,
         }
 
     def get_tidal_session(self) -> tidalapi.Session:
@@ -530,9 +509,7 @@ class TidalAuth:
             TidalAuthError: If not authenticated
         """
         if not self.tidal_session or not self.is_authenticated():
-            raise TidalAuthError(
-                "Not authenticated. Call authenticate() first."
-            )
+            raise TidalAuthError("Not authenticated. Call authenticate() first.")
 
         return self.tidal_session
 
@@ -583,15 +560,13 @@ class TidalAuth:
                 return None
 
             return {
-                'id': user.id,
-                'username': getattr(user, 'username', None),
-                'country_code': user.country_code,
-                'subscription': {
-                    'type': getattr(user, 'subscription', {}).get('type'),
-                    'valid': getattr(
-                        user, 'subscription', {}
-                    ).get('valid', False)
-                }
+                "id": user.id,
+                "username": getattr(user, "username", None),
+                "country_code": user.country_code,
+                "subscription": {
+                    "type": getattr(user, "subscription", {}).get("type"),
+                    "valid": getattr(user, "subscription", {}).get("valid", False),
+                },
             }
 
         except Exception as e:

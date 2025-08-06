@@ -198,9 +198,7 @@ class TestSearchFunctionality:
     ):
         """Test successful track search."""
         # Mock search result
-        mock_tidal_session.search.return_value = {
-            "tracks": [sample_tidal_track]
-        }
+        mock_tidal_session.search.return_value = {"tracks": [sample_tidal_track]}
 
         with patch.object(
             service, "_convert_tidal_track", new_callable=AsyncMock
@@ -262,9 +260,7 @@ class TestSearchFunctionality:
         self, service, mock_tidal_session, sample_tidal_album
     ):
         """Test successful album search."""
-        mock_tidal_session.search.return_value = {
-            "albums": [sample_tidal_album]
-        }
+        mock_tidal_session.search.return_value = {"albums": [sample_tidal_album]}
 
         with patch.object(
             service, "_convert_tidal_album", new_callable=AsyncMock
@@ -286,9 +282,7 @@ class TestSearchFunctionality:
         self, service, mock_tidal_session, sample_tidal_artist
     ):
         """Test successful artist search."""
-        mock_tidal_session.search.return_value = {
-            "artists": [sample_tidal_artist]
-        }
+        mock_tidal_session.search.return_value = {"artists": [sample_tidal_artist]}
 
         with patch.object(
             service, "_convert_tidal_artist", new_callable=AsyncMock
@@ -306,9 +300,7 @@ class TestSearchFunctionality:
         self, service, mock_tidal_session, sample_tidal_playlist
     ):
         """Test successful playlist search."""
-        mock_tidal_session.search.return_value = {
-            "playlists": [sample_tidal_playlist]
-        }
+        mock_tidal_session.search.return_value = {"playlists": [sample_tidal_playlist]}
 
         with patch.object(
             service, "_convert_tidal_playlist", new_callable=AsyncMock
@@ -359,7 +351,6 @@ class TestSearchFunctionality:
                 return_value=[mock_playlist],
             ),
         ):
-
             results = await service.search_all("test query", limit=5)
 
             assert len(results.tracks) == 1
@@ -398,9 +389,7 @@ class TestPlaylistManagement:
             result = await service.get_playlist("playlist-uuid-123")
 
             assert result == mock_playlist
-            mock_tidal_session.playlist.assert_called_once_with(
-                "playlist-uuid-123"
-            )
+            mock_tidal_session.playlist.assert_called_once_with("playlist-uuid-123")
             mock_convert.assert_called_once_with(
                 sample_tidal_playlist, include_tracks=True
             )
@@ -420,7 +409,6 @@ class TestPlaylistManagement:
             patch("tidal_mcp.utils.validate_tidal_id", return_value=False),
             patch.object(service, "_is_uuid", return_value=False),
         ):
-
             result = await service.get_playlist("invalid-id")
             assert result is None
 
@@ -454,9 +442,7 @@ class TestPlaylistManagement:
         self, service, mock_tidal_session, sample_tidal_playlist
     ):
         """Test successful playlist creation."""
-        mock_tidal_session.user.create_playlist.return_value = (
-            sample_tidal_playlist
-        )
+        mock_tidal_session.user.create_playlist.return_value = sample_tidal_playlist
 
         with patch.object(
             service, "_convert_tidal_playlist", new_callable=AsyncMock
@@ -514,7 +500,6 @@ class TestPlaylistManagement:
             patch("tidal_mcp.utils.validate_tidal_id", return_value=False),
             patch.object(service, "_is_uuid", return_value=False),
         ):
-
             result = await service.add_tracks_to_playlist(
                 "invalid-playlist", ["123456"]
             )
@@ -565,16 +550,12 @@ class TestPlaylistManagement:
         self, service, mock_tidal_session, sample_tidal_playlist
     ):
         """Test successful user playlists retrieval."""
-        mock_tidal_session.user.playlists.return_value = [
-            sample_tidal_playlist
-        ]
+        mock_tidal_session.user.playlists.return_value = [sample_tidal_playlist]
 
         with patch.object(
             service, "_convert_tidal_playlist", new_callable=AsyncMock
         ) as mock_convert:
-            mock_playlist = Playlist(
-                id="playlist-uuid-123", title="Test Playlist"
-            )
+            mock_playlist = Playlist(id="playlist-uuid-123", title="Test Playlist")
             mock_convert.return_value = mock_playlist
 
             results = await service.get_user_playlists()
@@ -594,9 +575,7 @@ class TestFavoritesManagement:
         self, service, mock_tidal_session, sample_tidal_track
     ):
         """Test getting user's favorite tracks."""
-        mock_tidal_session.user.favorites.tracks.return_value = [
-            sample_tidal_track
-        ]
+        mock_tidal_session.user.favorites.tracks.return_value = [sample_tidal_track]
 
         with patch.object(
             service, "_convert_tidal_track", new_callable=AsyncMock
@@ -903,9 +882,7 @@ class TestDetailedItemRetrieval:
         with patch.object(
             service, "_convert_tidal_track", new_callable=AsyncMock
         ) as mock_convert:
-            mock_track = Track(
-                id="123456", title="Top Track", artists=[], duration=240
-            )
+            mock_track = Track(id="123456", title="Top Track", artists=[], duration=240)
             mock_convert.return_value = mock_track
 
             with patch("tidal_mcp.utils.validate_tidal_id", return_value=True):
@@ -947,9 +924,7 @@ class TestConversionMethods:
     """Test conversion methods for Tidal objects."""
 
     @pytest.mark.asyncio
-    async def test_convert_tidal_track_success(
-        self, service, sample_tidal_track
-    ):
+    async def test_convert_tidal_track_success(self, service, sample_tidal_track):
         """Test successful track conversion."""
         result = await service._convert_tidal_track(sample_tidal_track)
 
@@ -983,9 +958,7 @@ class TestConversionMethods:
         assert result is None
 
     @pytest.mark.asyncio
-    async def test_convert_tidal_album_success(
-        self, service, sample_tidal_album
-    ):
+    async def test_convert_tidal_album_success(self, service, sample_tidal_album):
         """Test successful album conversion."""
         result = await service._convert_tidal_album(sample_tidal_album)
 
@@ -1003,9 +976,7 @@ class TestConversionMethods:
         assert result.artists[0].name == "Test Artist"
 
     @pytest.mark.asyncio
-    async def test_convert_tidal_artist_success(
-        self, service, sample_tidal_artist
-    ):
+    async def test_convert_tidal_artist_success(self, service, sample_tidal_artist):
         """Test successful artist conversion."""
         result = await service._convert_tidal_artist(sample_tidal_artist)
 
@@ -1016,9 +987,7 @@ class TestConversionMethods:
         assert result.popularity == 85
 
     @pytest.mark.asyncio
-    async def test_convert_tidal_playlist_success(
-        self, service, sample_tidal_playlist
-    ):
+    async def test_convert_tidal_playlist_success(self, service, sample_tidal_playlist):
         """Test successful playlist conversion."""
         # Mock the tracks method to return empty list for simplicity
         sample_tidal_playlist.tracks.return_value = []
@@ -1060,9 +1029,7 @@ class TestErrorHandling:
         assert results == []
 
     @pytest.mark.asyncio
-    async def test_search_exception_handling(
-        self, service, mock_tidal_session
-    ):
+    async def test_search_exception_handling(self, service, mock_tidal_session):
         """Test handling of search exceptions."""
         mock_tidal_session.search.side_effect = Exception("Search API error")
 
@@ -1074,9 +1041,7 @@ class TestErrorHandling:
         self, service, mock_tidal_session, sample_tidal_track
     ):
         """Test handling of conversion errors."""
-        mock_tidal_session.search.return_value = {
-            "tracks": [sample_tidal_track]
-        }
+        mock_tidal_session.search.return_value = {"tracks": [sample_tidal_track]}
 
         with patch.object(
             service,
@@ -1089,13 +1054,9 @@ class TestErrorHandling:
             assert results == []
 
     @pytest.mark.asyncio
-    async def test_playlist_operation_error_handling(
-        self, service, mock_tidal_session
-    ):
+    async def test_playlist_operation_error_handling(self, service, mock_tidal_session):
         """Test handling of playlist operation errors."""
-        mock_tidal_session.playlist.side_effect = Exception(
-            "Playlist API error"
-        )
+        mock_tidal_session.playlist.side_effect = Exception("Playlist API error")
 
         result = await service.get_playlist("test-playlist")
         assert result is None

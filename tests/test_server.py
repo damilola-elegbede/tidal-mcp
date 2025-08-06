@@ -100,7 +100,6 @@ class TestEnsureService:
             patch("tidal_mcp.server.TidalAuth") as MockAuth,
             patch("tidal_mcp.server.TidalService") as MockService,
         ):
-
             mock_auth = Mock()
             mock_auth.is_authenticated.return_value = True
             MockAuth.return_value = mock_auth
@@ -111,9 +110,7 @@ class TestEnsureService:
             result = await ensure_service()
 
             assert result == mock_service
-            MockAuth.assert_called_once_with(
-                client_id=None, client_secret=None
-            )
+            MockAuth.assert_called_once_with(client_id=None, client_secret=None)
             MockService.assert_called_once_with(mock_auth)
 
     @pytest.mark.asyncio
@@ -135,7 +132,6 @@ class TestEnsureService:
             patch("tidal_mcp.server.TidalAuth") as MockAuth,
             patch("tidal_mcp.server.TidalService") as MockService,
         ):
-
             mock_auth = Mock()
             mock_auth.is_authenticated.return_value = True
             MockAuth.return_value = mock_auth
@@ -192,7 +188,6 @@ class TestTidalLogin:
             patch("tidal_mcp.server.TidalAuth", return_value=mock_auth),
             patch("tidal_mcp.server.TidalService") as MockService,
         ):
-
             mock_service = Mock()
             MockService.return_value = mock_service
 
@@ -220,9 +215,7 @@ class TestTidalLogin:
     async def test_tidal_login_exception(self):
         """Test login with exception."""
         mock_auth = Mock()
-        mock_auth.authenticate = AsyncMock(
-            side_effect=Exception("Network error")
-        )
+        mock_auth.authenticate = AsyncMock(side_effect=Exception("Network error"))
 
         with patch("tidal_mcp.server.TidalAuth", return_value=mock_auth):
             result = await tidal_login.fn()
@@ -241,18 +234,14 @@ class TestTidalSearch:
         track = Track(id="123", title="Test Track", artists=[], duration=240)
         mock_service.search_tracks.return_value = [track]
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             result = await tidal_search.fn("test query", "tracks", 10, 0)
 
             assert result["query"] == "test query"
             assert result["content_type"] == "tracks"
             assert len(result["results"]["tracks"]) == 1
             assert result["total_results"] == 1
-            mock_service.search_tracks.assert_called_once_with(
-                "test query", 10, 0
-            )
+            mock_service.search_tracks.assert_called_once_with("test query", 10, 0)
 
     @pytest.mark.asyncio
     async def test_search_albums(self, mock_service):
@@ -260,16 +249,12 @@ class TestTidalSearch:
         album = Album(id="456", title="Test Album", artists=[])
         mock_service.search_albums.return_value = [album]
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             result = await tidal_search.fn("test query", "albums", 10, 0)
 
             assert result["content_type"] == "albums"
             assert len(result["results"]["albums"]) == 1
-            mock_service.search_albums.assert_called_once_with(
-                "test query", 10, 0
-            )
+            mock_service.search_albums.assert_called_once_with("test query", 10, 0)
 
     @pytest.mark.asyncio
     async def test_search_artists(self, mock_service):
@@ -277,16 +262,12 @@ class TestTidalSearch:
         artist = Artist(id="789", name="Test Artist")
         mock_service.search_artists.return_value = [artist]
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             result = await tidal_search.fn("test query", "artists", 10, 0)
 
             assert result["content_type"] == "artists"
             assert len(result["results"]["artists"]) == 1
-            mock_service.search_artists.assert_called_once_with(
-                "test query", 10, 0
-            )
+            mock_service.search_artists.assert_called_once_with("test query", 10, 0)
 
     @pytest.mark.asyncio
     async def test_search_playlists(self, mock_service):
@@ -294,16 +275,12 @@ class TestTidalSearch:
         playlist = Playlist(id="playlist123", title="Test Playlist")
         mock_service.search_playlists.return_value = [playlist]
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             result = await tidal_search.fn("test query", "playlists", 10, 0)
 
             assert result["content_type"] == "playlists"
             assert len(result["results"]["playlists"]) == 1
-            mock_service.search_playlists.assert_called_once_with(
-                "test query", 10, 0
-            )
+            mock_service.search_playlists.assert_called_once_with("test query", 10, 0)
 
     @pytest.mark.asyncio
     async def test_search_all(self, mock_service):
@@ -316,9 +293,7 @@ class TestTidalSearch:
         )
         mock_service.search_all.return_value = search_results
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             result = await tidal_search.fn("test query", "all", 20)
 
             assert result["content_type"] == "all"
@@ -328,9 +303,7 @@ class TestTidalSearch:
     @pytest.mark.asyncio
     async def test_search_parameter_clamping(self, mock_service):
         """Test search parameter validation and clamping."""
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             # Test limit clamping
             # Should clamp to 50
             await tidal_search.fn("query", "tracks", 100, 0)
@@ -358,9 +331,7 @@ class TestTidalSearch:
         """Test search with general exception."""
         mock_service.search_tracks.side_effect = Exception("API error")
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             result = await tidal_search.fn("test query", "tracks")
 
             assert "error" in result
@@ -376,25 +347,19 @@ class TestPlaylistTools:
         playlist = Playlist(id="playlist123", title="Test Playlist")
         mock_service.get_playlist.return_value = playlist
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             result = await tidal_get_playlist.fn("playlist123", True)
 
             assert result["success"] is True
             assert result["playlist"]["id"] == "playlist123"
-            mock_service.get_playlist.assert_called_once_with(
-                "playlist123", True
-            )
+            mock_service.get_playlist.assert_called_once_with("playlist123", True)
 
     @pytest.mark.asyncio
     async def test_get_playlist_not_found(self, mock_service):
         """Test playlist not found."""
         mock_service.get_playlist.return_value = None
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             result = await tidal_get_playlist.fn("nonexistent")
 
             assert result["success"] is False
@@ -406,12 +371,8 @@ class TestPlaylistTools:
         playlist = Playlist(id="new_playlist", title="New Playlist")
         mock_service.create_playlist.return_value = playlist
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
-            result = await tidal_create_playlist.fn(
-                "New Playlist", "Description"
-            )
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
+            result = await tidal_create_playlist.fn("New Playlist", "Description")
 
             assert result["success"] is True
             assert "Created playlist" in result["message"]
@@ -425,9 +386,7 @@ class TestPlaylistTools:
         """Test playlist creation failure."""
         mock_service.create_playlist.return_value = None
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             result = await tidal_create_playlist.fn("Failed Playlist")
 
             assert result["success"] is False
@@ -438,12 +397,8 @@ class TestPlaylistTools:
         """Test successful track addition to playlist."""
         mock_service.add_tracks_to_playlist.return_value = True
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
-            result = await tidal_add_to_playlist.fn(
-                "playlist123", ["track1", "track2"]
-            )
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
+            result = await tidal_add_to_playlist.fn("playlist123", ["track1", "track2"])
 
             assert result["success"] is True
             assert "Added 2 tracks" in result["message"]
@@ -454,9 +409,7 @@ class TestPlaylistTools:
     @pytest.mark.asyncio
     async def test_add_to_playlist_no_tracks(self, mock_service):
         """Test adding empty track list to playlist."""
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             result = await tidal_add_to_playlist.fn("playlist123", [])
 
             assert result["success"] is False
@@ -467,9 +420,7 @@ class TestPlaylistTools:
         """Test failed track addition to playlist."""
         mock_service.add_tracks_to_playlist.return_value = False
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             result = await tidal_add_to_playlist.fn("playlist123", ["track1"])
 
             assert result["success"] is False
@@ -480,12 +431,8 @@ class TestPlaylistTools:
         """Test successful track removal from playlist."""
         mock_service.remove_tracks_from_playlist.return_value = True
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
-            result = await tidal_remove_from_playlist.fn(
-                "playlist123", [0, 2, 1]
-            )
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
+            result = await tidal_remove_from_playlist.fn("playlist123", [0, 2, 1])
 
             assert result["success"] is True
             assert "Removed 3 tracks" in result["message"]
@@ -496,9 +443,7 @@ class TestPlaylistTools:
     @pytest.mark.asyncio
     async def test_remove_from_playlist_no_indices(self, mock_service):
         """Test removing with empty indices list."""
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             result = await tidal_remove_from_playlist.fn("playlist123", [])
 
             assert result["success"] is False
@@ -513,9 +458,7 @@ class TestPlaylistTools:
         ]
         mock_service.get_user_playlists.return_value = playlists
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             result = await tidal_get_user_playlists.fn(30, 5)
 
             assert len(result["playlists"]) == 2
@@ -532,31 +475,23 @@ class TestFavoritesTools:
         tracks = [Track(id="t1", title="Track 1", artists=[], duration=240)]
         mock_service.get_user_favorites.return_value = tracks
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             result = await tidal_get_favorites.fn("tracks", 25, 10)
 
             assert result["content_type"] == "tracks"
             assert len(result["favorites"]) == 1
             assert result["total_results"] == 1
-            mock_service.get_user_favorites.assert_called_once_with(
-                "tracks", 25, 10
-            )
+            mock_service.get_user_favorites.assert_called_once_with("tracks", 25, 10)
 
     @pytest.mark.asyncio
     async def test_get_favorites_parameter_clamping(self, mock_service):
         """Test favorites parameter validation."""
         mock_service.get_user_favorites.return_value = []
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             # Test limit clamping to max 100
             await tidal_get_favorites.fn("tracks", 150, 0)
-            mock_service.get_user_favorites.assert_called_with(
-                "tracks", 100, 0
-            )
+            mock_service.get_user_favorites.assert_called_with("tracks", 100, 0)
 
             # Test negative offset clamping
             await tidal_get_favorites.fn("tracks", 50, -10)
@@ -567,25 +502,19 @@ class TestFavoritesTools:
         """Test successful favorite addition."""
         mock_service.add_to_favorites.return_value = True
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             result = await tidal_add_favorite.fn("track123", "track")
 
             assert result["success"] is True
             assert "Added track track123 to favorites" in result["message"]
-            mock_service.add_to_favorites.assert_called_once_with(
-                "track123", "track"
-            )
+            mock_service.add_to_favorites.assert_called_once_with("track123", "track")
 
     @pytest.mark.asyncio
     async def test_add_favorite_failure(self, mock_service):
         """Test failed favorite addition."""
         mock_service.add_to_favorites.return_value = False
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             result = await tidal_add_favorite.fn("track123", "track")
 
             assert result["success"] is False
@@ -596,9 +525,7 @@ class TestFavoritesTools:
         """Test successful favorite removal."""
         mock_service.remove_from_favorites.return_value = True
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             result = await tidal_remove_favorite.fn("album456", "album")
 
             assert result["success"] is True
@@ -620,9 +547,7 @@ class TestRecommendationTools:
         ]
         mock_service.get_recommended_tracks.return_value = tracks
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             result = await tidal_get_recommendations.fn(75)
 
             assert len(result["recommendations"]) == 2
@@ -634,9 +559,7 @@ class TestRecommendationTools:
         """Test recommendations parameter clamping."""
         mock_service.get_recommended_tracks.return_value = []
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             # Test limit clamping to max 100
             await tidal_get_recommendations.fn(150)
             mock_service.get_recommended_tracks.assert_called_once_with(100)
@@ -650,9 +573,7 @@ class TestRecommendationTools:
         ]
         mock_service.get_track_radio.return_value = radio_tracks
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             result = await tidal_get_track_radio.fn("seed123", 30)
 
             assert result["seed_track_id"] == "seed123"
@@ -667,14 +588,10 @@ class TestDetailedItemRetrieval:
     @pytest.mark.asyncio
     async def test_get_track_success(self, mock_service):
         """Test successful track retrieval."""
-        track = Track(
-            id="track123", title="Detailed Track", artists=[], duration=250
-        )
+        track = Track(id="track123", title="Detailed Track", artists=[], duration=250)
         mock_service.get_track.return_value = track
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             result = await tidal_get_track.fn("track123")
 
             assert result["success"] is True
@@ -687,9 +604,7 @@ class TestDetailedItemRetrieval:
         """Test track not found."""
         mock_service.get_track.return_value = None
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             result = await tidal_get_track.fn("nonexistent")
 
             assert result["success"] is False
@@ -701,9 +616,7 @@ class TestDetailedItemRetrieval:
         album = Album(id="album456", title="Detailed Album", artists=[])
         mock_service.get_album.return_value = album
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             result = await tidal_get_album.fn("album456", False)
 
             assert result["success"] is True
@@ -717,9 +630,7 @@ class TestDetailedItemRetrieval:
         artist = Artist(id="artist789", name="Detailed Artist", popularity=90)
         mock_service.get_artist.return_value = artist
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             result = await tidal_get_artist.fn("artist789")
 
             assert result["success"] is True
@@ -766,9 +677,7 @@ class TestErrorHandling:
         """Test general exception handling."""
         mock_service.search_tracks.side_effect = Exception("Unexpected error")
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             result = await tidal_search.fn("query", "tracks")
 
             assert "error" in result
@@ -778,13 +687,9 @@ class TestErrorHandling:
     async def test_tool_specific_exceptions(self, mock_service):
         """Test tool-specific exception handling."""
         # Test playlist creation exception
-        mock_service.create_playlist.side_effect = Exception(
-            "Playlist creation failed"
-        )
+        mock_service.create_playlist.side_effect = Exception("Playlist creation failed")
 
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             result = await tidal_create_playlist.fn("Test Playlist")
 
             assert "error" in result
@@ -797,9 +702,7 @@ class TestParameterValidation:
     @pytest.mark.asyncio
     async def test_empty_parameters(self, mock_service):
         """Test tools with empty parameters."""
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             # Test empty query search
             result = await tidal_search.fn("", "tracks")
             assert result["query"] == ""
@@ -815,9 +718,7 @@ class TestParameterValidation:
     @pytest.mark.asyncio
     async def test_boundary_values(self, mock_service):
         """Test boundary value handling."""
-        with patch(
-            "tidal_mcp.server.ensure_service", return_value=mock_service
-        ):
+        with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             # Test minimum and maximum limits
             await tidal_search.fn("query", "tracks", 1, 0)  # Minimum limit
             mock_service.search_tracks.assert_called_with("query", 1, 0)
@@ -838,4 +739,3 @@ class TestParameterValidation:
 if __name__ == "__main__":
     # Run tests directly
     pytest.main([__file__, "-v"])
-

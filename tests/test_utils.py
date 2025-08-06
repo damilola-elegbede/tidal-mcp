@@ -51,9 +51,7 @@ class TestSanitizeQuery:
         assert sanitize_query("") == ""
         assert sanitize_query(None) == ""
         assert sanitize_query("   ") == ""
-        assert (
-            sanitize_query("!@#$%^&*()") == "!@#$%^&*()"
-        )  # These should be preserved
+        assert sanitize_query("!@#$%^&*()") == "!@#$%^&*()"  # These should be preserved
 
     def test_sanitize_query_unicode(self):
         """Test query with unicode characters."""
@@ -397,9 +395,7 @@ class TestBuildSearchUrl:
         assert url == "https://api.com"
 
         # URL with existing query params
-        url = build_search_url(
-            "https://api.com?existing=param", "query", ["tracks"]
-        )
+        url = build_search_url("https://api.com?existing=param", "query", ["tracks"])
         assert "existing=param&query=" in url
 
 
@@ -454,8 +450,7 @@ class TestMergeArtistNames:
         ]
 
         assert (
-            merge_artist_names(artists)
-            == "First Artist, Second Artist, Third Artist"
+            merge_artist_names(artists) == "First Artist, Second Artist, Third Artist"
         )
 
     def test_merge_artist_names_with_empty_names(self):
@@ -557,9 +552,7 @@ class TestCalculatePlaylistStats:
         stats = calculate_playlist_stats(tracks)
 
         assert stats["total_tracks"] == 3
-        assert (
-            stats["total_duration"] == 150
-        )  # Only first track has valid duration
+        assert stats["total_duration"] == 150  # Only first track has valid duration
         assert stats["explicit_tracks"] == 1  # Only second track is explicit
         assert stats["unique_artists"] == 0  # No valid artist names
         assert stats["unique_albums"] == 0  # No valid album titles
@@ -598,9 +591,7 @@ class TestUtilsIntegration:
         """Test safe_get with complex nested data."""
         complex_data = {
             "playlist": {
-                "tracks": [
-                    {"artist": {"name": "Test Artist"}, "duration": 245}
-                ],
+                "tracks": [{"artist": {"name": "Test Artist"}, "duration": 245}],
                 "stats": calculate_playlist_stats(
                     [{"duration": 200, "artists": [{"name": "Artist"}]}]
                 ),

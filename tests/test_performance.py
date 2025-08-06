@@ -34,9 +34,7 @@ class TestPerformanceBenchmarks:
         # Mock search to return varying amounts of data
         def mock_search_tracks(query, limit=20, offset=0):
             tracks = []
-            for i in range(
-                min(limit, 100)
-            ):  # Cap at 100 for performance tests
+            for i in range(min(limit, 100)):  # Cap at 100 for performance tests
                 track = Track(
                     id=str(i + offset),
                     title=f"Track {i + offset}",
@@ -80,9 +78,7 @@ class TestPerformanceBenchmarks:
 
         assert len(results) == 100
         # Should complete large search in under 200ms
-        assert (
-            elapsed < 0.2
-        ), f"Large search took {elapsed:.3f}s, expected < 0.2s"
+        assert elapsed < 0.2, f"Large search took {elapsed:.3f}s, expected < 0.2s"
 
     @pytest.mark.asyncio
     async def test_concurrent_search_performance(self, mock_service):
@@ -92,9 +88,7 @@ class TestPerformanceBenchmarks:
         # Create 20 concurrent search tasks
         tasks = []
         for i in range(20):
-            task = mock_service.search_tracks(
-                f"concurrent query {i}", limit=20
-            )
+            task = mock_service.search_tracks(f"concurrent query {i}", limit=20)
             tasks.append(task)
 
         # Execute all tasks concurrently
@@ -106,9 +100,9 @@ class TestPerformanceBenchmarks:
         assert all(len(result) == 20 for result in results)
 
         # 20 concurrent searches should complete in under 500ms
-        assert (
-            elapsed < 0.5
-        ), f"Concurrent searches took {elapsed:.3f}s, expected < 0.5s"
+        assert elapsed < 0.5, (
+            f"Concurrent searches took {elapsed:.3f}s, expected < 0.5s"
+        )
 
     def test_model_serialization_performance(self):
         """Test performance of model serialization."""
@@ -133,9 +127,7 @@ class TestPerformanceBenchmarks:
         elapsed = time.time() - start_time
 
         # 1000 serializations should complete in under 100ms
-        assert (
-            elapsed < 0.1
-        ), f"Serialization took {elapsed:.3f}s, expected < 0.1s"
+        assert elapsed < 0.1, f"Serialization took {elapsed:.3f}s, expected < 0.1s"
 
     def test_utility_function_performance(self):
         """Test performance of utility functions."""
@@ -149,9 +141,9 @@ class TestPerformanceBenchmarks:
         elapsed = time.time() - start_time
 
         # 10k duration formats should complete in under 50ms
-        assert (
-            elapsed < 0.05
-        ), f"Duration formatting took {elapsed:.3f}s, expected < 0.05s"
+        assert elapsed < 0.05, (
+            f"Duration formatting took {elapsed:.3f}s, expected < 0.05s"
+        )
 
         # Test query sanitization performance
         test_queries = [
@@ -172,9 +164,9 @@ class TestPerformanceBenchmarks:
         elapsed = time.time() - start_time
 
         # 5k query sanitizations should complete in under 50ms
-        assert (
-            elapsed < 0.05
-        ), f"Query sanitization took {elapsed:.3f}s, expected < 0.05s"
+        assert elapsed < 0.05, (
+            f"Query sanitization took {elapsed:.3f}s, expected < 0.05s"
+        )
 
 
 @pytest.mark.slow
@@ -204,9 +196,9 @@ class TestMemoryUsage:
         memory_per_track = (after_creation_memory - initial_memory) / 1000
 
         # Each track should use less than 10KB of memory
-        assert (
-            memory_per_track < 10240
-        ), f"Memory per track: {memory_per_track:.0f} bytes"
+        assert memory_per_track < 10240, (
+            f"Memory per track: {memory_per_track:.0f} bytes"
+        )
 
         # Clean up
         del tracks
@@ -302,9 +294,7 @@ class TestConcurrencyStress:
 
         # Should complete in under 2 seconds despite 100ms total delay
         # (due to concurrency)
-        assert (
-            elapsed < 2.0
-        ), f"High concurrency took {elapsed:.3f}s, expected < 2.0s"
+        assert elapsed < 2.0, f"High concurrency took {elapsed:.3f}s, expected < 2.0s"
 
     @pytest.mark.asyncio
     async def test_mixed_operation_concurrency(self, mock_auth_service):
@@ -350,9 +340,7 @@ class TestConcurrencyStress:
         assert len(results) == 60
 
         # Should complete mixed operations efficiently
-        assert (
-            elapsed < 1.0
-        ), f"Mixed operations took {elapsed:.3f}s, expected < 1.0s"
+        assert elapsed < 1.0, f"Mixed operations took {elapsed:.3f}s, expected < 1.0s"
 
     def test_thread_safety(self):
         """Test thread safety of utility functions."""
@@ -394,9 +382,7 @@ class TestConcurrencyStress:
 
         # Check results
         assert len(errors) == 0, f"Thread safety errors: {errors}"
-        assert (
-            len(results) == 10
-        ), f"Expected 10 successful threads, got {len(results)}"
+        assert len(results) == 10, f"Expected 10 successful threads, got {len(results)}"
 
 
 @pytest.mark.slow
@@ -435,9 +421,9 @@ class TestScalabilityLimits:
         assert playlist_dict["number_of_tracks"] == 10000
 
         # Should handle large playlist in under 1 second
-        assert (
-            elapsed < 1.0
-        ), f"Large playlist handling took {elapsed:.3f}s, expected < 1.0s"
+        assert elapsed < 1.0, (
+            f"Large playlist handling took {elapsed:.3f}s, expected < 1.0s"
+        )
 
     def test_extreme_search_results(self):
         """Test handling of extreme search result sizes."""
@@ -475,9 +461,7 @@ class TestScalabilityLimits:
         assert len(results_dict["playlists"]) == 1000
 
         # Should handle extreme results in under 500ms
-        assert (
-            elapsed < 0.5
-        ), f"Extreme results took {elapsed:.3f}s, expected < 0.5s"
+        assert elapsed < 0.5, f"Extreme results took {elapsed:.3f}s, expected < 0.5s"
 
     def test_deep_nesting_performance(self):
         """Test performance with deeply nested data structures."""
@@ -486,10 +470,7 @@ class TestScalabilityLimits:
 
         for i in range(100):
             # Multiple artists per track
-            artists = [
-                Artist(id=str(j), name=f"Artist {j}")
-                for j in range(i % 10 + 1)
-            ]
+            artists = [Artist(id=str(j), name=f"Artist {j}") for j in range(i % 10 + 1)]
 
             # Album with multiple artists
             album_artists = [
@@ -523,9 +504,7 @@ class TestScalabilityLimits:
         elapsed = time.time() - start_time
 
         # Should handle complex nesting efficiently
-        assert (
-            elapsed < 0.1
-        ), f"Deep nesting took {elapsed:.3f}s, expected < 0.1s"
+        assert elapsed < 0.1, f"Deep nesting took {elapsed:.3f}s, expected < 0.1s"
 
 
 @pytest.mark.slow
@@ -565,9 +544,9 @@ class TestResourceLeaks:
         memory_growth = final_memory - initial_memory
 
         # Memory growth should be minimal (< 50MB)
-        assert (
-            memory_growth < 50 * 1024 * 1024
-        ), f"Memory growth: {memory_growth // 1024 // 1024}MB"
+        assert memory_growth < 50 * 1024 * 1024, (
+            f"Memory growth: {memory_growth // 1024 // 1024}MB"
+        )
 
     def test_model_reference_cycles(self):
         """Test that models don't create reference cycles."""
@@ -576,9 +555,7 @@ class TestResourceLeaks:
         # Create tracks with circular references
         artist = Artist(id="1", name="Test Artist")
         album = Album(id="1", title="Test Album", artists=[artist])
-        track = Track(
-            id="1", title="Test Track", artists=[artist], album=album
-        )
+        track = Track(id="1", title="Test Track", artists=[artist], album=album)
 
         # Create weak references
         artist_ref = weakref.ref(artist)

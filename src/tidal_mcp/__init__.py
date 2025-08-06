@@ -24,5 +24,5 @@ __all__ = [
     "Album",
     "Artist",
     "Playlist",
-    "SearchResults"
+    "SearchResults",
 ]

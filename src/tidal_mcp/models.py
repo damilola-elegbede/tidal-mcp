@@ -22,7 +22,7 @@ class Artist:
     popularity: Optional[int] = None
 
     @classmethod
-    def from_api_data(cls, data: Dict[str, Any]) -> 'Artist':
+    def from_api_data(cls, data: Dict[str, Any]) -> "Artist":
         """
         Create Artist instance from Tidal API response data.
 
@@ -36,21 +36,21 @@ class Artist:
             data = {}
 
         return cls(
-            id=str(data.get('id', '')),
-            name=data.get('name', ''),
-            url=data.get('url'),
-            picture=data.get('picture'),
-            popularity=data.get('popularity')
+            id=str(data.get("id", "")),
+            name=data.get("name", ""),
+            url=data.get("url"),
+            picture=data.get("picture"),
+            popularity=data.get("popularity"),
         )
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert artist to dictionary representation."""
         return {
-            'id': self.id,
-            'name': self.name,
-            'url': self.url,
-            'picture': self.picture,
-            'popularity': self.popularity
+            "id": self.id,
+            "name": self.name,
+            "url": self.url,
+            "picture": self.picture,
+            "popularity": self.popularity,
         }
 
 
@@ -69,7 +69,7 @@ class Album:
     explicit: bool = False
 
     @classmethod
-    def from_api_data(cls, data: Dict[str, Any]) -> 'Album':
+    def from_api_data(cls, data: Dict[str, Any]) -> "Album":
         """
         Create Album instance from Tidal API response data.
 
@@ -82,36 +82,35 @@ class Album:
         if data is None or not isinstance(data, dict):
             data = {}
         artists = []
-        if 'artists' in data:
-            artists = [Artist.from_api_data(artist)
-                       for artist in data['artists']]
-        elif 'artist' in data:
-            artists = [Artist.from_api_data(data['artist'])]
+        if "artists" in data:
+            artists = [Artist.from_api_data(artist) for artist in data["artists"]]
+        elif "artist" in data:
+            artists = [Artist.from_api_data(data["artist"])]
 
         return cls(
-            id=str(data.get('id', '')),
-            title=data.get('title', ''),
+            id=str(data.get("id", "")),
+            title=data.get("title", ""),
             artists=artists,
-            release_date=data.get('releaseDate'),
-            duration=data.get('duration'),
-            number_of_tracks=data.get('numberOfTracks'),
-            cover=data.get('cover'),
-            url=data.get('url'),
-            explicit=data.get('explicit', False)
+            release_date=data.get("releaseDate"),
+            duration=data.get("duration"),
+            number_of_tracks=data.get("numberOfTracks"),
+            cover=data.get("cover"),
+            url=data.get("url"),
+            explicit=data.get("explicit", False),
         )
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert album to dictionary representation."""
         return {
-            'id': self.id,
-            'title': self.title,
-            'artists': [artist.to_dict() for artist in self.artists],
-            'release_date': self.release_date,
-            'duration': self.duration,
-            'number_of_tracks': self.number_of_tracks,
-            'cover': self.cover,
-            'url': self.url,
-            'explicit': self.explicit
+            "id": self.id,
+            "title": self.title,
+            "artists": [artist.to_dict() for artist in self.artists],
+            "release_date": self.release_date,
+            "duration": self.duration,
+            "number_of_tracks": self.number_of_tracks,
+            "cover": self.cover,
+            "url": self.url,
+            "explicit": self.explicit,
         }
 
 
@@ -132,7 +131,7 @@ class Track:
     quality: Optional[str] = None  # e.g., "LOSSLESS", "HIGH", "LOW"
 
     @classmethod
-    def from_api_data(cls, data: Dict[str, Any]) -> 'Track':
+    def from_api_data(cls, data: Dict[str, Any]) -> "Track":
         """
         Create Track instance from Tidal API response data.
 
@@ -145,44 +144,43 @@ class Track:
         if data is None or not isinstance(data, dict):
             data = {}
         artists = []
-        if 'artists' in data:
-            artists = [Artist.from_api_data(artist)
-                       for artist in data['artists']]
-        elif 'artist' in data:
-            artists = [Artist.from_api_data(data['artist'])]
+        if "artists" in data:
+            artists = [Artist.from_api_data(artist) for artist in data["artists"]]
+        elif "artist" in data:
+            artists = [Artist.from_api_data(data["artist"])]
 
         album = None
-        if 'album' in data:
-            album = Album.from_api_data(data['album'])
+        if "album" in data:
+            album = Album.from_api_data(data["album"])
 
         return cls(
-            id=str(data.get('id', '')),
-            title=data.get('title', ''),
+            id=str(data.get("id", "")),
+            title=data.get("title", ""),
             artists=artists,
             album=album,
-            duration=data.get('duration'),
-            track_number=data.get('trackNumber'),
-            disc_number=data.get('discNumber'),
-            url=data.get('url'),
-            stream_url=data.get('streamUrl'),
-            explicit=data.get('explicit', False),
-            quality=data.get('quality')
+            duration=data.get("duration"),
+            track_number=data.get("trackNumber"),
+            disc_number=data.get("discNumber"),
+            url=data.get("url"),
+            stream_url=data.get("streamUrl"),
+            explicit=data.get("explicit", False),
+            quality=data.get("quality"),
         )
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert track to dictionary representation."""
         return {
-            'id': self.id,
-            'title': self.title,
-            'artists': [artist.to_dict() for artist in self.artists],
-            'album': self.album.to_dict() if self.album else None,
-            'duration': self.duration,
-            'track_number': self.track_number,
-            'disc_number': self.disc_number,
-            'url': self.url,
-            'stream_url': self.stream_url,
-            'explicit': self.explicit,
-            'quality': self.quality
+            "id": self.id,
+            "title": self.title,
+            "artists": [artist.to_dict() for artist in self.artists],
+            "album": self.album.to_dict() if self.album else None,
+            "duration": self.duration,
+            "track_number": self.track_number,
+            "disc_number": self.disc_number,
+            "url": self.url,
+            "stream_url": self.stream_url,
+            "explicit": self.explicit,
+            "quality": self.quality,
         }
 
     @property
@@ -219,7 +217,7 @@ class Playlist:
     public: bool = True
 
     @classmethod
-    def from_api_data(cls, data: Dict[str, Any]) -> 'Playlist':
+    def from_api_data(cls, data: Dict[str, Any]) -> "Playlist":
         """
         Create Playlist instance from Tidal API response data.
 
@@ -232,58 +230,59 @@ class Playlist:
         if data is None or not isinstance(data, dict):
             data = {}
         tracks = []
-        if 'tracks' in data:
-            tracks = [Track.from_api_data(track) for track in data['tracks']]
+        if "tracks" in data:
+            tracks = [Track.from_api_data(track) for track in data["tracks"]]
 
         created_at = None
-        if 'created' in data:
+        if "created" in data:
             try:
                 created_at = datetime.fromisoformat(
-                    data['created'].replace('Z', '+00:00'))
+                    data["created"].replace("Z", "+00:00")
+                )
             except (ValueError, AttributeError):
                 pass
 
         updated_at = None
-        if 'lastUpdated' in data:
+        if "lastUpdated" in data:
             try:
                 updated_at = datetime.fromisoformat(
-                    data['lastUpdated'].replace('Z', '+00:00'))
+                    data["lastUpdated"].replace("Z", "+00:00")
+                )
             except (ValueError, AttributeError):
                 pass
 
         return cls(
-            id=str(data.get('uuid', data.get('id', ''))),
-            title=data.get('title', ''),
-            description=data.get('description'),
-            creator=(data.get('creator', {}).get('name')
-                     if data.get('creator') else None),
+            id=str(data.get("uuid", data.get("id", ""))),
+            title=data.get("title", ""),
+            description=data.get("description"),
+            creator=(
+                data.get("creator", {}).get("name") if data.get("creator") else None
+            ),
             tracks=tracks,
-            number_of_tracks=data.get('numberOfTracks'),
-            duration=data.get('duration'),
+            number_of_tracks=data.get("numberOfTracks"),
+            duration=data.get("duration"),
             created_at=created_at,
             updated_at=updated_at,
-            image=data.get('image'),
-            url=data.get('url'),
-            public=data.get('publicPlaylist', True)
+            image=data.get("image"),
+            url=data.get("url"),
+            public=data.get("publicPlaylist", True),
         )
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert playlist to dictionary representation."""
         return {
-            'id': self.id,
-            'title': self.title,
-            'description': self.description,
-            'creator': self.creator,
-            'tracks': [track.to_dict() for track in self.tracks],
-            'number_of_tracks': self.number_of_tracks,
-            'duration': self.duration,
-            'created_at': (self.created_at.isoformat()
-                           if self.created_at else None),
-            'updated_at': (self.updated_at.isoformat()
-                           if self.updated_at else None),
-            'image': self.image,
-            'url': self.url,
-            'public': self.public
+            "id": self.id,
+            "title": self.title,
+            "description": self.description,
+            "creator": self.creator,
+            "tracks": [track.to_dict() for track in self.tracks],
+            "number_of_tracks": self.number_of_tracks,
+            "duration": self.duration,
+            "created_at": (self.created_at.isoformat() if self.created_at else None),
+            "updated_at": (self.updated_at.isoformat() if self.updated_at else None),
+            "image": self.image,
+            "url": self.url,
+            "public": self.public,
         }
 
     @property
@@ -314,14 +313,18 @@ class SearchResults:
     def to_dict(self) -> Dict[str, Any]:
         """Convert search results to dictionary representation."""
         return {
-            'tracks': [track.to_dict() for track in self.tracks],
-            'albums': [album.to_dict() for album in self.albums],
-            'artists': [artist.to_dict() for artist in self.artists],
-            'playlists': [playlist.to_dict() for playlist in self.playlists]
+            "tracks": [track.to_dict() for track in self.tracks],
+            "albums": [album.to_dict() for album in self.albums],
+            "artists": [artist.to_dict() for artist in self.artists],
+            "playlists": [playlist.to_dict() for playlist in self.playlists],
         }
 
     @property
     def total_results(self) -> int:
         """Get total number of results across all types."""
-        return (len(self.tracks) + len(self.albums) +
-                len(self.artists) + len(self.playlists))
+        return (
+            len(self.tracks)
+            + len(self.albums)
+            + len(self.artists)
+            + len(self.playlists)
+        )

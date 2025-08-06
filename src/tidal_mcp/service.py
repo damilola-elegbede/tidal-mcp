@@ -22,11 +22,13 @@ logger = logging.getLogger(__name__)
 
 def async_to_sync(func):
     """Decorator to run sync tidalapi calls in thread pool."""
+
     @functools.wraps(func)
     async def wrapper(*args, **kwargs):
         loop = asyncio.get_event_loop()
         with ThreadPoolExecutor() as executor:
             return await loop.run_in_executor(executor, func, *args, **kwargs)
+
     return wrapper
 
 
@@ -63,7 +65,9 @@ class TidalService:
         return self.auth.get_tidal_session()
 
     # Search functionality
-    async def search_tracks(self, query: str, limit: int = 20, offset: int = 0) -> List[Track]:
+    async def search_tracks(
+        self, query: str, limit: int = 20, offset: int = 0
+    ) -> List[Track]:
         """
         Search for tracks on Tidal.
 
@@ -83,13 +87,15 @@ class TidalService:
             if not sanitized_query:
                 return []
 
-            logger.info(f"Searching for tracks: '{sanitized_query}' (limit: {limit}, offset: {offset})")
+            logger.info(
+                f"Searching for tracks: '{sanitized_query}' (limit: {limit}, offset: {offset})"
+            )
 
             # Use thread pool for sync tidalapi call
             @async_to_sync
             def _search():
                 search_result = session.search(sanitized_query, models=[tidalapi.Track])
-                tracks = search_result.get('tracks', [])
+                tracks = search_result.get("tracks", [])
 
                 # Apply offset and limit
                 start = offset
@@ -106,7 +112,9 @@ class TidalService:
                     if track:
                         tracks.append(track)
                 except Exception as e:
-                    logger.warning(f"Failed to convert track {getattr(tidal_track, 'id', 'unknown')}: {e}")
+                    logger.warning(
+                        f"Failed to convert track {getattr(tidal_track, 'id', 'unknown')}: {e}"
+                    )
                     continue
 
             logger.info(f"Found {len(tracks)} tracks for query '{sanitized_query}'")
@@ -116,7 +124,9 @@ class TidalService:
             logger.error(f"Track search failed for '{query}': {e}")
             return []
 
-    async def search_albums(self, query: str, limit: int = 20, offset: int = 0) -> List[Album]:
+    async def search_albums(
+        self, query: str, limit: int = 20, offset: int = 0
+    ) -> List[Album]:
         """
         Search for albums on Tidal.
 
@@ -136,12 +146,14 @@ class TidalService:
             if not sanitized_query:
                 return []
 
-            logger.info(f"Searching for albums: '{sanitized_query}' (limit: {limit}, offset: {offset})")
+            logger.info(
+                f"Searching for albums: '{sanitized_query}' (limit: {limit}, offset: {offset})"
+            )
 
             @async_to_sync
             def _search():
                 search_result = session.search(sanitized_query, models=[tidalapi.Album])
-                albums = search_result.get('albums', [])
+                albums = search_result.get("albums", [])
 
                 # Apply offset and limit
                 start = offset
@@ -158,7 +170,9 @@ class TidalService:
                     if album:
                         albums.append(album)
                 except Exception as e:
-                    logger.warning(f"Failed to convert album {getattr(tidal_album, 'id', 'unknown')}: {e}")
+                    logger.warning(
+                        f"Failed to convert album {getattr(tidal_album, 'id', 'unknown')}: {e}"
+                    )
                     continue
 
             logger.info(f"Found {len(albums)} albums for query '{sanitized_query}'")
@@ -168,7 +182,9 @@ class TidalService:
             logger.error(f"Album search failed for '{query}': {e}")
             return []
 
-    async def search_artists(self, query: str, limit: int = 20, offset: int = 0) -> List[Artist]:
+    async def search_artists(
+        self, query: str, limit: int = 20, offset: int = 0
+    ) -> List[Artist]:
         """
         Search for artists on Tidal.
 
@@ -188,12 +204,16 @@ class TidalService:
             if not sanitized_query:
                 return []
 
-            logger.info(f"Searching for artists: '{sanitized_query}' (limit: {limit}, offset: {offset})")
+            logger.info(
+                f"Searching for artists: '{sanitized_query}' (limit: {limit}, offset: {offset})"
+            )
 
             @async_to_sync
             def _search():
-                search_result = session.search(sanitized_query, models=[tidalapi.Artist])
-                artists = search_result.get('artists', [])
+                search_result = session.search(
+                    sanitized_query, models=[tidalapi.Artist]
+                )
+                artists = search_result.get("artists", [])
 
                 # Apply offset and limit
                 start = offset
@@ -210,7 +230,9 @@ class TidalService:
                     if artist:
                         artists.append(artist)
                 except Exception as e:
-                    logger.warning(f"Failed to convert artist {getattr(tidal_artist, 'id', 'unknown')}: {e}")
+                    logger.warning(
+                        f"Failed to convert artist {getattr(tidal_artist, 'id', 'unknown')}: {e}"
+                    )
                     continue
 
             logger.info(f"Found {len(artists)} artists for query '{sanitized_query}'")
@@ -220,7 +242,9 @@ class TidalService:
             logger.error(f"Artist search failed for '{query}': {e}")
             return []
 
-    async def search_playlists(self, query: str, limit: int = 20, offset: int = 0) -> List[Playlist]:
+    async def search_playlists(
+        self, query: str, limit: int = 20, offset: int = 0
+    ) -> List[Playlist]:
         """
         Search for playlists on Tidal.
 
@@ -240,12 +264,16 @@ class TidalService:
             if not sanitized_query:
                 return []
 
-            logger.info(f"Searching for playlists: '{sanitized_query}' (limit: {limit}, offset: {offset})")
+            logger.info(
+                f"Searching for playlists: '{sanitized_query}' (limit: {limit}, offset: {offset})"
+            )
 
             @async_to_sync
             def _search():
-                search_result = session.search(sanitized_query, models=[tidalapi.Playlist])
-                playlists = search_result.get('playlists', [])
+                search_result = session.search(
+                    sanitized_query, models=[tidalapi.Playlist]
+                )
+                playlists = search_result.get("playlists", [])
 
                 # Apply offset and limit
                 start = offset
@@ -262,10 +290,14 @@ class TidalService:
                     if playlist:
                         playlists.append(playlist)
                 except Exception as e:
-                    logger.warning(f"Failed to convert playlist {getattr(tidal_playlist, 'uuid', 'unknown')}: {e}")
+                    logger.warning(
+                        f"Failed to convert playlist {getattr(tidal_playlist, 'uuid', 'unknown')}: {e}"
+                    )
                     continue
 
-            logger.info(f"Found {len(playlists)} playlists for query '{sanitized_query}'")
+            logger.info(
+                f"Found {len(playlists)} playlists for query '{sanitized_query}'"
+            )
             return playlists
 
         except Exception as e:
@@ -289,16 +321,13 @@ class TidalService:
                 self.search_tracks(query, limit=limit),
                 self.search_albums(query, limit=limit),
                 self.search_artists(query, limit=limit),
-                self.search_playlists(query, limit=limit)
+                self.search_playlists(query, limit=limit),
             ]
 
             tracks, albums, artists, playlists = await asyncio.gather(*tasks)
 
             return SearchResults(
-                tracks=tracks,
-                albums=albums,
-                artists=artists,
-                playlists=playlists
+                tracks=tracks, albums=albums, artists=artists, playlists=playlists
             )
 
         except Exception as e:
@@ -306,7 +335,9 @@ class TidalService:
             return SearchResults()
 
     # Playlist management
-    async def get_playlist(self, playlist_id: str, include_tracks: bool = True) -> Optional[Playlist]:
+    async def get_playlist(
+        self, playlist_id: str, include_tracks: bool = True
+    ) -> Optional[Playlist]:
         """
         Get playlist details and optionally tracks.
 
@@ -325,7 +356,9 @@ class TidalService:
                 logger.error(f"Invalid playlist ID format: {playlist_id}")
                 return None
 
-            logger.info(f"Fetching playlist: {playlist_id} (include_tracks: {include_tracks})")
+            logger.info(
+                f"Fetching playlist: {playlist_id} (include_tracks: {include_tracks})"
+            )
 
             @async_to_sync
             def _get_playlist():
@@ -336,15 +369,21 @@ class TidalService:
                 logger.warning(f"Playlist not found: {playlist_id}")
                 return None
 
-            playlist = await self._convert_tidal_playlist(tidal_playlist, include_tracks=include_tracks)
-            logger.info(f"Retrieved playlist '{playlist.title}' with {len(playlist.tracks)} tracks")
+            playlist = await self._convert_tidal_playlist(
+                tidal_playlist, include_tracks=include_tracks
+            )
+            logger.info(
+                f"Retrieved playlist '{playlist.title}' with {len(playlist.tracks)} tracks"
+            )
             return playlist
 
         except Exception as e:
             logger.error(f"Failed to get playlist {playlist_id}: {e}")
             return None
 
-    async def get_playlist_tracks(self, playlist_id: str, limit: int = 100, offset: int = 0) -> List[Track]:
+    async def get_playlist_tracks(
+        self, playlist_id: str, limit: int = 100, offset: int = 0
+    ) -> List[Track]:
         """
         Get tracks from a playlist.
 
@@ -364,7 +403,9 @@ class TidalService:
                 logger.error(f"Invalid playlist ID format: {playlist_id}")
                 return []
 
-            logger.info(f"Fetching tracks from playlist: {playlist_id} (limit: {limit}, offset: {offset})")
+            logger.info(
+                f"Fetching tracks from playlist: {playlist_id} (limit: {limit}, offset: {offset})"
+            )
 
             @async_to_sync
             def _get_tracks():
@@ -388,7 +429,9 @@ class TidalService:
                     if track:
                         tracks.append(track)
                 except Exception as e:
-                    logger.warning(f"Failed to convert track {getattr(tidal_track, 'id', 'unknown')}: {e}")
+                    logger.warning(
+                        f"Failed to convert track {getattr(tidal_track, 'id', 'unknown')}: {e}"
+                    )
                     continue
 
             logger.info(f"Retrieved {len(tracks)} tracks from playlist {playlist_id}")
@@ -398,7 +441,9 @@ class TidalService:
             logger.error(f"Failed to get playlist tracks {playlist_id}: {e}")
             return []
 
-    async def create_playlist(self, title: str, description: str = "") -> Optional[Playlist]:
+    async def create_playlist(
+        self, title: str, description: str = ""
+    ) -> Optional[Playlist]:
         """
         Create a new playlist.
 
@@ -428,7 +473,9 @@ class TidalService:
                 logger.error(f"Failed to create playlist '{title}'")
                 return None
 
-            playlist = await self._convert_tidal_playlist(tidal_playlist, include_tracks=False)
+            playlist = await self._convert_tidal_playlist(
+                tidal_playlist, include_tracks=False
+            )
             logger.info(f"Created playlist '{title}' with ID {playlist.id}")
             return playlist
 
@@ -436,7 +483,9 @@ class TidalService:
             logger.error(f"Failed to create playlist '{title}': {e}")
             return None
 
-    async def add_tracks_to_playlist(self, playlist_id: str, track_ids: List[str]) -> bool:
+    async def add_tracks_to_playlist(
+        self, playlist_id: str, track_ids: List[str]
+    ) -> bool:
         """
         Add tracks to a playlist.
 
@@ -465,7 +514,9 @@ class TidalService:
                 logger.error("No valid track IDs provided")
                 return False
 
-            logger.info(f"Adding {len(valid_track_ids)} tracks to playlist {playlist_id}")
+            logger.info(
+                f"Adding {len(valid_track_ids)} tracks to playlist {playlist_id}"
+            )
 
             @async_to_sync
             def _add_tracks():
@@ -492,7 +543,9 @@ class TidalService:
 
             success = await _add_tracks()
             if success:
-                logger.info(f"Successfully added {len(valid_track_ids)} tracks to playlist {playlist_id}")
+                logger.info(
+                    f"Successfully added {len(valid_track_ids)} tracks to playlist {playlist_id}"
+                )
             else:
                 logger.error(f"Failed to add tracks to playlist {playlist_id}")
 
@@ -502,7 +555,9 @@ class TidalService:
             logger.error(f"Failed to add tracks to playlist {playlist_id}: {e}")
             return False
 
-    async def remove_tracks_from_playlist(self, playlist_id: str, track_indices: List[int]) -> bool:
+    async def remove_tracks_from_playlist(
+        self, playlist_id: str, track_indices: List[int]
+    ) -> bool:
         """
         Remove tracks from a playlist by index.
 
@@ -525,7 +580,9 @@ class TidalService:
                 logger.error("No track indices provided")
                 return False
 
-            logger.info(f"Removing tracks at indices {track_indices} from playlist {playlist_id}")
+            logger.info(
+                f"Removing tracks at indices {track_indices} from playlist {playlist_id}"
+            )
 
             @async_to_sync
             def _remove_tracks():
@@ -598,7 +655,9 @@ class TidalService:
             logger.error(f"Failed to delete playlist {playlist_id}: {e}")
             return False
 
-    async def get_user_playlists(self, limit: int = 50, offset: int = 0) -> List[Playlist]:
+    async def get_user_playlists(
+        self, limit: int = 50, offset: int = 0
+    ) -> List[Playlist]:
         """
         Get user's playlists.
 
@@ -629,11 +688,15 @@ class TidalService:
             playlists = []
             for tidal_playlist in tidal_playlists:
                 try:
-                    playlist = await self._convert_tidal_playlist(tidal_playlist, include_tracks=False)
+                    playlist = await self._convert_tidal_playlist(
+                        tidal_playlist, include_tracks=False
+                    )
                     if playlist:
                         playlists.append(playlist)
                 except Exception as e:
-                    logger.warning(f"Failed to convert playlist {getattr(tidal_playlist, 'uuid', 'unknown')}: {e}")
+                    logger.warning(
+                        f"Failed to convert playlist {getattr(tidal_playlist, 'uuid', 'unknown')}: {e}"
+                    )
                     continue
 
             logger.info(f"Retrieved {len(playlists)} user playlists")
@@ -644,7 +707,9 @@ class TidalService:
             return []
 
     # Library/Favorites management
-    async def get_user_favorites(self, content_type: str = "tracks", limit: int = 50, offset: int = 0) -> List[Any]:
+    async def get_user_favorites(
+        self, content_type: str = "tracks", limit: int = 50, offset: int = 0
+    ) -> List[Any]:
         """
         Get user's favorite tracks, albums, or artists.
 
@@ -660,7 +725,9 @@ class TidalService:
             await self.ensure_authenticated()
             session = self.get_session()
 
-            logger.info(f"Fetching user favorites: {content_type} (limit: {limit}, offset: {offset})")
+            logger.info(
+                f"Fetching user favorites: {content_type} (limit: {limit}, offset: {offset})"
+            )
 
             @async_to_sync
             def _get_favorites():
@@ -694,7 +761,9 @@ class TidalService:
                     elif content_type == "artists":
                         item = await self._convert_tidal_artist(tidal_item)
                     elif content_type == "playlists":
-                        item = await self._convert_tidal_playlist(tidal_item, include_tracks=False)
+                        item = await self._convert_tidal_playlist(
+                            tidal_item, include_tracks=False
+                        )
                     else:
                         continue
 
@@ -726,7 +795,9 @@ class TidalService:
             await self.ensure_authenticated()
             session = self.get_session()
 
-            if not validate_tidal_id(item_id) and not (content_type == "playlist" and self._is_uuid(item_id)):
+            if not validate_tidal_id(item_id) and not (
+                content_type == "playlist" and self._is_uuid(item_id)
+            ):
                 logger.error(f"Invalid {content_type} ID format: {item_id}")
                 return False
 
@@ -778,7 +849,9 @@ class TidalService:
             await self.ensure_authenticated()
             session = self.get_session()
 
-            if not validate_tidal_id(item_id) and not (content_type == "playlist" and self._is_uuid(item_id)):
+            if not validate_tidal_id(item_id) and not (
+                content_type == "playlist" and self._is_uuid(item_id)
+            ):
                 logger.error(f"Invalid {content_type} ID format: {item_id}")
                 return False
 
@@ -799,20 +872,28 @@ class TidalService:
                     return user.favorites.remove_artist(artist) if artist else False
                 elif content_type == "playlist":
                     playlist = session.playlist(item_id)
-                    return user.favorites.remove_playlist(playlist) if playlist else False
+                    return (
+                        user.favorites.remove_playlist(playlist) if playlist else False
+                    )
                 else:
                     return False
 
             success = await _remove_from_favorites()
             if success:
-                logger.info(f"Successfully removed {content_type} {item_id} from favorites")
+                logger.info(
+                    f"Successfully removed {content_type} {item_id} from favorites"
+                )
             else:
-                logger.error(f"Failed to remove {content_type} {item_id} from favorites")
+                logger.error(
+                    f"Failed to remove {content_type} {item_id} from favorites"
+                )
 
             return success
 
         except Exception as e:
-            logger.error(f"Failed to remove {content_type} {item_id} from favorites: {e}")
+            logger.error(
+                f"Failed to remove {content_type} {item_id} from favorites: {e}"
+            )
             return False
 
     # Recommendations and Radio
@@ -940,7 +1021,10 @@ class TidalService:
                     if tracks:
                         # Get radio from a random favorite track
                         import random
-                        seed_track = random.choice(tracks[:10])  # Use one of top 10 favorites
+
+                        seed_track = random.choice(
+                            tracks[:10]
+                        )  # Use one of top 10 favorites
                         return seed_track.get_track_radio()[:limit]
                 except Exception:
                     pass
@@ -948,7 +1032,7 @@ class TidalService:
                 # Fallback to featured tracks or charts
                 try:
                     featured = session.featured()
-                    if featured and hasattr(featured, 'tracks') and featured.tracks:
+                    if featured and hasattr(featured, "tracks") and featured.tracks:
                         return featured.tracks[:limit]
                 except Exception:
                     pass
@@ -1013,7 +1097,9 @@ class TidalService:
             logger.error(f"Failed to get track {track_id}: {e}")
             return None
 
-    async def get_album(self, album_id: str, include_tracks: bool = True) -> Optional[Album]:
+    async def get_album(
+        self, album_id: str, include_tracks: bool = True
+    ) -> Optional[Album]:
         """
         Get detailed album information.
 
@@ -1032,7 +1118,9 @@ class TidalService:
                 logger.error(f"Invalid album ID format: {album_id}")
                 return None
 
-            logger.info(f"Fetching album: {album_id} (include_tracks: {include_tracks})")
+            logger.info(
+                f"Fetching album: {album_id} (include_tracks: {include_tracks})"
+            )
 
             @async_to_sync
             def _get_album():
@@ -1043,8 +1131,12 @@ class TidalService:
                 logger.warning(f"Album not found: {album_id}")
                 return None
 
-            album = await self._convert_tidal_album(tidal_album, include_tracks=include_tracks)
-            logger.info(f"Retrieved album '{album.title}' with {len(album.artists)} artists")
+            album = await self._convert_tidal_album(
+                tidal_album, include_tracks=include_tracks
+            )
+            logger.info(
+                f"Retrieved album '{album.title}' with {len(album.artists)} artists"
+            )
             return album
 
         except Exception as e:
@@ -1088,7 +1180,9 @@ class TidalService:
             logger.error(f"Failed to get artist {artist_id}: {e}")
             return None
 
-    async def get_album_tracks(self, album_id: str, limit: int = 100, offset: int = 0) -> List[Track]:
+    async def get_album_tracks(
+        self, album_id: str, limit: int = 100, offset: int = 0
+    ) -> List[Track]:
         """
         Get tracks from an album.
 
@@ -1108,7 +1202,9 @@ class TidalService:
                 logger.error(f"Invalid album ID format: {album_id}")
                 return []
 
-            logger.info(f"Fetching tracks from album: {album_id} (limit: {limit}, offset: {offset})")
+            logger.info(
+                f"Fetching tracks from album: {album_id} (limit: {limit}, offset: {offset})"
+            )
 
             @async_to_sync
             def _get_tracks():
@@ -1132,7 +1228,9 @@ class TidalService:
                     if track:
                         tracks.append(track)
                 except Exception as e:
-                    logger.warning(f"Failed to convert track {getattr(tidal_track, 'id', 'unknown')}: {e}")
+                    logger.warning(
+                        f"Failed to convert track {getattr(tidal_track, 'id', 'unknown')}: {e}"
+                    )
                     continue
 
             logger.info(f"Retrieved {len(tracks)} tracks from album {album_id}")
@@ -1142,7 +1240,9 @@ class TidalService:
             logger.error(f"Failed to get album tracks {album_id}: {e}")
             return []
 
-    async def get_artist_albums(self, artist_id: str, limit: int = 50, offset: int = 0) -> List[Album]:
+    async def get_artist_albums(
+        self, artist_id: str, limit: int = 50, offset: int = 0
+    ) -> List[Album]:
         """
         Get albums by an artist.
 
@@ -1162,7 +1262,9 @@ class TidalService:
                 logger.error(f"Invalid artist ID format: {artist_id}")
                 return []
 
-            logger.info(f"Fetching albums by artist: {artist_id} (limit: {limit}, offset: {offset})")
+            logger.info(
+                f"Fetching albums by artist: {artist_id} (limit: {limit}, offset: {offset})"
+            )
 
             @async_to_sync
             def _get_albums():
@@ -1182,11 +1284,15 @@ class TidalService:
             albums = []
             for tidal_album in tidal_albums:
                 try:
-                    album = await self._convert_tidal_album(tidal_album, include_tracks=False)
+                    album = await self._convert_tidal_album(
+                        tidal_album, include_tracks=False
+                    )
                     if album:
                         albums.append(album)
                 except Exception as e:
-                    logger.warning(f"Failed to convert album {getattr(tidal_album, 'id', 'unknown')}: {e}")
+                    logger.warning(
+                        f"Failed to convert album {getattr(tidal_album, 'id', 'unknown')}: {e}"
+                    )
                     continue
 
             logger.info(f"Retrieved {len(albums)} albums by artist {artist_id}")
@@ -1196,7 +1302,9 @@ class TidalService:
             logger.error(f"Failed to get artist albums {artist_id}: {e}")
             return []
 
-    async def get_artist_top_tracks(self, artist_id: str, limit: int = 20) -> List[Track]:
+    async def get_artist_top_tracks(
+        self, artist_id: str, limit: int = 20
+    ) -> List[Track]:
         """
         Get top tracks by an artist.
 
@@ -1236,7 +1344,9 @@ class TidalService:
                     if track:
                         tracks.append(track)
                 except Exception as e:
-                    logger.warning(f"Failed to convert track {getattr(tidal_track, 'id', 'unknown')}: {e}")
+                    logger.warning(
+                        f"Failed to convert track {getattr(tidal_track, 'id', 'unknown')}: {e}"
+                    )
                     continue
 
             logger.info(f"Retrieved {len(tracks)} top tracks by artist {artist_id}")
@@ -1273,51 +1383,61 @@ class TidalService:
         try:
             # Get artists
             artists = []
-            if hasattr(tidal_track, 'artists') and tidal_track.artists:
+            if hasattr(tidal_track, "artists") and tidal_track.artists:
                 for artist in tidal_track.artists:
-                    artists.append(Artist(
-                        id=str(artist.id),
-                        name=artist.name,
-                        picture=getattr(artist, 'picture', None),
-                        popularity=getattr(artist, 'popularity', None)
-                    ))
-            elif hasattr(tidal_track, 'artist') and tidal_track.artist:
-                artists.append(Artist(
-                    id=str(tidal_track.artist.id),
-                    name=tidal_track.artist.name,
-                    picture=getattr(tidal_track.artist, 'picture', None),
-                    popularity=getattr(tidal_track.artist, 'popularity', None)
-                ))
+                    artists.append(
+                        Artist(
+                            id=str(artist.id),
+                            name=artist.name,
+                            picture=getattr(artist, "picture", None),
+                            popularity=getattr(artist, "popularity", None),
+                        )
+                    )
+            elif hasattr(tidal_track, "artist") and tidal_track.artist:
+                artists.append(
+                    Artist(
+                        id=str(tidal_track.artist.id),
+                        name=tidal_track.artist.name,
+                        picture=getattr(tidal_track.artist, "picture", None),
+                        popularity=getattr(tidal_track.artist, "popularity", None),
+                    )
+                )
 
             # Get album info
             album = None
-            if hasattr(tidal_track, 'album') and tidal_track.album:
+            if hasattr(tidal_track, "album") and tidal_track.album:
                 album_artists = []
-                if hasattr(tidal_track.album, 'artists') and tidal_track.album.artists:
+                if hasattr(tidal_track.album, "artists") and tidal_track.album.artists:
                     for artist in tidal_track.album.artists:
-                        album_artists.append(Artist(
-                            id=str(artist.id),
-                            name=artist.name,
-                            picture=getattr(artist, 'picture', None),
-                            popularity=getattr(artist, 'popularity', None)
-                        ))
-                elif hasattr(tidal_track.album, 'artist') and tidal_track.album.artist:
-                    album_artists.append(Artist(
-                        id=str(tidal_track.album.artist.id),
-                        name=tidal_track.album.artist.name,
-                        picture=getattr(tidal_track.album.artist, 'picture', None),
-                        popularity=getattr(tidal_track.album.artist, 'popularity', None)
-                    ))
+                        album_artists.append(
+                            Artist(
+                                id=str(artist.id),
+                                name=artist.name,
+                                picture=getattr(artist, "picture", None),
+                                popularity=getattr(artist, "popularity", None),
+                            )
+                        )
+                elif hasattr(tidal_track.album, "artist") and tidal_track.album.artist:
+                    album_artists.append(
+                        Artist(
+                            id=str(tidal_track.album.artist.id),
+                            name=tidal_track.album.artist.name,
+                            picture=getattr(tidal_track.album.artist, "picture", None),
+                            popularity=getattr(
+                                tidal_track.album.artist, "popularity", None
+                            ),
+                        )
+                    )
 
                 album = Album(
                     id=str(tidal_track.album.id),
                     title=tidal_track.album.name,
                     artists=album_artists,
-                    release_date=getattr(tidal_track.album, 'release_date', None),
-                    duration=getattr(tidal_track.album, 'duration', None),
-                    number_of_tracks=getattr(tidal_track.album, 'num_tracks', None),
-                    cover=getattr(tidal_track.album, 'image', None),
-                    explicit=getattr(tidal_track.album, 'explicit', False)
+                    release_date=getattr(tidal_track.album, "release_date", None),
+                    duration=getattr(tidal_track.album, "duration", None),
+                    number_of_tracks=getattr(tidal_track.album, "num_tracks", None),
+                    cover=getattr(tidal_track.album, "image", None),
+                    explicit=getattr(tidal_track.album, "explicit", False),
                 )
 
             return Track(
@@ -1325,47 +1445,53 @@ class TidalService:
                 title=tidal_track.name,
                 artists=artists,
                 album=album,
-                duration=getattr(tidal_track, 'duration', None),
-                track_number=getattr(tidal_track, 'track_num', None),
-                disc_number=getattr(tidal_track, 'volume_num', None),
-                explicit=getattr(tidal_track, 'explicit', False),
-                quality=getattr(tidal_track, 'audio_quality', None)
+                duration=getattr(tidal_track, "duration", None),
+                track_number=getattr(tidal_track, "track_num", None),
+                disc_number=getattr(tidal_track, "volume_num", None),
+                explicit=getattr(tidal_track, "explicit", False),
+                quality=getattr(tidal_track, "audio_quality", None),
             )
 
         except Exception as e:
             logger.error(f"Failed to convert tidal track: {e}")
             return None
 
-    async def _convert_tidal_album(self, tidal_album, include_tracks: bool = False) -> Optional[Album]:
+    async def _convert_tidal_album(
+        self, tidal_album, include_tracks: bool = False
+    ) -> Optional[Album]:
         """Convert tidalapi Album to our Album model."""
         try:
             # Get artists
             artists = []
-            if hasattr(tidal_album, 'artists') and tidal_album.artists:
+            if hasattr(tidal_album, "artists") and tidal_album.artists:
                 for artist in tidal_album.artists:
-                    artists.append(Artist(
-                        id=str(artist.id),
-                        name=artist.name,
-                        picture=getattr(artist, 'picture', None),
-                        popularity=getattr(artist, 'popularity', None)
-                    ))
-            elif hasattr(tidal_album, 'artist') and tidal_album.artist:
-                artists.append(Artist(
-                    id=str(tidal_album.artist.id),
-                    name=tidal_album.artist.name,
-                    picture=getattr(tidal_album.artist, 'picture', None),
-                    popularity=getattr(tidal_album.artist, 'popularity', None)
-                ))
+                    artists.append(
+                        Artist(
+                            id=str(artist.id),
+                            name=artist.name,
+                            picture=getattr(artist, "picture", None),
+                            popularity=getattr(artist, "popularity", None),
+                        )
+                    )
+            elif hasattr(tidal_album, "artist") and tidal_album.artist:
+                artists.append(
+                    Artist(
+                        id=str(tidal_album.artist.id),
+                        name=tidal_album.artist.name,
+                        picture=getattr(tidal_album.artist, "picture", None),
+                        popularity=getattr(tidal_album.artist, "popularity", None),
+                    )
+                )
 
             return Album(
                 id=str(tidal_album.id),
                 title=tidal_album.name,
                 artists=artists,
-                release_date=getattr(tidal_album, 'release_date', None),
-                duration=getattr(tidal_album, 'duration', None),
-                number_of_tracks=getattr(tidal_album, 'num_tracks', None),
-                cover=getattr(tidal_album, 'image', None),
-                explicit=getattr(tidal_album, 'explicit', False)
+                release_date=getattr(tidal_album, "release_date", None),
+                duration=getattr(tidal_album, "duration", None),
+                number_of_tracks=getattr(tidal_album, "num_tracks", None),
+                cover=getattr(tidal_album, "image", None),
+                explicit=getattr(tidal_album, "explicit", False),
             )
 
         except Exception as e:
@@ -1378,20 +1504,23 @@ class TidalService:
             return Artist(
                 id=str(tidal_artist.id),
                 name=tidal_artist.name,
-                picture=getattr(tidal_artist, 'picture', None),
-                popularity=getattr(tidal_artist, 'popularity', None)
+                picture=getattr(tidal_artist, "picture", None),
+                popularity=getattr(tidal_artist, "popularity", None),
             )
 
         except Exception as e:
             logger.error(f"Failed to convert tidal artist: {e}")
             return None
 
-    async def _convert_tidal_playlist(self, tidal_playlist, include_tracks: bool = True) -> Optional[Playlist]:
+    async def _convert_tidal_playlist(
+        self, tidal_playlist, include_tracks: bool = True
+    ) -> Optional[Playlist]:
         """Convert tidalapi Playlist to our Playlist model."""
         try:
             tracks = []
-            if include_tracks and hasattr(tidal_playlist, 'tracks'):
+            if include_tracks and hasattr(tidal_playlist, "tracks"):
                 try:
+
                     @async_to_sync
                     def _get_tracks():
                         return tidal_playlist.tracks()
@@ -1405,17 +1534,21 @@ class TidalService:
                     logger.warning(f"Failed to get playlist tracks: {e}")
 
             return Playlist(
-                id=str(getattr(tidal_playlist, 'uuid', getattr(tidal_playlist, 'id', ''))),
+                id=str(
+                    getattr(tidal_playlist, "uuid", getattr(tidal_playlist, "id", ""))
+                ),
                 title=tidal_playlist.name,
-                description=getattr(tidal_playlist, 'description', None),
-                creator=getattr(tidal_playlist, 'creator', {}).get('name') if hasattr(tidal_playlist, 'creator') else None,
+                description=getattr(tidal_playlist, "description", None),
+                creator=getattr(tidal_playlist, "creator", {}).get("name")
+                if hasattr(tidal_playlist, "creator")
+                else None,
                 tracks=tracks,
-                number_of_tracks=getattr(tidal_playlist, 'num_tracks', len(tracks)),
-                duration=getattr(tidal_playlist, 'duration', None),
-                created_at=getattr(tidal_playlist, 'created', None),
-                updated_at=getattr(tidal_playlist, 'last_updated', None),
-                image=getattr(tidal_playlist, 'image', None),
-                public=getattr(tidal_playlist, 'public', True)
+                number_of_tracks=getattr(tidal_playlist, "num_tracks", len(tracks)),
+                duration=getattr(tidal_playlist, "duration", None),
+                created_at=getattr(tidal_playlist, "created", None),
+                updated_at=getattr(tidal_playlist, "last_updated", None),
+                image=getattr(tidal_playlist, "image", None),
+                public=getattr(tidal_playlist, "public", True),
             )
 
         except Exception as e:
@@ -1425,8 +1558,9 @@ class TidalService:
     def _is_uuid(self, value: str) -> bool:
         """Check if value is a valid UUID format."""
         import re
+
         uuid_pattern = re.compile(
-            r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
-            re.IGNORECASE
+            r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            re.IGNORECASE,
         )
         return bool(uuid_pattern.match(value))

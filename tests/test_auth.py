@@ -26,9 +26,7 @@ from tidal_mcp.auth import TidalAuth, TidalAuthError
 @pytest.fixture
 def temp_session_file():
     """Create a temporary session file for testing."""
-    with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".json", delete=False
-    ) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         temp_path = Path(f.name)
     yield temp_path
     if temp_path.exists():
@@ -57,9 +55,7 @@ class TestTidalAuth:
         """Create TidalAuth instance for testing."""
         with patch.object(Path, "home") as mock_home:
             mock_home.return_value = temp_session_file.parent
-            auth = TidalAuth(
-                client_id="test_client", client_secret="test_secret"
-            )
+            auth = TidalAuth(client_id="test_client", client_secret="test_secret")
             auth.session_file = temp_session_file
             return auth
 
@@ -74,9 +70,7 @@ class TestTidalAuth:
         """Test TidalAuth initialization with custom credentials."""
         with patch.object(Path, "home") as mock_home:
             mock_home.return_value = temp_session_file.parent
-            auth = TidalAuth(
-                client_id="custom_client", client_secret="custom_secret"
-            )
+            auth = TidalAuth(client_id="custom_client", client_secret="custom_secret")
             assert auth.client_id == "custom_client"
             assert auth.client_secret == "custom_secret"
             assert auth.access_token is None
@@ -101,9 +95,7 @@ class TestTidalAuth:
         auth.tidal_session = None
         assert not auth.is_authenticated()
 
-    def test_is_authenticated_valid_token_with_session(
-        self, auth, mock_tidal_session
-    ):
+    def test_is_authenticated_valid_token_with_session(self, auth, mock_tidal_session):
         """Test is_authenticated returns True for valid token with session."""
         auth.access_token = "test_token"
         auth.token_expires_at = datetime.now() + timedelta(hours=1)
@@ -126,10 +118,7 @@ class TestTidalAuth:
         # Verify code verifier format (base64url without padding)
         # 32 bytes base64url encoded
         assert len(code_verifier) == 43
-        valid_chars = (
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-            "0123456789-_"
-        )
+        valid_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
         assert all(c in valid_chars for c in code_verifier)
 
         # Verify code challenge format
@@ -143,9 +132,7 @@ class TestTidalAuth:
         assert code_challenge != code_challenge2
 
     @pytest.mark.asyncio
-    async def test_authenticate_existing_session(
-        self, auth, mock_tidal_session
-    ):
+    async def test_authenticate_existing_session(self, auth, mock_tidal_session):
         """Test authentication with existing valid session."""
         auth.access_token = "existing_token"
         auth.refresh_token = "existing_refresh"
@@ -174,7 +161,6 @@ class TestTidalAuth:
                 auth, "_oauth2_flow", new_callable=AsyncMock, return_value=True
             ) as mock_oauth,
         ):
-
             result = await auth.authenticate()
             assert result is True
             mock_oauth.assert_called_once()
@@ -198,9 +184,7 @@ class TestTidalAuth:
         assert result is False
 
     @pytest.mark.asyncio
-    async def test_try_existing_session_success(
-        self, auth, mock_tidal_session
-    ):
+    async def test_try_existing_session_success(self, auth, mock_tidal_session):
         """Test successful existing session load."""
         auth.access_token = "valid_token"
         auth.refresh_token = "valid_refresh"
@@ -226,9 +210,7 @@ class TestTidalAuth:
             assert result is False
 
     @pytest.mark.asyncio
-    async def test_exchange_code_for_tokens_success(
-        self, auth, mock_tidal_session
-    ):
+    async def test_exchange_code_for_tokens_success(self, auth, mock_tidal_session):
         """Test successful token exchange."""
         mock_response = AsyncMock()
         mock_response.status = 200
@@ -255,10 +237,7 @@ class TestTidalAuth:
             patch("tidalapi.Session", return_value=mock_tidal_session),
             patch.object(auth, "_save_session") as mock_save,
         ):
-
-            result = await auth._exchange_code_for_tokens(
-                "auth_code", "code_verifier"
-            )
+            result = await auth._exchange_code_for_tokens("auth_code", "code_verifier")
             assert result is True
             assert auth.access_token == "new_access_token"
             assert auth.refresh_token == "new_refresh_token"
@@ -293,9 +272,7 @@ class TestTidalAuth:
         assert result is False
 
     @pytest.mark.asyncio
-    async def test_refresh_access_token_success(
-        self, auth, mock_tidal_session
-    ):
+    async def test_refresh_access_token_success(self, auth, mock_tidal_session):
         """Test successful token refresh."""
         auth.refresh_token = "refresh_token"
         auth.tidal_session = mock_tidal_session
@@ -324,7 +301,6 @@ class TestTidalAuth:
             patch("aiohttp.ClientSession", return_value=mock_session),
             patch.object(auth, "_save_session") as mock_save,
         ):
-
             result = await auth.refresh_access_token()
             assert result is True
             assert auth.access_token == "new_access_token"
@@ -385,9 +361,7 @@ class TestTidalAuth:
         assert session == mock_tidal_session
 
     @pytest.mark.asyncio
-    async def test_ensure_valid_token_authenticated(
-        self, auth, mock_tidal_session
-    ):
+    async def test_ensure_valid_token_authenticated(self, auth, mock_tidal_session):
         """Test ensure_valid_token when already authenticated."""
         auth.access_token = "test_token"
         auth.token_expires_at = datetime.now() + timedelta(hours=1)
@@ -413,9 +387,7 @@ class TestTidalAuth:
     @pytest.mark.asyncio
     async def test_ensure_valid_token_reauth_needed(self, auth):
         """Test ensure_valid_token triggers re-authentication when needed."""
-        with patch.object(
-            auth, "authenticate", new_callable=AsyncMock
-        ) as mock_auth:
+        with patch.object(auth, "authenticate", new_callable=AsyncMock) as mock_auth:
             mock_auth.return_value = True
 
             result = await auth.ensure_valid_token()
@@ -438,7 +410,6 @@ class TestTidalAuth:
                 auth, "authenticate", new_callable=AsyncMock, return_value=True
             ) as mock_auth,
         ):
-
             result = await auth.ensure_valid_token()
             assert result is True
             mock_auth.assert_called_once()
@@ -455,7 +426,6 @@ class TestTidalAuth:
             patch.object(auth, "_revoke_tokens", new_callable=AsyncMock),
             patch.object(auth, "_clear_session_file") as mock_clear,
         ):
-
             await auth.logout()
 
             assert auth.access_token is None
@@ -502,9 +472,7 @@ class TestSessionManagement:
         auth_with_session.refresh_token = "refresh_token"
         auth_with_session.user_id = "12345"
         auth_with_session.country_code = "US"
-        auth_with_session.token_expires_at = datetime.now() + timedelta(
-            hours=1
-        )
+        auth_with_session.token_expires_at = datetime.now() + timedelta(hours=1)
 
         with patch("os.chmod") as mock_chmod:
             auth_with_session._save_session()
@@ -519,9 +487,7 @@ class TestSessionManagement:
                 assert data["country_code"] == "US"
 
             # Verify permissions were set
-            mock_chmod.assert_called_once_with(
-                auth_with_session.session_file, 0o600
-            )
+            mock_chmod.assert_called_once_with(auth_with_session.session_file, 0o600)
 
     def test_load_session_success(self, auth_with_session):
         """Test loading session from file."""
@@ -560,9 +526,7 @@ class TestSessionManagement:
         with open(auth_with_session.session_file, "w") as f:
             f.write("invalid json")
 
-        with patch.object(
-            auth_with_session, "_clear_session_file"
-        ) as mock_clear:
+        with patch.object(auth_with_session, "_clear_session_file") as mock_clear:
             auth_with_session._load_session()
             mock_clear.assert_called_once()
 
@@ -616,7 +580,6 @@ class TestOAuth2Flow:
             ),
             patch("webbrowser.open") as mock_browser,
         ):
-
             result = await auth._oauth2_flow()
             assert result is True
             mock_browser.assert_called_once()
@@ -633,7 +596,6 @@ class TestOAuth2Flow:
             ),
             patch("webbrowser.open"),
         ):
-
             result = await auth._oauth2_flow()
             assert result is False
 
@@ -655,7 +617,6 @@ class TestOAuth2Flow:
             ),
             patch("webbrowser.open"),
         ):
-
             result = await auth._oauth2_flow()
             assert result is False
 
@@ -673,7 +634,6 @@ class TestOAuth2Flow:
             patch("aiohttp.web.TCPSite", return_value=mock_site),
             patch("asyncio.sleep", side_effect=[None] * 301),
         ):  # Simulate timeout
-
             # Set a very short timeout for testing
             auth_code = await auth._capture_auth_code()
             assert auth_code is None
@@ -699,18 +659,14 @@ class TestErrorHandling:
         with patch("aiohttp.ClientSession") as mock_session_class:
             mock_session = AsyncMock()
             mock_session_class.return_value = mock_session
-            mock_session.post.side_effect = aiohttp.ClientError(
-                "Network error"
-            )
+            mock_session.post.side_effect = aiohttp.ClientError("Network error")
 
             result = await auth.refresh_access_token()
             assert result is False
 
     def test_invalid_session_file_permissions(self, auth):
         """Test handling of session file permission errors."""
-        with patch(
-            "builtins.open", side_effect=PermissionError("Access denied")
-        ):
+        with patch("builtins.open", side_effect=PermissionError("Access denied")):
             auth._load_session()
             # Should not raise exception, just log warning
 
@@ -718,9 +674,7 @@ class TestErrorHandling:
         """Test handling of permission errors when saving session."""
         auth.access_token = "test_token"
 
-        with patch(
-            "builtins.open", side_effect=PermissionError("Access denied")
-        ):
+        with patch("builtins.open", side_effect=PermissionError("Access denied")):
             auth._save_session()
             # Should not raise exception, just log error
 
@@ -807,15 +761,12 @@ class TestEdgeCases:
             patch("aiohttp.ClientSession", return_value=mock_session),
             patch.object(auth, "_save_session"),
         ):
-
             result = await auth.refresh_access_token()
             assert result is True
             assert auth.refresh_token == "new_refresh_token"
 
     @pytest.mark.asyncio
-    async def test_refresh_no_new_refresh_token(
-        self, auth, mock_tidal_session
-    ):
+    async def test_refresh_no_new_refresh_token(self, auth, mock_tidal_session):
         """Test refresh when no new refresh token is provided."""
         old_refresh = "old_refresh_token"
         auth.refresh_token = old_refresh
@@ -845,15 +796,11 @@ class TestEdgeCases:
             patch("aiohttp.ClientSession", return_value=mock_session),
             patch.object(auth, "_save_session"),
         ):
-
             result = await auth.refresh_access_token()
             assert result is True
-            assert (
-                auth.refresh_token == old_refresh
-            )  # Should keep old refresh token
+            assert auth.refresh_token == old_refresh  # Should keep old refresh token
 
 
 if __name__ == "__main__":
     # Run tests directly
     pytest.main([__file__, "-v"])
-

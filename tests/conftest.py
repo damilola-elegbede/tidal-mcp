@@ -24,9 +24,7 @@ def event_loop():
 @pytest.fixture
 def temp_session_file():
     """Create a temporary session file for testing."""
-    with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".json", delete=False
-    ) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         temp_path = Path(f.name)
     yield temp_path
     if temp_path.exists():
@@ -124,9 +122,7 @@ def create_sample_tidal_track(
     return track
 
 
-def create_sample_tidal_playlist(
-    playlist_id="playlist-uuid-123", name="Test Playlist"
-):
+def create_sample_tidal_playlist(playlist_id="playlist-uuid-123", name="Test Playlist"):
     """Create a sample tidalapi playlist for testing."""
     playlist = Mock()
     playlist.uuid = playlist_id
