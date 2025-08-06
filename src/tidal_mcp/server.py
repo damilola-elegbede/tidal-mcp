@@ -607,6 +607,7 @@ async def tidal_get_artist(artist_id: str) -> dict[str, Any]:
 def main():
     """Main entry point for the Tidal MCP server."""
     import sys
+
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",

@@ -194,13 +194,16 @@ class TidalAuth:
             self.tidal_session.refresh_token = self.refresh_token
             self.tidal_session.token_type = "Bearer"
             self.tidal_session.session_id = self.session_id
-            
+
             # Set expiry time if available
             if self.token_expires_at:
                 # Convert datetime to seconds since epoch
                 import time
-                self.tidal_session.expiry_time = time.mktime(self.token_expires_at.timetuple())
-            
+
+                self.tidal_session.expiry_time = time.mktime(
+                    self.token_expires_at.timetuple()
+                )
+
             # Verify session is valid by making a test request
             try:
                 user = self.tidal_session.user
@@ -208,8 +211,7 @@ class TidalAuth:
                     self.user_id = str(user.id)
                     self.country_code = user.country_code or "US"
                     logger.info(
-                        "Successfully loaded existing session for user "
-                        f"{self.user_id}"
+                        f"Successfully loaded existing session for user {self.user_id}"
                     )
                     return True
             except Exception as e:
@@ -364,12 +366,15 @@ class TidalAuth:
             self.tidal_session.access_token = self.access_token
             self.tidal_session.refresh_token = self.refresh_token
             self.tidal_session.token_type = "Bearer"
-            
+
             # Set expiry time if available
             if self.token_expires_at:
                 import time
-                self.tidal_session.expiry_time = time.mktime(self.token_expires_at.timetuple())
-            
+
+                self.tidal_session.expiry_time = time.mktime(
+                    self.token_expires_at.timetuple()
+                )
+
             # Verify and get user information
             try:
                 user = self.tidal_session.user
@@ -387,7 +392,7 @@ class TidalAuth:
                     raise TidalAuthError(error_msg)
             except Exception as e:
                 error_msg = f"Failed to initialize Tidal session: {e}"
-                raise TidalAuthError(error_msg)
+                raise TidalAuthError(error_msg) from e
 
         except Exception as e:
             logger.error(f"Token exchange failed: {e}")
@@ -467,10 +472,13 @@ class TidalAuth:
                 self.tidal_session.access_token = self.access_token
                 self.tidal_session.refresh_token = self.refresh_token
                 self.tidal_session.token_type = "Bearer"
-                
+
                 if self.token_expires_at:
                     import time
-                    self.tidal_session.expiry_time = time.mktime(self.token_expires_at.timetuple())
+
+                    self.tidal_session.expiry_time = time.mktime(
+                        self.token_expires_at.timetuple()
+                    )
 
             # Save updated session
             self._save_session()
