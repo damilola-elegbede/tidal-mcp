@@ -6,13 +6,14 @@ This script demonstrates comprehensive playlist management capabilities.
 
 import asyncio
 import logging
+
 from tidal_mcp import (
-    tidal_login,
-    tidal_search,
-    tidal_create_playlist,
     tidal_add_to_playlist,
-    tidal_remove_from_playlist,
+    tidal_create_playlist,
     tidal_get_user_playlists,
+    tidal_login,
+    tidal_remove_from_playlist,
+    tidal_search,
 )
 
 logging.basicConfig(level=logging.INFO)

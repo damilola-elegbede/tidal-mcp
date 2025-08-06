@@ -8,6 +8,7 @@ for OAuth2 authentication with PKCE flow.
 
 import asyncio
 import logging
+
 from tidal_mcp.auth import TidalAuth, TidalAuthError
 
 # Configure logging

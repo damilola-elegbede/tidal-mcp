@@ -6,17 +6,18 @@ Supports OAuth2 flow with PKCE and token management for secure API
 interactions.
 """
 
+import base64
+import hashlib
 import json
 import logging
 import os
 import secrets
-import hashlib
-import base64
 import webbrowser
-from pathlib import Path
-from typing import Optional, Dict, Any, Tuple
 from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any
 from urllib.parse import urlencode
+
 import aiohttp
 import tidalapi
 
@@ -44,7 +45,7 @@ class TidalAuth:
     REDIRECT_URI = "http://localhost:8080/callback"
 
     def __init__(
-        self, client_id: Optional[str] = None, client_secret: Optional[str] = None
+        self, client_id: str | None = None, client_secret: str | None = None
     ):
         """
         Initialize Tidal authentication manager.
@@ -56,19 +57,19 @@ class TidalAuth:
         """
         self.client_id = client_id or self.CLIENT_ID
         self.client_secret = client_secret
-        self.access_token: Optional[str] = None
-        self.refresh_token: Optional[str] = None
-        self.token_expires_at: Optional[datetime] = None
-        self.session_id: Optional[str] = None
+        self.access_token: str | None = None
+        self.refresh_token: str | None = None
+        self.token_expires_at: datetime | None = None
+        self.session_id: str | None = None
         self.country_code: str = "US"  # Default country code
-        self.user_id: Optional[str] = None
+        self.user_id: str | None = None
 
         # Session file path
         self.session_file = Path.home() / ".tidal-mcp" / "session.json"
         self.session_file.parent.mkdir(parents=True, exist_ok=True)
 
         # Tidal API clien
-        self.tidal_session: Optional[tidalapi.Session] = None
+        self.tidal_session: tidalapi.Session | None = None
 
         # Load existing session if available
         self._load_session()
@@ -77,7 +78,7 @@ class TidalAuth:
         """Load saved session from file if it exists."""
         try:
             if self.session_file.exists():
-                with open(self.session_file, "r") as f:
+                with open(self.session_file) as f:
                     session_data = json.load(f)
 
                 self.access_token = session_data.get("access_token")
@@ -96,7 +97,7 @@ class TidalAuth:
         except (json.JSONDecodeError, KeyError, ValueError) as e:
             logger.warning(f"Failed to load session file: {e}")
             self._clear_session_file()
-        except (PermissionError, IOError) as e:
+        except (OSError, PermissionError) as e:
             logger.warning(f"Permission error loading session file: {e}")
 
     def _save_session(self) -> None:
@@ -133,7 +134,7 @@ class TidalAuth:
         except Exception as e:
             logger.error(f"Failed to clear session file: {e}")
 
-    def _generate_pkce_params(self) -> Tuple[str, str]:
+    def _generate_pkce_params(self) -> tuple[str, str]:
         """
         Generate PKCE code verifier and challenge.
 
@@ -253,10 +254,11 @@ class TidalAuth:
             logger.error(f"OAuth2 flow failed: {e}")
             return False
 
-    async def _capture_auth_code(self) -> Optional[str]:
+    async def _capture_auth_code(self) -> str | None:
         """Start local server to capture OAuth2 callback."""
-        from aiohttp import web
         import asyncio
+
+        from aiohttp import web
 
         auth_code = None
 
@@ -483,7 +485,7 @@ class TidalAuth:
         logger.info("Token refresh failed, re-authenticating...")
         return await self.authenticate()
 
-    def get_auth_headers(self) -> Dict[str, str]:
+    def get_auth_headers(self) -> dict[str, str]:
         """
         Get authentication headers for API requests.
 
@@ -544,7 +546,7 @@ class TidalAuth:
         except Exception as e:
             logger.warning(f"Token revocation failed: {e}")
 
-    def get_user_info(self) -> Optional[Dict[str, Any]]:
+    def get_user_info(self) -> dict[str, Any] | None:
         """
         Get current user information.
 

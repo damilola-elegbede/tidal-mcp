@@ -5,19 +5,20 @@ Tests for performance characteristics, memory usage, concurrency,
 and scalability of the Tidal MCP server components.
 """
 
-import pytest
 import asyncio
-import time
-import threading
-from unittest.mock import Mock, AsyncMock
 import gc
+import threading
+import time
+from unittest.mock import AsyncMock, Mock
 
-from tidal_mcp.service import TidalService
+import pytest
+
 from tidal_mcp.auth import TidalAuth
-from tidal_mcp.models import Track, Album, Artist, Playlist, SearchResults
+from tidal_mcp.models import Album, Artist, Playlist, SearchResults, Track
+from tidal_mcp.service import TidalService
 from tidal_mcp.utils import (
-    sanitize_query,
     format_duration,
+    sanitize_query,
     validate_tidal_id,
 )
 
@@ -175,8 +176,9 @@ class TestMemoryUsage:
 
     def test_model_memory_efficiency(self):
         """Test memory efficiency of data models."""
-        import psutil
         import os
+
+        import psutil
 
         process = psutil.Process(os.getpid())
         initial_memory = process.memory_info().rss
@@ -206,8 +208,9 @@ class TestMemoryUsage:
 
     def test_search_results_memory_scaling(self):
         """Test memory scaling of search results."""
-        import psutil
         import os
+
+        import psutil
 
         process = psutil.Process(os.getpid())
 
@@ -514,8 +517,9 @@ class TestResourceLeaks:
     @pytest.mark.asyncio
     async def test_async_operation_cleanup(self):
         """Test that async operations clean up properly."""
-        import psutil
         import os
+
+        import psutil
 
         process = psutil.Process(os.getpid())
         initial_memory = process.memory_info().rss

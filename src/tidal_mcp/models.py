@@ -7,8 +7,8 @@ MCP server.
 """
 
 from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional
 from datetime import datetime
+from typing import Any
 
 
 @dataclass
@@ -17,12 +17,12 @@ class Artist:
 
     id: str
     name: str
-    url: Optional[str] = None
-    picture: Optional[str] = None
-    popularity: Optional[int] = None
+    url: str | None = None
+    picture: str | None = None
+    popularity: int | None = None
 
     @classmethod
-    def from_api_data(cls, data: Dict[str, Any]) -> "Artist":
+    def from_api_data(cls, data: dict[str, Any]) -> "Artist":
         """
         Create Artist instance from Tidal API response data.
 
@@ -43,7 +43,7 @@ class Artist:
             popularity=data.get("popularity"),
         )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert artist to dictionary representation."""
         return {
             "id": self.id,
@@ -60,16 +60,16 @@ class Album:
 
     id: str
     title: str
-    artists: List[Artist] = field(default_factory=list)
-    release_date: Optional[str] = None
-    duration: Optional[int] = None  # Duration in seconds
-    number_of_tracks: Optional[int] = None
-    cover: Optional[str] = None
-    url: Optional[str] = None
+    artists: list[Artist] = field(default_factory=list)
+    release_date: str | None = None
+    duration: int | None = None  # Duration in seconds
+    number_of_tracks: int | None = None
+    cover: str | None = None
+    url: str | None = None
     explicit: bool = False
 
     @classmethod
-    def from_api_data(cls, data: Dict[str, Any]) -> "Album":
+    def from_api_data(cls, data: dict[str, Any]) -> "Album":
         """
         Create Album instance from Tidal API response data.
 
@@ -99,7 +99,7 @@ class Album:
             explicit=data.get("explicit", False),
         )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert album to dictionary representation."""
         return {
             "id": self.id,
@@ -120,18 +120,18 @@ class Track:
 
     id: str
     title: str
-    artists: List[Artist] = field(default_factory=list)
-    album: Optional[Album] = None
-    duration: Optional[int] = None  # Duration in seconds
-    track_number: Optional[int] = None
-    disc_number: Optional[int] = None
-    url: Optional[str] = None
-    stream_url: Optional[str] = None
+    artists: list[Artist] = field(default_factory=list)
+    album: Album | None = None
+    duration: int | None = None  # Duration in seconds
+    track_number: int | None = None
+    disc_number: int | None = None
+    url: str | None = None
+    stream_url: str | None = None
     explicit: bool = False
-    quality: Optional[str] = None  # e.g., "LOSSLESS", "HIGH", "LOW"
+    quality: str | None = None  # e.g., "LOSSLESS", "HIGH", "LOW"
 
     @classmethod
-    def from_api_data(cls, data: Dict[str, Any]) -> "Track":
+    def from_api_data(cls, data: dict[str, Any]) -> "Track":
         """
         Create Track instance from Tidal API response data.
 
@@ -167,7 +167,7 @@ class Track:
             quality=data.get("quality"),
         )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert track to dictionary representation."""
         return {
             "id": self.id,
@@ -205,19 +205,19 @@ class Playlist:
 
     id: str
     title: str
-    description: Optional[str] = None
-    creator: Optional[str] = None
-    tracks: List[Track] = field(default_factory=list)
-    number_of_tracks: Optional[int] = None
-    duration: Optional[int] = None  # Total duration in seconds
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-    image: Optional[str] = None
-    url: Optional[str] = None
+    description: str | None = None
+    creator: str | None = None
+    tracks: list[Track] = field(default_factory=list)
+    number_of_tracks: int | None = None
+    duration: int | None = None  # Total duration in seconds
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    image: str | None = None
+    url: str | None = None
     public: bool = True
 
     @classmethod
-    def from_api_data(cls, data: Dict[str, Any]) -> "Playlist":
+    def from_api_data(cls, data: dict[str, Any]) -> "Playlist":
         """
         Create Playlist instance from Tidal API response data.
 
@@ -268,7 +268,7 @@ class Playlist:
             public=data.get("publicPlaylist", True),
         )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert playlist to dictionary representation."""
         return {
             "id": self.id,
@@ -305,12 +305,12 @@ class Playlist:
 class SearchResults:
     """Container for search results across different content types."""
 
-    tracks: List[Track] = field(default_factory=list)
-    albums: List[Album] = field(default_factory=list)
-    artists: List[Artist] = field(default_factory=list)
-    playlists: List[Playlist] = field(default_factory=list)
+    tracks: list[Track] = field(default_factory=list)
+    albums: list[Album] = field(default_factory=list)
+    artists: list[Artist] = field(default_factory=list)
+    playlists: list[Playlist] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert search results to dictionary representation."""
         return {
             "tracks": [track.to_dict() for track in self.tracks],

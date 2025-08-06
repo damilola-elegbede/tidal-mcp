@@ -7,11 +7,13 @@ for music discovery, playlist management, and user library operations.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastmcp import FastMCP
+
 from .auth import TidalAuth, TidalAuthError
 from .service import TidalService
+
 # Models and utilities imported indirectly through service layer
 
 logger = logging.getLogger(__name__)
@@ -20,8 +22,8 @@ logger = logging.getLogger(__name__)
 mcp = FastMCP("Tidal Music Integration")
 
 # Global instances
-auth_manager: Optional[TidalAuth] = None
-tidal_service: Optional[TidalService] = None
+auth_manager: TidalAuth | None = None
+tidal_service: TidalService | None = None
 
 
 async def ensure_service() -> TidalService:
@@ -47,7 +49,7 @@ async def ensure_service() -> TidalService:
 
 
 @mcp.tool()
-async def tidal_login() -> Dict[str, Any]:
+async def tidal_login() -> dict[str, Any]:
     """
     Authenticate with Tidal using OAuth2 flow.
 
@@ -93,7 +95,7 @@ async def tidal_login() -> Dict[str, Any]:
 @mcp.tool()
 async def tidal_search(
     query: str, content_type: str = "all", limit: int = 20, offset: int = 0
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Search for content on Tidal.
 
@@ -169,7 +171,7 @@ async def tidal_search(
 @mcp.tool()
 async def tidal_get_playlist(
     playlist_id: str, include_tracks: bool = True
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get detailed information about a Tidal playlist.
 
@@ -198,7 +200,7 @@ async def tidal_get_playlist(
 
 
 @mcp.tool()
-async def tidal_create_playlist(title: str, description: str = "") -> Dict[str, Any]:
+async def tidal_create_playlist(title: str, description: str = "") -> dict[str, Any]:
     """
     Create a new Tidal playlist.
 
@@ -231,8 +233,8 @@ async def tidal_create_playlist(title: str, description: str = "") -> Dict[str, 
 
 @mcp.tool()
 async def tidal_add_to_playlist(
-    playlist_id: str, track_ids: List[str]
-) -> Dict[str, Any]:
+    playlist_id: str, track_ids: list[str]
+) -> dict[str, Any]:
     """
     Add tracks to a Tidal playlist.
 
@@ -271,8 +273,8 @@ async def tidal_add_to_playlist(
 
 @mcp.tool()
 async def tidal_remove_from_playlist(
-    playlist_id: str, track_indices: List[int]
-) -> Dict[str, Any]:
+    playlist_id: str, track_indices: list[int]
+) -> dict[str, Any]:
     """
     Remove tracks from a Tidal playlist by their position.
 
@@ -315,7 +317,7 @@ async def tidal_remove_from_playlist(
 @mcp.tool()
 async def tidal_get_favorites(
     content_type: str = "tracks", limit: int = 50, offset: int = 0
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get user's favorite content from Tidal.
 
@@ -357,7 +359,7 @@ async def tidal_get_favorites(
 
 
 @mcp.tool()
-async def tidal_add_favorite(item_id: str, content_type: str) -> Dict[str, Any]:
+async def tidal_add_favorite(item_id: str, content_type: str) -> dict[str, Any]:
     """
     Add an item to user's Tidal favorites.
 
@@ -392,7 +394,7 @@ async def tidal_add_favorite(item_id: str, content_type: str) -> Dict[str, Any]:
 
 
 @mcp.tool()
-async def tidal_remove_favorite(item_id: str, content_type: str) -> Dict[str, Any]:
+async def tidal_remove_favorite(item_id: str, content_type: str) -> dict[str, Any]:
     """
     Remove an item from user's Tidal favorites.
 
@@ -427,7 +429,7 @@ async def tidal_remove_favorite(item_id: str, content_type: str) -> Dict[str, An
 
 
 @mcp.tool()
-async def tidal_get_recommendations(limit: int = 50) -> Dict[str, Any]:
+async def tidal_get_recommendations(limit: int = 50) -> dict[str, Any]:
     """
     Get personalized track recommendations from Tidal.
 
@@ -457,7 +459,7 @@ async def tidal_get_recommendations(limit: int = 50) -> Dict[str, Any]:
 
 
 @mcp.tool()
-async def tidal_get_track_radio(track_id: str, limit: int = 50) -> Dict[str, Any]:
+async def tidal_get_track_radio(track_id: str, limit: int = 50) -> dict[str, Any]:
     """
     Get radio tracks based on a seed track.
 
@@ -489,7 +491,7 @@ async def tidal_get_track_radio(track_id: str, limit: int = 50) -> Dict[str, Any
 
 
 @mcp.tool()
-async def tidal_get_user_playlists(limit: int = 50, offset: int = 0) -> Dict[str, Any]:
+async def tidal_get_user_playlists(limit: int = 50, offset: int = 0) -> dict[str, Any]:
     """
     Get user's Tidal playlists.
 
@@ -520,7 +522,7 @@ async def tidal_get_user_playlists(limit: int = 50, offset: int = 0) -> Dict[str
 
 
 @mcp.tool()
-async def tidal_get_track(track_id: str) -> Dict[str, Any]:
+async def tidal_get_track(track_id: str) -> dict[str, Any]:
     """
     Get detailed information about a specific track.
 
@@ -547,7 +549,7 @@ async def tidal_get_track(track_id: str) -> Dict[str, Any]:
 
 
 @mcp.tool()
-async def tidal_get_album(album_id: str, include_tracks: bool = True) -> Dict[str, Any]:
+async def tidal_get_album(album_id: str, include_tracks: bool = True) -> dict[str, Any]:
     """
     Get detailed information about a specific album.
 
@@ -576,7 +578,7 @@ async def tidal_get_album(album_id: str, include_tracks: bool = True) -> Dict[st
 
 
 @mcp.tool()
-async def tidal_get_artist(artist_id: str) -> Dict[str, Any]:
+async def tidal_get_artist(artist_id: str) -> dict[str, Any]:
     """
     Get detailed information about a specific artist.
 

@@ -6,13 +6,14 @@ functionality, playlist management, favorites, recommendations, and
 error handling.
 """
 
+from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, AsyncMock
 import tidalapi
 
-from tidal_mcp.service import TidalService, async_to_sync
 from tidal_mcp.auth import TidalAuth, TidalAuthError
-from tidal_mcp.models import Track, Album, Artist, Playlist
+from tidal_mcp.models import Album, Artist, Playlist, Track
+from tidal_mcp.service import TidalService, async_to_sync
 
 
 @pytest.fixture

@@ -7,14 +7,15 @@ management, and playback control.
 """
 
 import asyncio
-import logging
-from typing import List, Dict, Any, Optional
-import tidalapi
-from concurrent.futures import ThreadPoolExecutor
 import functools
+import logging
+from concurrent.futures import ThreadPoolExecutor
+from typing import Any
+
+import tidalapi
 
 from .auth import TidalAuth, TidalAuthError
-from .models import Track, Album, Artist, Playlist, SearchResults
+from .models import Album, Artist, Playlist, SearchResults, Track
 from .utils import sanitize_query, validate_tidal_id
 
 logger = logging.getLogger(__name__)
@@ -67,7 +68,7 @@ class TidalService:
     # Search functionality
     async def search_tracks(
         self, query: str, limit: int = 20, offset: int = 0
-    ) -> List[Track]:
+    ) -> list[Track]:
         """
         Search for tracks on Tidal.
 
@@ -126,7 +127,7 @@ class TidalService:
 
     async def search_albums(
         self, query: str, limit: int = 20, offset: int = 0
-    ) -> List[Album]:
+    ) -> list[Album]:
         """
         Search for albums on Tidal.
 
@@ -184,7 +185,7 @@ class TidalService:
 
     async def search_artists(
         self, query: str, limit: int = 20, offset: int = 0
-    ) -> List[Artist]:
+    ) -> list[Artist]:
         """
         Search for artists on Tidal.
 
@@ -244,7 +245,7 @@ class TidalService:
 
     async def search_playlists(
         self, query: str, limit: int = 20, offset: int = 0
-    ) -> List[Playlist]:
+    ) -> list[Playlist]:
         """
         Search for playlists on Tidal.
 
@@ -337,7 +338,7 @@ class TidalService:
     # Playlist management
     async def get_playlist(
         self, playlist_id: str, include_tracks: bool = True
-    ) -> Optional[Playlist]:
+    ) -> Playlist | None:
         """
         Get playlist details and optionally tracks.
 
@@ -383,7 +384,7 @@ class TidalService:
 
     async def get_playlist_tracks(
         self, playlist_id: str, limit: int = 100, offset: int = 0
-    ) -> List[Track]:
+    ) -> list[Track]:
         """
         Get tracks from a playlist.
 
@@ -443,7 +444,7 @@ class TidalService:
 
     async def create_playlist(
         self, title: str, description: str = ""
-    ) -> Optional[Playlist]:
+    ) -> Playlist | None:
         """
         Create a new playlist.
 
@@ -484,7 +485,7 @@ class TidalService:
             return None
 
     async def add_tracks_to_playlist(
-        self, playlist_id: str, track_ids: List[str]
+        self, playlist_id: str, track_ids: list[str]
     ) -> bool:
         """
         Add tracks to a playlist.
@@ -556,7 +557,7 @@ class TidalService:
             return False
 
     async def remove_tracks_from_playlist(
-        self, playlist_id: str, track_indices: List[int]
+        self, playlist_id: str, track_indices: list[int]
     ) -> bool:
         """
         Remove tracks from a playlist by index.
@@ -657,7 +658,7 @@ class TidalService:
 
     async def get_user_playlists(
         self, limit: int = 50, offset: int = 0
-    ) -> List[Playlist]:
+    ) -> list[Playlist]:
         """
         Get user's playlists.
 
@@ -709,7 +710,7 @@ class TidalService:
     # Library/Favorites management
     async def get_user_favorites(
         self, content_type: str = "tracks", limit: int = 50, offset: int = 0
-    ) -> List[Any]:
+    ) -> list[Any]:
         """
         Get user's favorite tracks, albums, or artists.
 
@@ -897,7 +898,7 @@ class TidalService:
             return False
 
     # Recommendations and Radio
-    async def get_track_radio(self, track_id: str, limit: int = 50) -> List[Track]:
+    async def get_track_radio(self, track_id: str, limit: int = 50) -> list[Track]:
         """
         Get radio tracks based on a seed track.
 
@@ -947,7 +948,7 @@ class TidalService:
             logger.error(f"Failed to get track radio for {track_id}: {e}")
             return []
 
-    async def get_artist_radio(self, artist_id: str, limit: int = 50) -> List[Track]:
+    async def get_artist_radio(self, artist_id: str, limit: int = 50) -> list[Track]:
         """
         Get radio tracks based on an artist.
 
@@ -997,7 +998,7 @@ class TidalService:
             logger.error(f"Failed to get artist radio for {artist_id}: {e}")
             return []
 
-    async def get_recommended_tracks(self, limit: int = 50) -> List[Track]:
+    async def get_recommended_tracks(self, limit: int = 50) -> list[Track]:
         """
         Get personalized recommended tracks.
 
@@ -1060,7 +1061,7 @@ class TidalService:
             return []
 
     # Detailed item retrieval
-    async def get_track(self, track_id: str) -> Optional[Track]:
+    async def get_track(self, track_id: str) -> Track | None:
         """
         Get detailed track information.
 
@@ -1099,7 +1100,7 @@ class TidalService:
 
     async def get_album(
         self, album_id: str, include_tracks: bool = True
-    ) -> Optional[Album]:
+    ) -> Album | None:
         """
         Get detailed album information.
 
@@ -1143,7 +1144,7 @@ class TidalService:
             logger.error(f"Failed to get album {album_id}: {e}")
             return None
 
-    async def get_artist(self, artist_id: str) -> Optional[Artist]:
+    async def get_artist(self, artist_id: str) -> Artist | None:
         """
         Get detailed artist information.
 
@@ -1182,7 +1183,7 @@ class TidalService:
 
     async def get_album_tracks(
         self, album_id: str, limit: int = 100, offset: int = 0
-    ) -> List[Track]:
+    ) -> list[Track]:
         """
         Get tracks from an album.
 
@@ -1242,7 +1243,7 @@ class TidalService:
 
     async def get_artist_albums(
         self, artist_id: str, limit: int = 50, offset: int = 0
-    ) -> List[Album]:
+    ) -> list[Album]:
         """
         Get albums by an artist.
 
@@ -1304,7 +1305,7 @@ class TidalService:
 
     async def get_artist_top_tracks(
         self, artist_id: str, limit: int = 20
-    ) -> List[Track]:
+    ) -> list[Track]:
         """
         Get top tracks by an artist.
 
@@ -1357,7 +1358,7 @@ class TidalService:
             return []
 
     # User profile operations
-    async def get_user_profile(self) -> Optional[Dict[str, Any]]:
+    async def get_user_profile(self) -> dict[str, Any] | None:
         """
         Get current user profile information.
 
@@ -1378,7 +1379,7 @@ class TidalService:
             return None
 
     # Helper methods for conversion
-    async def _convert_tidal_track(self, tidal_track) -> Optional[Track]:
+    async def _convert_tidal_track(self, tidal_track) -> Track | None:
         """Convert tidalapi Track to our Track model."""
         try:
             # Get artists
@@ -1458,7 +1459,7 @@ class TidalService:
 
     async def _convert_tidal_album(
         self, tidal_album, include_tracks: bool = False
-    ) -> Optional[Album]:
+    ) -> Album | None:
         """Convert tidalapi Album to our Album model."""
         try:
             # Get artists
@@ -1498,7 +1499,7 @@ class TidalService:
             logger.error(f"Failed to convert tidal album: {e}")
             return None
 
-    async def _convert_tidal_artist(self, tidal_artist) -> Optional[Artist]:
+    async def _convert_tidal_artist(self, tidal_artist) -> Artist | None:
         """Convert tidalapi Artist to our Artist model."""
         try:
             return Artist(
@@ -1514,7 +1515,7 @@ class TidalService:
 
     async def _convert_tidal_playlist(
         self, tidal_playlist, include_tracks: bool = True
-    ) -> Optional[Playlist]:
+    ) -> Playlist | None:
         """Convert tidalapi Playlist to our Playlist model."""
         try:
             tracks = []

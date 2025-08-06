@@ -5,9 +5,9 @@ Helper functions and utilities for the Tidal MCP server.
 Provides common functionality for data processing, formatting, and validation.
 """
 
-import re
 import logging
-from typing import Any, Dict, List, Optional
+import re
+from typing import Any
 from urllib.parse import quote
 
 logger = logging.getLogger(__name__)
@@ -35,7 +35,7 @@ def sanitize_query(query: str) -> str:
     return sanitized
 
 
-def format_duration(seconds: Optional[int]) -> str:
+def format_duration(seconds: int | None) -> str:
     """
     Format duration in seconds to human-readable string.
 
@@ -118,7 +118,7 @@ def format_file_size(bytes_size: int) -> str:
         return f"{size:.1f} {size_units[unit_index]}"
 
 
-def safe_get(data: Dict[str, Any], key: str, default: Any = None) -> Any:
+def safe_get(data: dict[str, Any], key: str, default: Any = None) -> Any:
     """
     Safely get value from dictionary with dot notation support.
 
@@ -186,7 +186,7 @@ def validate_tidal_id(tidal_id: str) -> bool:
     return tidal_id.isdigit() and len(tidal_id) > 0
 
 
-def extract_tidal_id_from_url(url: str) -> Optional[str]:
+def extract_tidal_id_from_url(url: str) -> str | None:
     """
     Extract Tidal ID from Tidal URL.
 
@@ -249,7 +249,7 @@ def normalize_quality_string(quality: str) -> str:
 def build_search_url(
     base_url: str,
     query: str,
-    content_types: List[str],
+    content_types: list[str],
     limit: int = 20,
     offset: int = 0,
     country_code: str = "US",
@@ -286,8 +286,8 @@ def build_search_url(
 
 
 def filter_explicit_content(
-    items: List[Dict[str, Any]], allow_explicit: bool = True
-) -> List[Dict[str, Any]]:
+    items: list[dict[str, Any]], allow_explicit: bool = True
+) -> list[dict[str, Any]]:
     """
     Filter explicit content from results.
 
@@ -304,7 +304,7 @@ def filter_explicit_content(
     return [item for item in items if not item.get("explicit", False)]
 
 
-def merge_artist_names(artists: List[Dict[str, Any]]) -> str:
+def merge_artist_names(artists: list[dict[str, Any]]) -> str:
     """
     Merge multiple artist names into a single string.
 
@@ -326,7 +326,7 @@ def merge_artist_names(artists: List[Dict[str, Any]]) -> str:
     return ", ".join(names) if names else "Unknown Artist"
 
 
-def calculate_playlist_stats(tracks: List[Dict[str, Any]]) -> Dict[str, Any]:
+def calculate_playlist_stats(tracks: list[dict[str, Any]]) -> dict[str, Any]:
     """
     Calculate statistics for a playlist.
 

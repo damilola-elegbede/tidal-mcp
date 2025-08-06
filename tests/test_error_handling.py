@@ -6,24 +6,25 @@ components of the Tidal MCP server. Ensures robust error handling and
 graceful degradation.
 """
 
-import pytest
 import asyncio
-from unittest.mock import Mock, patch, AsyncMock
-import aiohttp
 import json
+from unittest.mock import AsyncMock, Mock, patch
+
+import aiohttp
+import pytest
 
 from tidal_mcp.auth import TidalAuth, TidalAuthError
-from tidal_mcp.service import TidalService
+from tidal_mcp.models import Album, Artist, Playlist, Track
 from tidal_mcp.server import (
-    tidal_search,
-    tidal_get_playlist,
-    tidal_create_playlist,
-    tidal_add_to_playlist,
-    tidal_remove_from_playlist,
-    tidal_get_favorites,
     ensure_service,
+    tidal_add_to_playlist,
+    tidal_create_playlist,
+    tidal_get_favorites,
+    tidal_get_playlist,
+    tidal_remove_from_playlist,
+    tidal_search,
 )
-from tidal_mcp.models import Track, Album, Artist, Playlist
+from tidal_mcp.service import TidalService
 from tidal_mcp.utils import sanitize_query, validate_tidal_id
 
 

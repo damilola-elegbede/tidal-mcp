@@ -8,12 +8,12 @@ for various music streaming operations.
 import asyncio
 import logging
 
+from tidal_mcp.auth import TidalAuth
+
 # TODO: Update imports when MCP dependencies are added
 # from mcp import ClientSession, StdioServerParameters
 # from mcp.client.stdio import stdio_client
-
 from tidal_mcp.server import TidalMCPServer
-from tidal_mcp.auth import TidalAuth
 from tidal_mcp.service import TidalService
 
 # Configure logging

@@ -5,18 +5,19 @@ End-to-end integration tests that combine authentication, service layer,
 and external API interactions in realistic usage scenarios.
 """
 
-import pytest
 import asyncio
 import json
 import tempfile
-from pathlib import Path
-from unittest.mock import Mock, patch, AsyncMock
 from datetime import datetime, timedelta
+from pathlib import Path
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
 import tidalapi
 
 from tidal_mcp.auth import TidalAuth
+from tidal_mcp.models import Playlist, SearchResults, Track
 from tidal_mcp.service import TidalService
-from tidal_mcp.models import Track, Playlist, SearchResults
 
 
 @pytest.fixture
@@ -224,7 +225,7 @@ class TestAuthenticationFlow:
 
                     # Verify session was saved
                     assert auth.session_file.exists()
-                    with open(auth.session_file, "r") as f:
+                    with open(auth.session_file) as f:
                         session_data = json.load(f)
                         assert session_data["access_token"] == "new_access_token"
                         assert session_data["user_id"] == "12345"

@@ -6,10 +6,11 @@ Playlist, and SearchResults. Tests cover initialization, serialization,
 validation, and edge cases.
 """
 
-import pytest
 from datetime import datetime
 
-from tidal_mcp.models import Artist, Album, Track, Playlist, SearchResults
+import pytest
+
+from tidal_mcp.models import Album, Artist, Playlist, SearchResults, Track
 
 
 class TestArtist:

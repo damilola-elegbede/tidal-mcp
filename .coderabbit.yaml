@@ -1,0 +1,108 @@
+language: en
+early_access: true
+reviews:
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: true
+  review_status: true
+  collapse_walkthrough: false
+  auto_review:
+    enabled: true
+    drafts: false
+  path_filters:
+    - "!**/node_modules/**"
+    - "!**/.git/**"
+    - "!**/build/**"
+    - "!**/dist/**"
+    - "!**/.venv/**"
+    - "!**/__pycache__/**"
+    - "!**/*.pyc"
+    - "!**/coverage/**"
+    - "!**/.coverage"
+    - "!**/htmlcov/**"
+    - "!**/.pytest_cache/**"
+    - "!**/.mypy_cache/**"
+    - "!**/.ruff_cache/**"
+  path_instructions:
+    - path: "src/**/*.py"
+      instructions: |
+        Review Python source code focusing on:
+        - Code quality and maintainability
+        - Type annotations and mypy compatibility
+        - Security vulnerabilities and best practices
+        - Performance considerations
+        - Error handling and edge cases
+        - Async/await usage patterns
+    - path: "tests/**/*.py" 
+      instructions: |
+        Review test code focusing on:
+        - Test coverage and completeness
+        - Test clarity and maintainability
+        - Proper mocking and fixtures usage
+        - Edge case coverage
+        - Async test patterns
+    - path: "**/*.yml"
+      instructions: |
+        Review CI/CD workflows focusing on:
+        - Security best practices
+        - Efficiency and performance
+        - Error handling and retry logic
+        - Dependencies and versions
+    - path: "pyproject.toml"
+      instructions: |
+        Review project configuration focusing on:
+        - Dependency versions and compatibility
+        - Tool configurations alignment
+        - Build and packaging setup
+    - path: "**/*.md"
+      instructions: |
+        Review documentation focusing on:
+        - Clarity and completeness
+        - Code examples accuracy
+        - Structure and formatting
+        - Up-to-date information
+  ignored_paths:
+    - "**/*.lock"
+    - "**/uv.lock"
+    - "**/.DS_Store"
+    - "**/Thumbs.db"
+chat:
+  auto_reply: true
+tools:
+  similar-code: true
+  ast: true
+  security: true
+  
+# Auto-resolve outdated comments as requested
+comment_options:
+  auto_resolve_outdated: true
+  stale_comment_threshold: 7
+  
+# Additional configuration for better review quality  
+knowledge_base:
+  learnings:
+    enabled: true
+  
+# Custom instructions for this project
+project_context: |
+  This is a Tidal Music Streaming MCP (Model Context Protocol) server project.
+  
+  Key aspects to consider:
+  - Python async/await patterns for API calls
+  - MCP protocol compliance
+  - Tidal API integration and authentication
+  - Error handling for network requests
+  - Rate limiting and throttling
+  - Security of API credentials
+  - Type safety and mypy compatibility
+  - Comprehensive test coverage
+  - Performance optimization for music metadata operations
+  
+  The project uses:
+  - Python 3.10+ with async/await
+  - FastMCP for MCP protocol implementation
+  - TidalAPI for Tidal service integration  
+  - pytest for testing with async support
+  - ruff for linting and formatting
+  - UV for dependency management

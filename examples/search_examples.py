@@ -6,6 +6,7 @@ This script demonstrates advanced search capabilities using Tidal MCP.
 
 import asyncio
 import logging
+
 from tidal_mcp import tidal_login, tidal_search
 
 logging.basicConfig(level=logging.INFO)

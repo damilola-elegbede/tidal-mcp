@@ -5,11 +5,12 @@ Provides common test fixtures and configuration for authentication,
 service layer, and integration testing.
 """
 
-import pytest
 import asyncio
 import tempfile
 from pathlib import Path
 from unittest.mock import Mock
+
+import pytest
 import tidalapi
 
 
@@ -149,8 +150,9 @@ def create_sample_tidal_playlist(playlist_id="playlist-uuid-123", name="Test Pla
 @pytest.fixture
 def mock_fastmcp_server():
     """Create a mock FastMCP server instance."""
-    from fastmcp import FastMCP
     from unittest.mock import Mock
+
+    from fastmcp import FastMCP
 
     server = Mock(spec=FastMCP)
     server.tools = {}
@@ -161,7 +163,7 @@ def mock_fastmcp_server():
 @pytest.fixture
 def sample_search_results():
     """Create sample search results for testing."""
-    from tidal_mcp.models import SearchResults, Track, Album, Artist, Playlist
+    from tidal_mcp.models import Album, Artist, Playlist, SearchResults, Track
 
     tracks = [
         Track(id="1", title="Search Track 1", artists=[], duration=200),
@@ -191,7 +193,7 @@ def sample_search_results():
 @pytest.fixture
 def performance_test_data():
     """Create data for performance testing."""
-    from tidal_mcp.models import Track, Artist, Album
+    from tidal_mcp.models import Album, Artist, Track
 
     # Create large dataset for performance tests
     tracks = []

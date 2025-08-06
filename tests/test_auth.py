@@ -5,19 +5,20 @@ Comprehensive unit tests for the TidalAuth class covering OAuth2 PKCE flow,
 token management, session handling, and error scenarios.
 """
 
-import pytest
 import json
 import tempfile
+from datetime import datetime, timedelta
 from pathlib import Path
 from unittest.mock import (
-    Mock,
-    MagicMock,
-    patch,
     AsyncMock,
+    MagicMock,
+    Mock,
     PropertyMock,
+    patch,
 )
-from datetime import datetime, timedelta
+
 import aiohttp
+import pytest
 import tidalapi
 
 from tidal_mcp.auth import TidalAuth, TidalAuthError
@@ -479,7 +480,7 @@ class TestSessionManagement:
 
             # Verify file was created and contains expected data
             assert auth_with_session.session_file.exists()
-            with open(auth_with_session.session_file, "r") as f:
+            with open(auth_with_session.session_file) as f:
                 data = json.load(f)
                 assert data["access_token"] == "test_token"
                 assert data["refresh_token"] == "refresh_token"

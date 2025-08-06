@@ -6,30 +6,31 @@ in server.py. Tests cover authentication, parameter validation, error
 handling, and response formatting.
 """
 
-import pytest
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import AsyncMock, Mock, patch
 
+import pytest
+
+from tidal_mcp.auth import TidalAuth, TidalAuthError
+from tidal_mcp.models import Album, Artist, Playlist, SearchResults, Track
 from tidal_mcp.server import (
     ensure_service,
-    tidal_login,
-    tidal_search,
-    tidal_get_playlist,
-    tidal_create_playlist,
-    tidal_add_to_playlist,
-    tidal_remove_from_playlist,
-    tidal_get_favorites,
     tidal_add_favorite,
-    tidal_remove_favorite,
-    tidal_get_recommendations,
-    tidal_get_track_radio,
-    tidal_get_user_playlists,
-    tidal_get_track,
+    tidal_add_to_playlist,
+    tidal_create_playlist,
     tidal_get_album,
     tidal_get_artist,
+    tidal_get_favorites,
+    tidal_get_playlist,
+    tidal_get_recommendations,
+    tidal_get_track,
+    tidal_get_track_radio,
+    tidal_get_user_playlists,
+    tidal_login,
+    tidal_remove_favorite,
+    tidal_remove_from_playlist,
+    tidal_search,
 )
-from tidal_mcp.auth import TidalAuth, TidalAuthError
 from tidal_mcp.service import TidalService
-from tidal_mcp.models import Track, Album, Artist, Playlist, SearchResults
 
 
 @pytest.fixture

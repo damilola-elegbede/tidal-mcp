@@ -6,13 +6,14 @@ This script demonstrates advanced favorites tracking and recommendation retrieva
 
 import asyncio
 import logging
+
 from tidal_mcp import (
-    tidal_login,
-    tidal_get_favorites,
     tidal_add_favorite,
-    tidal_remove_favorite,
+    tidal_get_favorites,
     tidal_get_recommendations,
     tidal_get_track_radio,
+    tidal_login,
+    tidal_remove_favorite,
 )
 
 logging.basicConfig(level=logging.INFO)
