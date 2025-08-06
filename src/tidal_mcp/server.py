@@ -33,14 +33,16 @@ async def ensure_service() -> TidalService:
         import os
         client_id = os.getenv("TIDAL_CLIENT_ID")
         client_secret = os.getenv("TIDAL_CLIENT_SECRET")
-        auth_manager = TidalAuth(client_id=client_id, client_secret=client_secret)
+        auth_manager = TidalAuth(client_id=client_id,
+                                 client_secret=client_secret)
 
     if not tidal_service:
         tidal_service = TidalService(auth_manager)
 
     # Ensure authentication
     if not auth_manager.is_authenticated():
-        raise TidalAuthError("Not authenticated. Please run tidal_login first.")
+        raise TidalAuthError(
+            "Not authenticated. Please run tidal_login first.")
 
     return tidal_service
 
@@ -50,7 +52,8 @@ async def tidal_login() -> Dict[str, Any]:
     """
     Authenticate with Tidal using OAuth2 flow.
 
-    This tool initiates the Tidal authentication process. It will open a browser
+    This tool initiates the Tidal authentication process. It will open a
+    browser
     window for you to log in with your Tidal credentials. The authentication
     tokens will be saved for future use.
 
@@ -100,7 +103,8 @@ async def tidal_search(
 
     Args:
         query: Search query string (required)
-        content_type: Type of content to search - "tracks", "albums", "artists", "playlists", or "all" (default: "all")
+        content_type: Type of content to search - "tracks", "albums",
+            "artists", "playlists", or "all" (default: "all")
         limit: Maximum number of results per type (default: 20, max: 50)
         offset: Pagination offset (default: 0)
 
@@ -173,13 +177,16 @@ async def tidal_search(
 
 
 @mcp.tool()
-async def tidal_get_playlist(playlist_id: str, include_tracks: bool = True) -> Dict[str, Any]:
+async def tidal_get_playlist(
+    playlist_id: str, include_tracks: bool = True
+) -> Dict[str, Any]:
     """
     Get detailed information about a Tidal playlist.
 
     Args:
         playlist_id: Tidal playlist ID or UUID (required)
-        include_tracks: Whether to include the full track list (default: True)
+        include_tracks: Whether to include the full track list
+            (default: True)
 
     Returns:
         Playlist details including tracks if requested
@@ -207,7 +214,9 @@ async def tidal_get_playlist(playlist_id: str, include_tracks: bool = True) -> D
 
 
 @mcp.tool()
-async def tidal_create_playlist(title: str, description: str = "") -> Dict[str, Any]:
+async def tidal_create_playlist(
+    title: str, description: str = ""
+) -> Dict[str, Any]:
     """
     Create a new Tidal playlist.
 
@@ -242,7 +251,9 @@ async def tidal_create_playlist(title: str, description: str = "") -> Dict[str, 
 
 
 @mcp.tool()
-async def tidal_add_to_playlist(playlist_id: str, track_ids: List[str]) -> Dict[str, Any]:
+async def tidal_add_to_playlist(
+    playlist_id: str, track_ids: List[str]
+) -> Dict[str, Any]:
     """
     Add tracks to a Tidal playlist.
 
@@ -267,7 +278,8 @@ async def tidal_add_to_playlist(playlist_id: str, track_ids: List[str]) -> Dict[
         if success:
             return {
                 "success": True,
-                "message": f"Added {len(track_ids)} tracks to playlist {playlist_id}"
+                "message": (f"Added {len(track_ids)} tracks to "
+                            f"playlist {playlist_id}")
             }
         else:
             return {
@@ -283,13 +295,16 @@ async def tidal_add_to_playlist(playlist_id: str, track_ids: List[str]) -> Dict[
 
 
 @mcp.tool()
-async def tidal_remove_from_playlist(playlist_id: str, track_indices: List[int]) -> Dict[str, Any]:
+async def tidal_remove_from_playlist(
+    playlist_id: str, track_indices: List[int]
+) -> Dict[str, Any]:
     """
     Remove tracks from a Tidal playlist by their position.
 
     Args:
         playlist_id: Target playlist ID or UUID (required)
-        track_indices: List of track indices to remove (0-based) (required)
+        track_indices: List of track indices to remove (0-based)
+            (required)
 
     Returns:
         Operation result with success status
@@ -303,12 +318,14 @@ async def tidal_remove_from_playlist(playlist_id: str, track_indices: List[int])
                 "error": "No track indices provided"
             }
 
-        success = await service.remove_tracks_from_playlist(playlist_id, track_indices)
+        success = await service.remove_tracks_from_playlist(
+            playlist_id, track_indices)
 
         if success:
             return {
                 "success": True,
-                "message": f"Removed {len(track_indices)} tracks from playlist {playlist_id}"
+                "message": (f"Removed {len(track_indices)} tracks from "
+                            f"playlist {playlist_id}")
             }
         else:
             return {
@@ -333,7 +350,8 @@ async def tidal_get_favorites(
     Get user's favorite content from Tidal.
 
     Args:
-        content_type: Type of favorites - "tracks", "albums", "artists", or "playlists" (default: "tracks")
+        content_type: Type of favorites - "tracks", "albums",
+            "artists", or "playlists" (default: "tracks")
         limit: Maximum number of results (default: 50, max: 100)
         offset: Pagination offset (default: 0)
 
@@ -345,7 +363,8 @@ async def tidal_get_favorites(
         limit = min(max(1, limit), 100)  # Clamp between 1 and 100
         offset = max(0, offset)
 
-        favorites = await service.get_user_favorites(content_type, limit, offset)
+        favorites = await service.get_user_favorites(content_type, limit,
+                                                     offset)
 
         # Convert to dictionaries
         favorites_dict = []
@@ -369,13 +388,16 @@ async def tidal_get_favorites(
 
 
 @mcp.tool()
-async def tidal_add_favorite(item_id: str, content_type: str) -> Dict[str, Any]:
+async def tidal_add_favorite(
+    item_id: str, content_type: str
+) -> Dict[str, Any]:
     """
     Add an item to user's Tidal favorites.
 
     Args:
         item_id: ID of the item to add (required)
-        content_type: Type of content - "track", "album", "artist", or "playlist" (required)
+        content_type: Type of content - "track", "album",
+            "artist", or "playlist" (required)
 
     Returns:
         Operation result with success status
@@ -387,12 +409,14 @@ async def tidal_add_favorite(item_id: str, content_type: str) -> Dict[str, Any]:
         if success:
             return {
                 "success": True,
-                "message": f"Added {content_type} {item_id} to favorites"
+                "message": (f"Added {content_type} {item_id} to "
+                            "favorites")
             }
         else:
             return {
                 "success": False,
-                "error": f"Failed to add {content_type} {item_id} to favorites"
+                "error": (f"Failed to add {content_type} {item_id} to "
+                          "favorites")
             }
 
     except TidalAuthError as e:
@@ -403,13 +427,16 @@ async def tidal_add_favorite(item_id: str, content_type: str) -> Dict[str, Any]:
 
 
 @mcp.tool()
-async def tidal_remove_favorite(item_id: str, content_type: str) -> Dict[str, Any]:
+async def tidal_remove_favorite(
+    item_id: str, content_type: str
+) -> Dict[str, Any]:
     """
     Remove an item from user's Tidal favorites.
 
     Args:
         item_id: ID of the item to remove (required)
-        content_type: Type of content - "track", "album", "artist", or "playlist" (required)
+        content_type: Type of content - "track", "album",
+            "artist", or "playlist" (required)
 
     Returns:
         Operation result with success status
@@ -421,12 +448,14 @@ async def tidal_remove_favorite(item_id: str, content_type: str) -> Dict[str, An
         if success:
             return {
                 "success": True,
-                "message": f"Removed {content_type} {item_id} from favorites"
+                "message": (f"Removed {content_type} {item_id} from "
+                            "favorites")
             }
         else:
             return {
                 "success": False,
-                "error": f"Failed to remove {content_type} {item_id} from favorites"
+                "error": (f"Failed to remove {content_type} {item_id} from "
+                          "favorites")
             }
 
     except TidalAuthError as e:
@@ -442,7 +471,8 @@ async def tidal_get_recommendations(limit: int = 50) -> Dict[str, Any]:
     Get personalized track recommendations from Tidal.
 
     Args:
-        limit: Maximum number of recommended tracks (default: 50, max: 100)
+        limit: Maximum number of recommended tracks
+            (default: 50, max: 100)
 
     Returns:
         List of recommended tracks
@@ -466,13 +496,16 @@ async def tidal_get_recommendations(limit: int = 50) -> Dict[str, Any]:
 
 
 @mcp.tool()
-async def tidal_get_track_radio(track_id: str, limit: int = 50) -> Dict[str, Any]:
+async def tidal_get_track_radio(
+    track_id: str, limit: int = 50
+) -> Dict[str, Any]:
     """
     Get radio tracks based on a seed track.
 
     Args:
         track_id: Seed track ID for radio generation (required)
-        limit: Maximum number of radio tracks (default: 50, max: 100)
+        limit: Maximum number of radio tracks
+            (default: 50, max: 100)
 
     Returns:
         List of radio tracks similar to the seed track
@@ -497,7 +530,9 @@ async def tidal_get_track_radio(track_id: str, limit: int = 50) -> Dict[str, Any
 
 
 @mcp.tool()
-async def tidal_get_user_playlists(limit: int = 50, offset: int = 0) -> Dict[str, Any]:
+async def tidal_get_user_playlists(
+    limit: int = 50, offset: int = 0
+) -> Dict[str, Any]:
     """
     Get user's Tidal playlists.
 
@@ -561,13 +596,16 @@ async def tidal_get_track(track_id: str) -> Dict[str, Any]:
 
 
 @mcp.tool()
-async def tidal_get_album(album_id: str, include_tracks: bool = True) -> Dict[str, Any]:
+async def tidal_get_album(
+    album_id: str, include_tracks: bool = True
+) -> Dict[str, Any]:
     """
     Get detailed information about a specific album.
 
     Args:
         album_id: Tidal album ID (required)
-        include_tracks: Whether to include the track list (default: True)
+        include_tracks: Whether to include the track list
+            (default: True)
 
     Returns:
         Detailed album information with optional track list

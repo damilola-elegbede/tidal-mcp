@@ -1,8 +1,9 @@
 """
 Tidal Data Models
 
-Data models representing Tidal music entities like tracks, albums, artists, and playlists.
-Provides structured data access and serialization for the MCP server.
+Data models representing Tidal music entities like tracks, albums, artists,
+and playlists. Provides structured data access and serialization for the
+MCP server.
 """
 
 from dataclasses import dataclass, field
@@ -82,7 +83,8 @@ class Album:
             data = {}
         artists = []
         if 'artists' in data:
-            artists = [Artist.from_api_data(artist) for artist in data['artists']]
+            artists = [Artist.from_api_data(artist)
+                       for artist in data['artists']]
         elif 'artist' in data:
             artists = [Artist.from_api_data(data['artist'])]
 
@@ -144,7 +146,8 @@ class Track:
             data = {}
         artists = []
         if 'artists' in data:
-            artists = [Artist.from_api_data(artist) for artist in data['artists']]
+            artists = [Artist.from_api_data(artist)
+                       for artist in data['artists']]
         elif 'artist' in data:
             artists = [Artist.from_api_data(data['artist'])]
 
@@ -235,14 +238,16 @@ class Playlist:
         created_at = None
         if 'created' in data:
             try:
-                created_at = datetime.fromisoformat(data['created'].replace('Z', '+00:00'))
+                created_at = datetime.fromisoformat(
+                    data['created'].replace('Z', '+00:00'))
             except (ValueError, AttributeError):
                 pass
 
         updated_at = None
         if 'lastUpdated' in data:
             try:
-                updated_at = datetime.fromisoformat(data['lastUpdated'].replace('Z', '+00:00'))
+                updated_at = datetime.fromisoformat(
+                    data['lastUpdated'].replace('Z', '+00:00'))
             except (ValueError, AttributeError):
                 pass
 
@@ -250,7 +255,8 @@ class Playlist:
             id=str(data.get('uuid', data.get('id', ''))),
             title=data.get('title', ''),
             description=data.get('description'),
-            creator=data.get('creator', {}).get('name') if data.get('creator') else None,
+            creator=(data.get('creator', {}).get('name')
+                     if data.get('creator') else None),
             tracks=tracks,
             number_of_tracks=data.get('numberOfTracks'),
             duration=data.get('duration'),
@@ -271,8 +277,10 @@ class Playlist:
             'tracks': [track.to_dict() for track in self.tracks],
             'number_of_tracks': self.number_of_tracks,
             'duration': self.duration,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'created_at': (self.created_at.isoformat()
+                           if self.created_at else None),
+            'updated_at': (self.updated_at.isoformat()
+                           if self.updated_at else None),
             'image': self.image,
             'url': self.url,
             'public': self.public
@@ -315,4 +323,5 @@ class SearchResults:
     @property
     def total_results(self) -> int:
         """Get total number of results across all types."""
-        return len(self.tracks) + len(self.albums) + len(self.artists) + len(self.playlists)
+        return (len(self.tracks) + len(self.albums) +
+                len(self.artists) + len(self.playlists))
