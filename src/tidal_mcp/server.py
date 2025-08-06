@@ -606,15 +606,18 @@ async def tidal_get_artist(artist_id: str) -> dict[str, Any]:
 
 def main():
     """Main entry point for the Tidal MCP server."""
+    import sys
+
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        stream=sys.stderr,  # Ensure logs go to stderr, not stdout
     )
 
     logger.info("Starting Tidal MCP Server with FastMCP")
 
-    # Run the FastMCP server
-    mcp.run()
+    # Run the FastMCP server without banner for MCP protocol compatibility
+    mcp.run(show_banner=False)
 
 
 if __name__ == "__main__":
