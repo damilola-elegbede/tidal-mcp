@@ -1,8 +1,9 @@
 """
 Tidal MCP Server
 
-A Model Context Protocol (MCP) server for interacting with Tidal music streaming service.
-Provides tools for searching music, managing playlists, and controlling playback.
+A Model Context Protocol (MCP) server for interacting with Tidal music
+streaming service. Provides tools for searching music, managing playlists,
+and controlling playback.
 """
 
 __version__ = "0.1.0"
@@ -17,10 +18,10 @@ from .models import Track, Album, Artist, Playlist, SearchResults
 __all__ = [
     "main",
     "mcp",
-    "TidalService", 
+    "TidalService",
     "TidalAuth",
     "Track",
-    "Album", 
+    "Album",
     "Artist",
     "Playlist",
     "SearchResults"

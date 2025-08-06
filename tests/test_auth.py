@@ -11,6 +11,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import (
     Mock,
+    MagicMock,
     patch,
     AsyncMock,
     PropertyMock,
@@ -94,7 +95,7 @@ class TestTidalAuth:
         assert not auth.is_authenticated()
 
     def test_is_authenticated_valid_token_no_session(self, auth):
-        """Test is_authenticated returns False for valid token but no session."""  # noqa: E501
+        """Test is_authenticated for valid token but no session."""
         auth.access_token = "test_token"
         auth.token_expires_at = datetime.now() + timedelta(hours=1)
         auth.tidal_session = None
@@ -239,8 +240,15 @@ class TestTidalAuth:
             }
         )
 
-        mock_session = AsyncMock()
-        mock_session.post.return_value.__aenter__.return_value = mock_response
+        # Create proper async context managers using MagicMock
+        mock_post = MagicMock()
+        mock_post.__aenter__ = AsyncMock(return_value=mock_response)
+        mock_post.__aexit__ = AsyncMock(return_value=None)
+
+        mock_session = MagicMock()
+        mock_session.post.return_value = mock_post
+        mock_session.__aenter__ = AsyncMock(return_value=mock_session)
+        mock_session.__aexit__ = AsyncMock(return_value=None)
 
         with (
             patch("aiohttp.ClientSession", return_value=mock_session),
@@ -264,8 +272,13 @@ class TestTidalAuth:
         mock_response.status = 400
         mock_response.text = AsyncMock(return_value="Invalid grant")
 
+        # Create a proper async context manager for the post method
+        mock_post_cm = AsyncMock()
+        mock_post_cm.__aenter__.return_value = mock_response
+        mock_post_cm.__aexit__.return_value = None
+
         mock_session = AsyncMock()
-        mock_session.post.return_value.__aenter__.return_value = mock_response
+        mock_session.post.return_value = mock_post_cm
 
         with patch("aiohttp.ClientSession", return_value=mock_session):
             result = await auth._exchange_code_for_tokens(
@@ -297,8 +310,15 @@ class TestTidalAuth:
             }
         )
 
-        mock_session = AsyncMock()
-        mock_session.post.return_value.__aenter__.return_value = mock_response
+        # Create proper async context managers using MagicMock
+        mock_post = MagicMock()
+        mock_post.__aenter__ = AsyncMock(return_value=mock_response)
+        mock_post.__aexit__ = AsyncMock(return_value=None)
+
+        mock_session = MagicMock()
+        mock_session.post.return_value = mock_post
+        mock_session.__aenter__ = AsyncMock(return_value=mock_session)
+        mock_session.__aexit__ = AsyncMock(return_value=None)
 
         with (
             patch("aiohttp.ClientSession", return_value=mock_session),
@@ -325,8 +345,13 @@ class TestTidalAuth:
         mock_response.status = 400
         mock_response.text = AsyncMock(return_value="Invalid refresh token")
 
+        # Create a proper async context manager for the post method
+        mock_post_cm = AsyncMock()
+        mock_post_cm.__aenter__.return_value = mock_response
+        mock_post_cm.__aexit__.return_value = None
+
         mock_session = AsyncMock()
-        mock_session.post.return_value.__aenter__.return_value = mock_response
+        mock_session.post.return_value = mock_post_cm
 
         with patch("aiohttp.ClientSession", return_value=mock_session):
             result = await auth.refresh_access_token()
@@ -768,8 +793,15 @@ class TestEdgeCases:
             }
         )
 
-        mock_session = AsyncMock()
-        mock_session.post.return_value.__aenter__.return_value = mock_response
+        # Create proper async context managers using MagicMock
+        mock_post = MagicMock()
+        mock_post.__aenter__ = AsyncMock(return_value=mock_response)
+        mock_post.__aexit__ = AsyncMock(return_value=None)
+
+        mock_session = MagicMock()
+        mock_session.post.return_value = mock_post
+        mock_session.__aenter__ = AsyncMock(return_value=mock_session)
+        mock_session.__aexit__ = AsyncMock(return_value=None)
 
         with (
             patch("aiohttp.ClientSession", return_value=mock_session),
@@ -799,8 +831,15 @@ class TestEdgeCases:
             }
         )
 
-        mock_session = AsyncMock()
-        mock_session.post.return_value.__aenter__.return_value = mock_response
+        # Create proper async context managers using MagicMock
+        mock_post = MagicMock()
+        mock_post.__aenter__ = AsyncMock(return_value=mock_response)
+        mock_post.__aexit__ = AsyncMock(return_value=None)
+
+        mock_session = MagicMock()
+        mock_session.post.return_value = mock_post
+        mock_session.__aenter__ = AsyncMock(return_value=mock_session)
+        mock_session.__aexit__ = AsyncMock(return_value=None)
 
         with (
             patch("aiohttp.ClientSession", return_value=mock_session),
@@ -817,3 +856,4 @@ class TestEdgeCases:
 if __name__ == "__main__":
     # Run tests directly
     pytest.main([__file__, "-v"])
+

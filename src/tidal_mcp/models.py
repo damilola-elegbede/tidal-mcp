@@ -13,27 +13,27 @@ from datetime import datetime
 @dataclass
 class Artist:
     """Represents a Tidal artist."""
-    
+
     id: str
     name: str
     url: Optional[str] = None
     picture: Optional[str] = None
     popularity: Optional[int] = None
-    
+
     @classmethod
     def from_api_data(cls, data: Dict[str, Any]) -> 'Artist':
         """
         Create Artist instance from Tidal API response data.
-        
+
         Args:
             data: Raw API response data
-            
+
         Returns:
             Artist instance
         """
         if data is None or not isinstance(data, dict):
             data = {}
-        
+
         return cls(
             id=str(data.get('id', '')),
             name=data.get('name', ''),
@@ -41,7 +41,7 @@ class Artist:
             picture=data.get('picture'),
             popularity=data.get('popularity')
         )
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert artist to dictionary representation."""
         return {
@@ -56,7 +56,7 @@ class Artist:
 @dataclass
 class Album:
     """Represents a Tidal album."""
-    
+
     id: str
     title: str
     artists: List[Artist] = field(default_factory=list)
@@ -66,15 +66,15 @@ class Album:
     cover: Optional[str] = None
     url: Optional[str] = None
     explicit: bool = False
-    
+
     @classmethod
     def from_api_data(cls, data: Dict[str, Any]) -> 'Album':
         """
         Create Album instance from Tidal API response data.
-        
+
         Args:
             data: Raw API response data
-            
+
         Returns:
             Album instance
         """
@@ -85,7 +85,7 @@ class Album:
             artists = [Artist.from_api_data(artist) for artist in data['artists']]
         elif 'artist' in data:
             artists = [Artist.from_api_data(data['artist'])]
-        
+
         return cls(
             id=str(data.get('id', '')),
             title=data.get('title', ''),
@@ -97,7 +97,7 @@ class Album:
             url=data.get('url'),
             explicit=data.get('explicit', False)
         )
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert album to dictionary representation."""
         return {
@@ -116,7 +116,7 @@ class Album:
 @dataclass
 class Track:
     """Represents a Tidal track."""
-    
+
     id: str
     title: str
     artists: List[Artist] = field(default_factory=list)
@@ -128,15 +128,15 @@ class Track:
     stream_url: Optional[str] = None
     explicit: bool = False
     quality: Optional[str] = None  # e.g., "LOSSLESS", "HIGH", "LOW"
-    
+
     @classmethod
     def from_api_data(cls, data: Dict[str, Any]) -> 'Track':
         """
         Create Track instance from Tidal API response data.
-        
+
         Args:
             data: Raw API response data
-            
+
         Returns:
             Track instance
         """
@@ -147,11 +147,11 @@ class Track:
             artists = [Artist.from_api_data(artist) for artist in data['artists']]
         elif 'artist' in data:
             artists = [Artist.from_api_data(data['artist'])]
-        
+
         album = None
         if 'album' in data:
             album = Album.from_api_data(data['album'])
-        
+
         return cls(
             id=str(data.get('id', '')),
             title=data.get('title', ''),
@@ -165,7 +165,7 @@ class Track:
             explicit=data.get('explicit', False),
             quality=data.get('quality')
         )
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert track to dictionary representation."""
         return {
@@ -181,17 +181,17 @@ class Track:
             'explicit': self.explicit,
             'quality': self.quality
         }
-    
+
     @property
     def formatted_duration(self) -> str:
         """Get formatted duration string (e.g., "3:45")."""
         if not self.duration:
             return "0:00"
-        
+
         minutes = self.duration // 60
         seconds = self.duration % 60
         return f"{minutes}:{seconds:02d}"
-    
+
     @property
     def artist_names(self) -> str:
         """Get comma-separated artist names."""
@@ -201,7 +201,7 @@ class Track:
 @dataclass
 class Playlist:
     """Represents a Tidal playlist."""
-    
+
     id: str
     title: str
     description: Optional[str] = None
@@ -214,15 +214,15 @@ class Playlist:
     image: Optional[str] = None
     url: Optional[str] = None
     public: bool = True
-    
+
     @classmethod
     def from_api_data(cls, data: Dict[str, Any]) -> 'Playlist':
         """
         Create Playlist instance from Tidal API response data.
-        
+
         Args:
             data: Raw API response data
-            
+
         Returns:
             Playlist instance
         """
@@ -231,21 +231,21 @@ class Playlist:
         tracks = []
         if 'tracks' in data:
             tracks = [Track.from_api_data(track) for track in data['tracks']]
-        
+
         created_at = None
         if 'created' in data:
             try:
                 created_at = datetime.fromisoformat(data['created'].replace('Z', '+00:00'))
             except (ValueError, AttributeError):
                 pass
-        
+
         updated_at = None
         if 'lastUpdated' in data:
             try:
                 updated_at = datetime.fromisoformat(data['lastUpdated'].replace('Z', '+00:00'))
             except (ValueError, AttributeError):
                 pass
-        
+
         return cls(
             id=str(data.get('uuid', data.get('id', ''))),
             title=data.get('title', ''),
@@ -260,7 +260,7 @@ class Playlist:
             url=data.get('url'),
             public=data.get('publicPlaylist', True)
         )
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert playlist to dictionary representation."""
         return {
@@ -277,17 +277,17 @@ class Playlist:
             'url': self.url,
             'public': self.public
         }
-    
+
     @property
     def formatted_duration(self) -> str:
         """Get formatted total duration string."""
         if not self.duration:
             return "0:00"
-        
+
         hours = self.duration // 3600
         minutes = (self.duration % 3600) // 60
         seconds = self.duration % 60
-        
+
         if hours > 0:
             return f"{hours}:{minutes:02d}:{seconds:02d}"
         else:
@@ -297,12 +297,12 @@ class Playlist:
 @dataclass
 class SearchResults:
     """Container for search results across different content types."""
-    
+
     tracks: List[Track] = field(default_factory=list)
     albums: List[Album] = field(default_factory=list)
     artists: List[Artist] = field(default_factory=list)
     playlists: List[Playlist] = field(default_factory=list)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert search results to dictionary representation."""
         return {
@@ -311,7 +311,7 @@ class SearchResults:
             'artists': [artist.to_dict() for artist in self.artists],
             'playlists': [playlist.to_dict() for playlist in self.playlists]
         }
-    
+
     @property
     def total_results(self) -> int:
         """Get total number of results across all types."""

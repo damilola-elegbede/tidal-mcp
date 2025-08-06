@@ -196,7 +196,7 @@ class TestTidalLogin:
             mock_service = Mock()
             MockService.return_value = mock_service
 
-            result = await tidal_login()
+            result = await tidal_login.fn()
 
             assert result["success"] is True
             assert "Successfully authenticated" in result["message"]
@@ -210,7 +210,7 @@ class TestTidalLogin:
         mock_auth.authenticate = AsyncMock(return_value=False)
 
         with patch("tidal_mcp.server.TidalAuth", return_value=mock_auth):
-            result = await tidal_login()
+            result = await tidal_login.fn()
 
             assert result["success"] is False
             assert "Authentication failed" in result["message"]
@@ -225,7 +225,7 @@ class TestTidalLogin:
         )
 
         with patch("tidal_mcp.server.TidalAuth", return_value=mock_auth):
-            result = await tidal_login()
+            result = await tidal_login.fn()
 
             assert result["success"] is False
             assert "Authentication error" in result["message"]
@@ -244,7 +244,7 @@ class TestTidalSearch:
         with patch(
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
-            result = await tidal_search("test query", "tracks", 10, 0)
+            result = await tidal_search.fn("test query", "tracks", 10, 0)
 
             assert result["query"] == "test query"
             assert result["content_type"] == "tracks"
@@ -263,7 +263,7 @@ class TestTidalSearch:
         with patch(
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
-            result = await tidal_search("test query", "albums", 10, 0)
+            result = await tidal_search.fn("test query", "albums", 10, 0)
 
             assert result["content_type"] == "albums"
             assert len(result["results"]["albums"]) == 1
@@ -280,7 +280,7 @@ class TestTidalSearch:
         with patch(
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
-            result = await tidal_search("test query", "artists", 10, 0)
+            result = await tidal_search.fn("test query", "artists", 10, 0)
 
             assert result["content_type"] == "artists"
             assert len(result["results"]["artists"]) == 1
@@ -297,7 +297,7 @@ class TestTidalSearch:
         with patch(
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
-            result = await tidal_search("test query", "playlists", 10, 0)
+            result = await tidal_search.fn("test query", "playlists", 10, 0)
 
             assert result["content_type"] == "playlists"
             assert len(result["results"]["playlists"]) == 1
@@ -319,7 +319,7 @@ class TestTidalSearch:
         with patch(
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
-            result = await tidal_search("test query", "all", 20)
+            result = await tidal_search.fn("test query", "all", 20)
 
             assert result["content_type"] == "all"
             assert result["total_results"] == 4
@@ -332,11 +332,13 @@ class TestTidalSearch:
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
             # Test limit clamping
-            await tidal_search("query", "tracks", 100, 0)  # Should clamp to 50
+            # Should clamp to 50
+            await tidal_search.fn("query", "tracks", 100, 0)
             mock_service.search_tracks.assert_called_with("query", 50, 0)
 
             # Test negative offset
-            await tidal_search("query", "tracks", 10, -5)  # Should clamp to 0
+            # Should clamp to 0
+            await tidal_search.fn("query", "tracks", 10, -5)
             mock_service.search_tracks.assert_called_with("query", 10, 0)
 
     @pytest.mark.asyncio
@@ -346,7 +348,7 @@ class TestTidalSearch:
             "tidal_mcp.server.ensure_service",
             side_effect=TidalAuthError("Not authenticated"),
         ):
-            result = await tidal_search("test query", "tracks")
+            result = await tidal_search.fn("test query", "tracks")
 
             assert "error" in result
             assert "Authentication required" in result["error"]
@@ -359,7 +361,7 @@ class TestTidalSearch:
         with patch(
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
-            result = await tidal_search("test query", "tracks")
+            result = await tidal_search.fn("test query", "tracks")
 
             assert "error" in result
             assert "Search failed" in result["error"]
@@ -377,7 +379,7 @@ class TestPlaylistTools:
         with patch(
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
-            result = await tidal_get_playlist("playlist123", True)
+            result = await tidal_get_playlist.fn("playlist123", True)
 
             assert result["success"] is True
             assert result["playlist"]["id"] == "playlist123"
@@ -393,7 +395,7 @@ class TestPlaylistTools:
         with patch(
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
-            result = await tidal_get_playlist("nonexistent")
+            result = await tidal_get_playlist.fn("nonexistent")
 
             assert result["success"] is False
             assert "not found" in result["error"]
@@ -407,7 +409,9 @@ class TestPlaylistTools:
         with patch(
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
-            result = await tidal_create_playlist("New Playlist", "Description")
+            result = await tidal_create_playlist.fn(
+                "New Playlist", "Description"
+            )
 
             assert result["success"] is True
             assert "Created playlist" in result["message"]
@@ -424,7 +428,7 @@ class TestPlaylistTools:
         with patch(
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
-            result = await tidal_create_playlist("Failed Playlist")
+            result = await tidal_create_playlist.fn("Failed Playlist")
 
             assert result["success"] is False
             assert "Failed to create" in result["error"]
@@ -437,7 +441,7 @@ class TestPlaylistTools:
         with patch(
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
-            result = await tidal_add_to_playlist(
+            result = await tidal_add_to_playlist.fn(
                 "playlist123", ["track1", "track2"]
             )
 
@@ -453,7 +457,7 @@ class TestPlaylistTools:
         with patch(
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
-            result = await tidal_add_to_playlist("playlist123", [])
+            result = await tidal_add_to_playlist.fn("playlist123", [])
 
             assert result["success"] is False
             assert "No track IDs provided" in result["error"]
@@ -466,7 +470,7 @@ class TestPlaylistTools:
         with patch(
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
-            result = await tidal_add_to_playlist("playlist123", ["track1"])
+            result = await tidal_add_to_playlist.fn("playlist123", ["track1"])
 
             assert result["success"] is False
             assert "Failed to add tracks" in result["error"]
@@ -479,7 +483,9 @@ class TestPlaylistTools:
         with patch(
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
-            result = await tidal_remove_from_playlist("playlist123", [0, 2, 1])
+            result = await tidal_remove_from_playlist.fn(
+                "playlist123", [0, 2, 1]
+            )
 
             assert result["success"] is True
             assert "Removed 3 tracks" in result["message"]
@@ -493,7 +499,7 @@ class TestPlaylistTools:
         with patch(
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
-            result = await tidal_remove_from_playlist("playlist123", [])
+            result = await tidal_remove_from_playlist.fn("playlist123", [])
 
             assert result["success"] is False
             assert "No track indices provided" in result["error"]
@@ -510,7 +516,7 @@ class TestPlaylistTools:
         with patch(
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
-            result = await tidal_get_user_playlists(30, 5)
+            result = await tidal_get_user_playlists.fn(30, 5)
 
             assert len(result["playlists"]) == 2
             assert result["total_results"] == 2
@@ -529,7 +535,7 @@ class TestFavoritesTools:
         with patch(
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
-            result = await tidal_get_favorites("tracks", 25, 10)
+            result = await tidal_get_favorites.fn("tracks", 25, 10)
 
             assert result["content_type"] == "tracks"
             assert len(result["favorites"]) == 1
@@ -547,13 +553,13 @@ class TestFavoritesTools:
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
             # Test limit clamping to max 100
-            await tidal_get_favorites("tracks", 150, 0)
+            await tidal_get_favorites.fn("tracks", 150, 0)
             mock_service.get_user_favorites.assert_called_with(
                 "tracks", 100, 0
             )
 
             # Test negative offset clamping
-            await tidal_get_favorites("tracks", 50, -10)
+            await tidal_get_favorites.fn("tracks", 50, -10)
             mock_service.get_user_favorites.assert_called_with("tracks", 50, 0)
 
     @pytest.mark.asyncio
@@ -564,7 +570,7 @@ class TestFavoritesTools:
         with patch(
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
-            result = await tidal_add_favorite("track123", "track")
+            result = await tidal_add_favorite.fn("track123", "track")
 
             assert result["success"] is True
             assert "Added track track123 to favorites" in result["message"]
@@ -580,7 +586,7 @@ class TestFavoritesTools:
         with patch(
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
-            result = await tidal_add_favorite("track123", "track")
+            result = await tidal_add_favorite.fn("track123", "track")
 
             assert result["success"] is False
             assert "Failed to add" in result["error"]
@@ -593,7 +599,7 @@ class TestFavoritesTools:
         with patch(
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
-            result = await tidal_remove_favorite("album456", "album")
+            result = await tidal_remove_favorite.fn("album456", "album")
 
             assert result["success"] is True
             assert "Removed album album456 from favorites" in result["message"]
@@ -617,7 +623,7 @@ class TestRecommendationTools:
         with patch(
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
-            result = await tidal_get_recommendations(75)
+            result = await tidal_get_recommendations.fn(75)
 
             assert len(result["recommendations"]) == 2
             assert result["total_results"] == 2
@@ -632,7 +638,7 @@ class TestRecommendationTools:
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
             # Test limit clamping to max 100
-            await tidal_get_recommendations(150)
+            await tidal_get_recommendations.fn(150)
             mock_service.get_recommended_tracks.assert_called_once_with(100)
 
     @pytest.mark.asyncio
@@ -647,7 +653,7 @@ class TestRecommendationTools:
         with patch(
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
-            result = await tidal_get_track_radio("seed123", 30)
+            result = await tidal_get_track_radio.fn("seed123", 30)
 
             assert result["seed_track_id"] == "seed123"
             assert len(result["radio_tracks"]) == 2
@@ -669,7 +675,7 @@ class TestDetailedItemRetrieval:
         with patch(
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
-            result = await tidal_get_track("track123")
+            result = await tidal_get_track.fn("track123")
 
             assert result["success"] is True
             assert result["track"]["id"] == "track123"
@@ -684,7 +690,7 @@ class TestDetailedItemRetrieval:
         with patch(
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
-            result = await tidal_get_track("nonexistent")
+            result = await tidal_get_track.fn("nonexistent")
 
             assert result["success"] is False
             assert "Track not found" in result["error"]
@@ -698,7 +704,7 @@ class TestDetailedItemRetrieval:
         with patch(
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
-            result = await tidal_get_album("album456", False)
+            result = await tidal_get_album.fn("album456", False)
 
             assert result["success"] is True
             assert result["album"]["id"] == "album456"
@@ -714,7 +720,7 @@ class TestDetailedItemRetrieval:
         with patch(
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
-            result = await tidal_get_artist("artist789")
+            result = await tidal_get_artist.fn("artist789")
 
             assert result["success"] is True
             assert result["artist"]["id"] == "artist789"
@@ -729,20 +735,20 @@ class TestErrorHandling:
     async def test_authentication_errors(self):
         """Test authentication error handling across tools."""
         tools_to_test = [
-            (tidal_search, ("query", "tracks")),
-            (tidal_get_playlist, ("playlist123",)),
-            (tidal_create_playlist, ("title",)),
-            (tidal_add_to_playlist, ("playlist123", ["track1"])),
-            (tidal_remove_from_playlist, ("playlist123", [0])),
-            (tidal_get_favorites, ("tracks",)),
-            (tidal_add_favorite, ("item123", "track")),
-            (tidal_remove_favorite, ("item123", "track")),
-            (tidal_get_recommendations, (50,)),
-            (tidal_get_track_radio, ("track123", 25)),
-            (tidal_get_user_playlists, (50, 0)),
-            (tidal_get_track, ("track123",)),
-            (tidal_get_album, ("album456",)),
-            (tidal_get_artist, ("artist789",)),
+            (tidal_search.fn, ("query", "tracks")),
+            (tidal_get_playlist.fn, ("playlist123",)),
+            (tidal_create_playlist.fn, ("title",)),
+            (tidal_add_to_playlist.fn, ("playlist123", ["track1"])),
+            (tidal_remove_from_playlist.fn, ("playlist123", [0])),
+            (tidal_get_favorites.fn, ("tracks",)),
+            (tidal_add_favorite.fn, ("item123", "track")),
+            (tidal_remove_favorite.fn, ("item123", "track")),
+            (tidal_get_recommendations.fn, (50,)),
+            (tidal_get_track_radio.fn, ("track123", 25)),
+            (tidal_get_user_playlists.fn, (50, 0)),
+            (tidal_get_track.fn, ("track123",)),
+            (tidal_get_album.fn, ("album456",)),
+            (tidal_get_artist.fn, ("artist789",)),
         ]
 
         for tool_func, args in tools_to_test:
@@ -763,7 +769,7 @@ class TestErrorHandling:
         with patch(
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
-            result = await tidal_search("query", "tracks")
+            result = await tidal_search.fn("query", "tracks")
 
             assert "error" in result
             assert "Search failed" in result["error"]
@@ -779,7 +785,7 @@ class TestErrorHandling:
         with patch(
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
-            result = await tidal_create_playlist("Test Playlist")
+            result = await tidal_create_playlist.fn("Test Playlist")
 
             assert "error" in result
             assert "Failed to create playlist" in result["error"]
@@ -795,15 +801,15 @@ class TestParameterValidation:
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
             # Test empty query search
-            result = await tidal_search("", "tracks")
+            result = await tidal_search.fn("", "tracks")
             assert result["query"] == ""
 
             # Test empty playlist title
-            result = await tidal_create_playlist("")
+            result = await tidal_create_playlist.fn("")
             # Should be handled by service layer
 
             # Test empty track list
-            result = await tidal_add_to_playlist("playlist123", [])
+            result = await tidal_add_to_playlist.fn("playlist123", [])
             assert result["success"] is False
 
     @pytest.mark.asyncio
@@ -813,20 +819,23 @@ class TestParameterValidation:
             "tidal_mcp.server.ensure_service", return_value=mock_service
         ):
             # Test minimum and maximum limits
-            await tidal_search("query", "tracks", 1, 0)  # Minimum limit
+            await tidal_search.fn("query", "tracks", 1, 0)  # Minimum limit
             mock_service.search_tracks.assert_called_with("query", 1, 0)
 
-            await tidal_search("query", "tracks", 100, 0)  # Should clamp to 50
+            # Should clamp to 50
+            await tidal_search.fn("query", "tracks", 100, 0)
             mock_service.search_tracks.assert_called_with("query", 50, 0)
 
             # Test recommendations boundary
-            await tidal_get_recommendations(1)  # Minimum
+            await tidal_get_recommendations.fn(1)  # Minimum
             mock_service.get_recommended_tracks.assert_called_with(1)
 
-            await tidal_get_recommendations(200)  # Should clamp to 100
+            # Should clamp to 100
+            await tidal_get_recommendations.fn(200)
             mock_service.get_recommended_tracks.assert_called_with(100)
 
 
 if __name__ == "__main__":
     # Run tests directly
     pytest.main([__file__, "-v"])
+
