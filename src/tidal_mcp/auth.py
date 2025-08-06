@@ -44,9 +44,7 @@ class TidalAuth:
     CLIENT_ID = "zU4XHVVkc2tDPo4t"  # Tidal's public client ID
     REDIRECT_URI = "http://localhost:8080/callback"
 
-    def __init__(
-        self, client_id: str | None = None, client_secret: str | None = None
-    ):
+    def __init__(self, client_id: str | None = None, client_secret: str | None = None):
         """
         Initialize Tidal authentication manager.
 
