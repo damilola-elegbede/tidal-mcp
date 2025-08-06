@@ -1,0 +1,140 @@
+name: Bug Report
+description: File a bug report to help us improve
+title: "[BUG] "
+labels: ["bug", "triage"]
+assignees:
+  - tidal-mcp/maintainers
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report! Please provide as much detail as possible.
+
+  - type: checkboxes
+    id: pre-checks
+    attributes:
+      label: Pre-submission Checks
+      description: Please confirm you've completed these steps before submitting
+      options:
+        - label: I have searched existing issues to ensure this bug hasn't been reported
+          required: true
+        - label: I am using the latest version of tidal-mcp
+          required: true
+        - label: I have read the documentation and troubleshooting guide
+          required: true
+
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is
+      placeholder: Describe what happened and what you expected to happen
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Install tidal-mcp with '...'
+        2. Configure with '...'
+        3. Run command '...'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: A clear and concise description of what you expected to happen
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual Behavior
+      description: What actually happened instead
+    validations:
+      required: true
+
+  - type: dropdown
+    id: python-version
+    attributes:
+      label: Python Version
+      description: What version of Python are you running?
+      options:
+        - "3.10"
+        - "3.11"
+        - "3.12"
+        - "Other (please specify in additional context)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      description: What operating system are you using?
+      options:
+        - "Linux (Ubuntu/Debian)"
+        - "Linux (RHEL/CentOS/Fedora)"
+        - "Linux (Other)"
+        - "macOS"
+        - "Windows"
+        - "Other (please specify in additional context)"
+    validations:
+      required: true
+
+  - type: input
+    id: tidal-mcp-version
+    attributes:
+      label: Tidal MCP Version
+      description: Which version of tidal-mcp are you using?
+      placeholder: "e.g., 0.1.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: error-logs
+    attributes:
+      label: Error Logs
+      description: Please include any relevant error messages or logs
+      render: shell
+      placeholder: Paste your error logs here
+
+  - type: textarea
+    id: configuration
+    attributes:
+      label: Configuration
+      description: Please share your configuration (remove any sensitive information)
+      render: json
+      placeholder: |
+        {
+          "tidal_client_id": "your_client_id",
+          "other_settings": "..."
+        }
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here
+      placeholder: |
+        - Network configuration
+        - Proxy settings
+        - Docker/container usage
+        - Any other relevant information
+
+  - type: checkboxes
+    id: help-wanted
+    attributes:
+      label: Are you willing to help fix this issue?
+      options:
+        - label: Yes, I can investigate and submit a PR
+        - label: Yes, I can test potential fixes
+        - label: I need help from maintainers

@@ -1,0 +1,147 @@
+name: Feature Request
+description: Suggest an idea for this project
+title: "[FEATURE] "
+labels: ["enhancement", "triage"]
+assignees:
+  - tidal-mcp/maintainers
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! Please provide detailed information to help us understand your request.
+
+  - type: checkboxes
+    id: pre-checks
+    attributes:
+      label: Pre-submission Checks
+      description: Please confirm you've completed these steps before submitting
+      options:
+        - label: I have searched existing issues to ensure this feature hasn't been requested
+          required: true
+        - label: I have checked the roadmap and planned features
+          required: true
+        - label: This feature aligns with the project's goals and scope
+          required: true
+
+  - type: textarea
+    id: problem-description
+    attributes:
+      label: Problem Description
+      description: Is your feature request related to a problem? Please describe.
+      placeholder: "I'm always frustrated when..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like
+      placeholder: "I would like to see..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Describe any alternative solutions or features you've considered
+      placeholder: "I also considered..."
+
+  - type: dropdown
+    id: feature-type
+    attributes:
+      label: Feature Type
+      description: What type of feature is this?
+      options:
+        - "New Tidal API endpoint support"
+        - "New MCP functionality"
+        - "Performance improvement"
+        - "Developer experience improvement"
+        - "Documentation enhancement"
+        - "Configuration option"
+        - "Error handling improvement"
+        - "Other (please specify in additional context)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority Level
+      description: How important is this feature to you?
+      options:
+        - "Nice to have"
+        - "Would be helpful"
+        - "Important for my use case"
+        - "Critical for my use case"
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: Describe your specific use case and how this feature would help
+      placeholder: |
+        - Who would use this feature?
+        - In what scenarios?
+        - What problem does it solve?
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementation-details
+    attributes:
+      label: Implementation Details (Optional)
+      description: If you have ideas about how this could be implemented, please share
+      placeholder: |
+        - API endpoints needed
+        - Configuration options
+        - Code structure suggestions
+        - Breaking changes considerations
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: Examples
+      description: Provide examples of the proposed functionality
+      render: python
+      placeholder: |
+        # Example usage:
+        from tidal_mcp import TidalMCP
+        
+        client = TidalMCP()
+        result = client.new_feature(parameter="value")
+
+  - type: checkboxes
+    id: breaking-changes
+    attributes:
+      label: Breaking Changes
+      description: Would this feature require breaking changes?
+      options:
+        - label: This feature would require breaking changes to existing APIs
+        - label: This feature can be implemented without breaking changes
+        - label: I'm not sure about breaking changes
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any other context or screenshots about the feature request
+      placeholder: |
+        - Links to relevant documentation
+        - Screenshots or mockups
+        - Related issues or PRs
+        - External references
+
+  - type: checkboxes
+    id: help-wanted
+    attributes:
+      label: Implementation Help
+      options:
+        - label: I would like to implement this feature myself
+        - label: I can help with testing and feedback
+        - label: I need help from maintainers to implement this
+        - label: I'm just suggesting the idea

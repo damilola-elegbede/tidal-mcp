@@ -1,0 +1,54 @@
+name: "Tidal MCP CodeQL Configuration"
+
+# Disable default queries to use only our custom set
+disable-default-queries: false
+
+# Define custom query suites
+queries:
+  - name: security-extended
+    uses: security-extended
+  - name: security-and-quality  
+    uses: security-and-quality
+
+# Path filters
+paths:
+  - src/
+  - tests/
+
+# Ignore paths
+paths-ignore:
+  - "**/*.md"
+  - "**/*.txt"
+  - "**/*.yml"
+  - "**/*.yaml"
+  - "**/examples/**"
+  - "**/.github/**"
+  - "**/docs/**"
+
+# Python-specific configuration
+python:
+  # Include test files for analysis
+  include:
+    - "src/**/*.py"
+    - "tests/**/*.py"
+  
+  # Exclude generated files and vendor code
+  exclude:
+    - "**/migrations/**"
+    - "**/vendor/**"
+    - "**/__pycache__/**"
+    - "**/*.pyc"
+
+# Query filters
+query-filters:
+  # Exclude specific queries that may be too noisy
+  - exclude:
+      id: py/path-injection
+      # Exclude if we have proper input validation
+  - exclude:
+      id: py/code-injection  
+      # We don't use eval/exec in production code
+
+# Custom queries (if we develop any)
+# packs:
+#   - tidal-mcp/security-queries

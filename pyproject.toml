@@ -1,0 +1,164 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tidal-mcp"
+version = "0.1.0"
+description = "A Model Context Protocol (MCP) server for interacting with Tidal music streaming service"
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Tidal MCP Team"}
+]
+keywords = [
+    "tidal",
+    "music",
+    "streaming",
+    "mcp",
+    "model-context-protocol",
+    "api",
+    "async"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Multimedia :: Sound/Audio",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Framework :: AsyncIO",
+    "Typing :: Typed"
+]
+dependencies = [
+    "aiohttp>=3.8.0",
+    "tidalapi>=0.7.0",
+    "fastmcp>=0.1.0",
+    "asyncio-throttle>=1.0.0",
+    "cryptography>=3.4.0",
+    "python-dotenv>=0.19.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.1.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "mypy>=1.5.0"
+]
+
+[project.scripts]
+tidal-mcp = "tidal_mcp.server:main"
+
+[tool.uv]
+dev-dependencies = [
+    "ruff>=0.1.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "mypy>=1.5.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/tidal-mcp/tidal-mcp"
+Documentation = "https://github.com/tidal-mcp/tidal-mcp#readme"
+Repository = "https://github.com/tidal-mcp/tidal-mcp.git"
+Issues = "https://github.com/tidal-mcp/tidal-mcp/issues"
+Changelog = "https://github.com/tidal-mcp/tidal-mcp/releases"
+
+[tool.hatch.version]
+path = "src/tidal_mcp/__init__.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/examples",
+    "/README.md",
+    "/LICENSE",
+    "/pyproject.toml"
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tidal_mcp"]
+
+[tool.black]
+line-length = 88
+target-version = ['py310']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = false
+warn_unused_configs = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = false
+disallow_untyped_decorators = false
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = false
+warn_no_return = false
+warn_unreachable = false
+strict_equality = false
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["tidalapi.*", "fastmcp.*"]
+ignore_missing_imports = true
+
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]
+exclude = [
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    ".eggs",
+    "*.egg-info",
+    ".venv",
+    ".mypy_cache"
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+    "B007",  # unused loop variable
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
