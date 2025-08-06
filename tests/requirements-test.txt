@@ -1,0 +1,30 @@
+# Test dependencies for Tidal MCP Server
+
+# Core testing framework
+pytest>=7.4.0
+pytest-asyncio>=0.23.0
+pytest-cov>=4.1.0
+
+# Test utilities
+pytest-mock>=3.11.0
+pytest-timeout>=2.1.0
+pytest-xdist>=3.3.0  # For parallel test execution
+
+# Development and test helpers
+coverage>=7.2.0
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.5.0
+
+# For integration testing with mock HTTP responses
+responses>=0.23.0
+aioresponses>=0.7.0
+
+# For testing async code
+asynctest>=0.13.0  # If using Python < 3.8, otherwise asyncio.mock is built-in
+
+# Dependencies from main requirements.txt needed for testing
+aiohttp>=3.8.0
+tidalapi>=0.7.0
+cryptography>=3.4.0
+python-dotenv>=0.19.0

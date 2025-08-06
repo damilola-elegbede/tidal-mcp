@@ -1,0 +1,18 @@
+# Tidal MCP Server Dependencies
+
+# Core dependencies
+aiohttp>=3.8.0
+tidalapi>=0.7.0
+fastmcp>=0.1.0           # FastMCP framework for MCP protocol
+
+# Optional dependencies for enhanced functionality
+asyncio-throttle>=1.0.0  # For rate limiting
+cryptography>=3.4.0      # For enhanced security
+python-dotenv>=0.19.0    # For environment variable loading
+
+# Development dependencies (uncomment for development)
+# pytest>=7.0.0
+# pytest-asyncio>=0.21.0
+# black>=22.0.0
+# flake8>=4.0.0
+# mypy>=0.950

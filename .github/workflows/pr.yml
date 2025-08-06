@@ -1,0 +1,454 @@
+name: PR Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+env:
+  FORCE_COLOR: 1
+  PY_COLORS: 1
+
+jobs:
+  # Fast feedback jobs for immediate PR validation
+  quick-checks:
+    name: Quick Validation Checks
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+    - name: Checkout PR code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v2
+      with:
+        enable-cache: true
+
+    - name: Install dependencies
+      run: |
+        uv sync --dev
+
+    - name: Check code formatting
+      run: |
+        uv run black --check --diff src tests
+      continue-on-error: false
+
+    - name: Run linting
+      run: |
+        uv run flake8 src tests
+      continue-on-error: false
+
+    - name: Basic syntax check
+      run: |
+        python -m py_compile src/tidal_mcp/*.py
+        python -m py_compile tests/*.py
+
+  conflict-detection:
+    name: Merge Conflict Detection
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout base branch
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.base.ref }}
+        fetch-depth: 0
+
+    - name: Fetch PR branch
+      run: |
+        git fetch origin ${{ github.event.pull_request.head.ref }}:pr-branch
+
+    - name: Check for merge conflicts
+      run: |
+        git checkout pr-branch
+        git merge --no-commit --no-ff ${{ github.event.pull_request.base.ref }} || {
+          echo "❌ Merge conflicts detected!"
+          echo "conflicts=true" >> $GITHUB_ENV
+          git merge --abort
+          exit 1
+        }
+        echo "✅ No merge conflicts detected"
+        echo "conflicts=false" >> $GITHUB_ENV
+
+    - name: Comment on conflicts
+      if: env.conflicts == 'true' && github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `## ⚠️ Merge Conflicts Detected
+            
+            This PR has merge conflicts with the base branch \`${{ github.event.pull_request.base.ref }}\`.
+            
+            Please resolve the conflicts by:
+            1. Merging or rebasing the latest changes from \`${{ github.event.pull_request.base.ref }}\`
+            2. Resolving any conflicts
+            3. Pushing the updated changes
+            
+            The CI will re-run automatically once conflicts are resolved.`
+          });
+
+  subset-tests:
+    name: Quick Test Subset
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+    - name: Checkout PR code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v2
+      with:
+        enable-cache: true
+
+    - name: Install dependencies
+      run: |
+        uv sync --all-extras --dev
+
+    - name: Run unit tests only
+      run: |
+        uv run pytest tests/ -m "unit and not slow" -v --tb=short
+      env:
+        TIDAL_CLIENT_ID: test_client_id
+        TIDAL_CLIENT_SECRET: test_client_secret
+
+    - name: Run affected tests
+      run: |
+        # Get list of changed Python files
+        CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '\.py$' | grep -E '^(src|tests)/' || true)
+        
+        if [ -n "$CHANGED_FILES" ]; then
+          echo "Changed Python files:"
+          echo "$CHANGED_FILES"
+          
+          # Run tests for changed modules
+          for file in $CHANGED_FILES; do
+            if [[ $file == src/tidal_mcp/*.py ]]; then
+              module=$(basename $file .py)
+              echo "Running tests for module: $module"
+              uv run pytest tests/test_${module}.py -v || echo "No specific test file for $module"
+            fi
+          done
+        else
+          echo "No Python files changed"
+        fi
+
+  security-scan:
+    name: Security Scan (PR)
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+    - name: Checkout PR code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v2
+
+    - name: Install dependencies
+      run: |
+        uv sync --dev
+        uv add bandit semgrep
+
+    - name: Run bandit security scan
+      run: |
+        uv run bandit -r src/ -f json -o bandit-pr-report.json
+        uv run bandit -r src/ -ll  # Only show medium and high severity issues
+      continue-on-error: true
+
+    - name: Run semgrep security scan
+      run: |
+        uv run semgrep --config=auto src/ --json --output=semgrep-pr-report.json
+        uv run semgrep --config=auto src/ --error  # Show only errors
+      continue-on-error: true
+
+    - name: Upload security scan results
+      uses: actions/upload-artifact@v3
+      with:
+        name: pr-security-scan
+        path: |
+          bandit-pr-report.json
+          semgrep-pr-report.json
+
+  change-analysis:
+    name: Change Impact Analysis
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout PR code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+        fetch-depth: 0
+
+    - name: Fetch base branch
+      run: |
+        git fetch origin ${{ github.event.pull_request.base.ref }}
+
+    - name: Analyze changes
+      run: |
+        echo "# 📊 Change Impact Analysis" > change-analysis.md
+        echo "" >> change-analysis.md
+        echo "**Base branch:** \`${{ github.event.pull_request.base.ref }}\`" >> change-analysis.md
+        echo "**PR branch:** \`${{ github.event.pull_request.head.ref }}\`" >> change-analysis.md
+        echo "**Commits:** ${{ github.event.pull_request.commits }}" >> change-analysis.md
+        echo "" >> change-analysis.md
+        
+        # File changes summary
+        echo "## 📁 Files Changed" >> change-analysis.md
+        echo "" >> change-analysis.md
+        
+        TOTAL_FILES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}..HEAD | wc -l)
+        PYTHON_FILES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}..HEAD | grep '\.py$' | wc -l)
+        TEST_FILES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}..HEAD | grep '^tests/' | wc -l)
+        CONFIG_FILES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}..HEAD | grep -E '\.(yml|yaml|toml|ini|cfg)$' | wc -l)
+        
+        echo "- **Total files changed:** $TOTAL_FILES" >> change-analysis.md
+        echo "- **Python files:** $PYTHON_FILES" >> change-analysis.md
+        echo "- **Test files:** $TEST_FILES" >> change-analysis.md
+        echo "- **Config files:** $CONFIG_FILES" >> change-analysis.md
+        echo "" >> change-analysis.md
+        
+        # Code metrics
+        echo "## 📈 Code Metrics" >> change-analysis.md
+        echo "" >> change-analysis.md
+        
+        LINES_ADDED=$(git diff --numstat origin/${{ github.event.pull_request.base.ref }}..HEAD | awk '{sum+=$1} END {print sum+0}')
+        LINES_DELETED=$(git diff --numstat origin/${{ github.event.pull_request.base.ref }}..HEAD | awk '{sum+=$2} END {print sum+0}')
+        NET_CHANGE=$((LINES_ADDED - LINES_DELETED))
+        
+        echo "- **Lines added:** +$LINES_ADDED" >> change-analysis.md
+        echo "- **Lines deleted:** -$LINES_DELETED" >> change-analysis.md
+        echo "- **Net change:** $NET_CHANGE" >> change-analysis.md
+        echo "" >> change-analysis.md
+        
+        # Risk assessment
+        echo "## ⚠️ Risk Assessment" >> change-analysis.md
+        echo "" >> change-analysis.md
+        
+        # Determine risk level
+        RISK_LEVEL="LOW"
+        RISK_REASONS=""
+        
+        if [ $TOTAL_FILES -gt 20 ]; then
+          RISK_LEVEL="HIGH"
+          RISK_REASONS="$RISK_REASONS\n- Large number of files changed ($TOTAL_FILES)"
+        elif [ $TOTAL_FILES -gt 10 ]; then
+          RISK_LEVEL="MEDIUM"
+          RISK_REASONS="$RISK_REASONS\n- Moderate number of files changed ($TOTAL_FILES)"
+        fi
+        
+        if [ $LINES_ADDED -gt 500 ]; then
+          RISK_LEVEL="HIGH"
+          RISK_REASONS="$RISK_REASONS\n- Large amount of code added ($LINES_ADDED lines)"
+        elif [ $LINES_ADDED -gt 200 ]; then
+          if [ "$RISK_LEVEL" != "HIGH" ]; then
+            RISK_LEVEL="MEDIUM"
+          fi
+          RISK_REASONS="$RISK_REASONS\n- Moderate amount of code added ($LINES_ADDED lines)"
+        fi
+        
+        # Check for critical file changes
+        if git diff --name-only origin/${{ github.event.pull_request.base.ref }}..HEAD | grep -E '(pyproject\.toml|setup\.py|requirements.*\.txt)'; then
+          RISK_LEVEL="MEDIUM"
+          RISK_REASONS="$RISK_REASONS\n- Dependency changes detected"
+        fi
+        
+        if git diff --name-only origin/${{ github.event.pull_request.base.ref }}..HEAD | grep -E '\.github/workflows/'; then
+          RISK_LEVEL="MEDIUM"
+          RISK_REASONS="$RISK_REASONS\n- CI/CD workflow changes"
+        fi
+        
+        echo "**Risk Level:** \`$RISK_LEVEL\`" >> change-analysis.md
+        if [ -n "$RISK_REASONS" ]; then
+          echo "" >> change-analysis.md
+          echo "**Reasons:**" >> change-analysis.md
+          echo -e "$RISK_REASONS" >> change-analysis.md
+        fi
+        echo "" >> change-analysis.md
+        
+        # Test coverage recommendation
+        echo "## 🧪 Testing Recommendations" >> change-analysis.md
+        echo "" >> change-analysis.md
+        
+        if [ $TEST_FILES -eq 0 ] && [ $PYTHON_FILES -gt 0 ]; then
+          echo "⚠️ **No test files modified** - Consider adding tests for new functionality" >> change-analysis.md
+        elif [ $TEST_FILES -lt $PYTHON_FILES ]; then
+          echo "ℹ️ **Limited test coverage** - Ensure adequate test coverage for changes" >> change-analysis.md
+        else
+          echo "✅ **Good test coverage** - Test files proportional to code changes" >> change-analysis.md
+        fi
+
+    - name: Upload change analysis
+      uses: actions/upload-artifact@v3
+      with:
+        name: change-analysis
+        path: change-analysis.md
+
+  pr-size-check:
+    name: PR Size Check
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check PR size
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const pr = context.payload.pull_request;
+          const additions = pr.additions;
+          const deletions = pr.deletions;
+          const changedFiles = pr.changed_files;
+          
+          let sizeLabel = '';
+          let sizeEmoji = '';
+          let recommendations = [];
+          
+          // Determine size based on lines changed
+          const totalChanges = additions + deletions;
+          
+          if (totalChanges < 50) {
+            sizeLabel = 'size/XS';
+            sizeEmoji = '🟢';
+          } else if (totalChanges < 200) {
+            sizeLabel = 'size/S';
+            sizeEmoji = '🟡';
+          } else if (totalChanges < 500) {
+            sizeLabel = 'size/M';
+            sizeEmoji = '🟠';
+            recommendations.push('Consider breaking this into smaller PRs for easier review');
+          } else if (totalChanges < 1000) {
+            sizeLabel = 'size/L';
+            sizeEmoji = '🔴';
+            recommendations.push('Large PR - strongly consider breaking into smaller PRs');
+            recommendations.push('Ensure comprehensive testing for all changes');
+          } else {
+            sizeLabel = 'size/XL';
+            sizeEmoji = '🔴';
+            recommendations.push('Very large PR - should be broken into multiple smaller PRs');
+            recommendations.push('Consider creating an epic/issue to track the overall change');
+          }
+          
+          // Check file count
+          if (changedFiles > 20) {
+            recommendations.push(`Many files changed (${changedFiles}) - consider if this could be split`);
+          }
+          
+          // Create comment with size analysis
+          let comment = `## ${sizeEmoji} PR Size Analysis\n\n`;
+          comment += `**Size Category:** \`${sizeLabel}\`\n`;
+          comment += `**Lines:** +${additions} -${deletions} (${totalChanges} total)\n`;
+          comment += `**Files:** ${changedFiles}\n\n`;
+          
+          if (recommendations.length > 0) {
+            comment += `### 💡 Recommendations\n\n`;
+            recommendations.forEach(rec => {
+              comment += `- ${rec}\n`;
+            });
+            comment += '\n';
+          }
+          
+          if (totalChanges < 200) {
+            comment += '✅ Good size for review and testing\n';
+          }
+          
+          // Add size label to PR
+          try {
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              labels: [sizeLabel]
+            });
+          } catch (error) {
+            console.log('Could not add label:', error.message);
+          }
+          
+          // Comment on PR
+          await github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: pr.number,
+            body: comment
+          });
+
+  consolidate-pr-feedback:
+    name: Consolidate PR Feedback
+    runs-on: ubuntu-latest
+    needs: [quick-checks, subset-tests, security-scan, change-analysis, pr-size-check]
+    if: always() && github.event.pull_request.draft == false
+    steps:
+    - name: Download analysis results
+      uses: actions/download-artifact@v3
+      continue-on-error: true
+
+    - name: Create comprehensive PR feedback
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          
+          let feedback = '## 🔍 PR Validation Summary\n\n';
+          
+          // Check job results
+          const context_jobs = ${{ toJson(needs) }};
+          
+          feedback += '### Job Results\n\n';
+          for (const [jobName, jobResult] of Object.entries(context_jobs)) {
+            const emoji = jobResult.result === 'success' ? '✅' : 
+                         jobResult.result === 'failure' ? '❌' : 
+                         jobResult.result === 'skipped' ? '⏭️' : '⚠️';
+            feedback += `- ${emoji} **${jobName.replace(/-/g, ' ')}**: ${jobResult.result}\n`;
+          }
+          feedback += '\n';
+          
+          // Add change analysis if available
+          if (fs.existsSync('change-analysis/change-analysis.md')) {
+            const changeAnalysis = fs.readFileSync('change-analysis/change-analysis.md', 'utf8');
+            feedback += changeAnalysis + '\n';
+          }
+          
+          // Add next steps
+          feedback += '### 🚀 Next Steps\n\n';
+          
+          const hasFailures = Object.values(context_jobs).some(job => job.result === 'failure');
+          
+          if (hasFailures) {
+            feedback += '❌ **Action Required:** Please address the failing checks above before merging.\n\n';
+            feedback += '1. Review the failed job logs\n';
+            feedback += '2. Fix any issues identified\n';
+            feedback += '3. Push updates to trigger re-validation\n';
+          } else {
+            feedback += '✅ **All checks passed!** This PR is ready for review.\n\n';
+            feedback += '1. Request review from maintainers\n';
+            feedback += '2. Address any review feedback\n';
+            feedback += '3. Merge when approved\n';
+          }
+          
+          // Comment on PR
+          await github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+            body: feedback
+          });
