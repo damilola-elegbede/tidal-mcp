@@ -637,6 +637,7 @@ class TestOAuth2Flow:
             patch("aiohttp.web.AppRunner", return_value=mock_runner),
             patch("aiohttp.web.TCPSite", return_value=mock_site),
             patch("asyncio.sleep", side_effect=[None] * 301),
+            patch("webbrowser.open"),  # Mock browser opening
         ):  # Simulate timeout
             # Set a very short timeout for testing
             auth_code = await auth._capture_auth_code()
