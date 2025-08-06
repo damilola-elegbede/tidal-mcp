@@ -47,28 +47,10 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=7.4.0",
-    "pytest-asyncio>=0.23.0",
-    "pytest-cov>=4.1.0",
-    "pytest-mock>=3.11.0",
-    "pytest-timeout>=2.1.0",
-    "pytest-xdist>=3.3.0",
-    "coverage>=7.2.0",
     "ruff>=0.1.0",
     "black>=23.0.0",
     "flake8>=6.0.0",
-    "mypy>=1.5.0",
-    "responses>=0.23.0",
-    "aioresponses>=0.7.0"
-]
-test = [
-    "pytest>=7.4.0",
-    "pytest-asyncio>=0.23.0",
-    "pytest-cov>=4.1.0",
-    "pytest-mock>=3.11.0",
-    "pytest-timeout>=2.1.0",
-    "responses>=0.23.0",
-    "aioresponses>=0.7.0"
+    "mypy>=1.5.0"
 ]
 
 [project.scripts]
@@ -76,22 +58,10 @@ tidal-mcp = "tidal_mcp.server:main"
 
 [tool.uv]
 dev-dependencies = [
-    "pytest>=7.4.0",
-    "pytest-asyncio>=0.23.0",
-    "pytest-cov>=4.1.0",
-    "pytest-mock>=3.11.0",
-    "pytest-timeout>=2.1.0",
-    "pytest-xdist>=3.3.0",
-    "coverage>=7.2.0",
     "ruff>=0.1.0",
     "black>=23.0.0",
     "flake8>=6.0.0",
-    "mypy>=1.5.0",
-    "responses>=0.23.0",
-    "aioresponses>=0.7.0",
-    "bandit>=1.8.6",
-    "safety>=3.2.9",
-    "twine>=6.1.0",
+    "mypy>=1.5.0"
 ]
 
 [project.urls]
@@ -107,7 +77,6 @@ path = "src/tidal_mcp/__init__.py"
 [tool.hatch.build.targets.sdist]
 include = [
     "/src",
-    "/tests",
     "/examples",
     "/README.md",
     "/LICENSE",
@@ -155,44 +124,6 @@ ignore_missing_imports = true
 module = ["tidalapi.*", "fastmcp.*"]
 ignore_missing_imports = true
 
-[tool.pytest.ini_options]
-minversion = "7.0"
-addopts = [
-    "--strict-markers",
-    "--strict-config",
-    "--cov=tidal_mcp",
-    "--cov-report=term-missing",
-    "--cov-report=html",
-    "--cov-report=xml"
-]
-testpaths = ["tests"]
-asyncio_mode = "auto"
-markers = [
-    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-    "integration: marks tests as integration tests",
-    "unit: marks tests as unit tests"
-]
-
-[tool.coverage.run]
-source = ["src/tidal_mcp"]
-omit = [
-    "*/tests/*",
-    "*/examples/*"
-]
-
-[tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "def __repr__",
-    "if self.debug:",
-    "if settings.DEBUG",
-    "raise AssertionError",
-    "raise NotImplementedError",
-    "if 0:",
-    "if __name__ == .__main__.:",
-    "class .*\\bProtocol\\):",
-    "@(abc\\.)?abstractmethod"
-]
 
 [tool.flake8]
 max-line-length = 88
@@ -231,4 +162,3 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
-"tests/**/*" = ["E501", "PLR2004", "S101", "TID252"]
