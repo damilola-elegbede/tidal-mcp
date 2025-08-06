@@ -8,6 +8,8 @@ graceful degradation.
 
 import asyncio
 import json
+import tempfile
+from pathlib import Path
 from unittest.mock import AsyncMock, Mock, patch
 
 import aiohttp
@@ -28,6 +30,17 @@ from tidal_mcp.service import TidalService
 from tidal_mcp.utils import sanitize_query, validate_tidal_id
 
 
+@pytest.fixture
+def temp_session_file():
+    """Create a temporary session file for testing."""
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+        temp_path = Path(f.name)
+    yield temp_path
+    if temp_path.exists():
+        temp_path.unlink()
+
+
+@pytest.mark.unit
 class TestAuthenticationErrors:
     """Test authentication error scenarios."""
 
@@ -132,6 +145,7 @@ class TestAuthenticationErrors:
             assert result is False
 
 
+@pytest.mark.unit
 class TestServiceLayerErrors:
     """Test service layer error scenarios."""
 
@@ -256,6 +270,7 @@ class TestServiceLayerErrors:
         assert result is None
 
 
+@pytest.mark.unit
 class TestServerToolErrors:
     """Test MCP server tool error scenarios."""
 
@@ -334,6 +349,7 @@ class TestServerToolErrors:
             assert "No track indices provided" in result["error"]
 
 
+@pytest.mark.unit
 class TestModelValidationErrors:
     """Test model validation and edge cases."""
 
@@ -398,6 +414,7 @@ class TestModelValidationErrors:
         assert playlist_dict["updated_at"] is None
 
 
+@pytest.mark.unit
 class TestUtilityErrors:
     """Test utility function error scenarios."""
 
@@ -449,6 +466,7 @@ class TestUtilityErrors:
         assert parse_duration("1:2:3:4:5") == 0  # Too many parts
 
 
+@pytest.mark.unit
 class TestConcurrencyErrors:
     """Test error scenarios under concurrent load."""
 
@@ -522,6 +540,7 @@ class TestConcurrencyErrors:
         assert successes + failures == 6
 
 
+@pytest.mark.unit
 class TestResourceExhaustionScenarios:
     """Test behavior under resource exhaustion."""
 
@@ -567,6 +586,7 @@ class TestResourceExhaustionScenarios:
             auth._save_session()  # Should not crash
 
 
+@pytest.mark.unit
 class TestDataIntegrityErrors:
     """Test data integrity and validation errors."""
 

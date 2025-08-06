@@ -171,6 +171,7 @@ def create_sample_tidal_playlist(playlist_id="playlist-uuid-123", name="Test Pla
     return playlist
 
 
+@pytest.mark.integration
 class TestAuthenticationFlow:
     """Test complete authentication flows."""
 
@@ -294,6 +295,7 @@ class TestAuthenticationFlow:
             assert integrated_auth.is_authenticated()
 
 
+@pytest.mark.integration
 class TestSearchIntegration:
     """Test integrated search functionality."""
 
@@ -398,6 +400,7 @@ class TestSearchIntegration:
         assert len(results2) == 1
 
 
+@pytest.mark.integration
 class TestPlaylistManagementIntegration:
     """Test integrated playlist management."""
 
@@ -508,6 +511,7 @@ class TestPlaylistManagementIntegration:
             assert retrieved_tracks[2].title == "Track 3"
 
 
+@pytest.mark.integration
 class TestFavoritesIntegration:
     """Test integrated favorites management."""
 
@@ -568,6 +572,7 @@ class TestFavoritesIntegration:
             favorites.remove_track.assert_called_once_with(new_track)
 
 
+@pytest.mark.integration
 class TestRecommendationsIntegration:
     """Test integrated recommendations and radio."""
 
@@ -641,6 +646,7 @@ class TestRecommendationsIntegration:
             assert radio[1].title == "Artist Radio 2"
 
 
+@pytest.mark.integration
 class TestDetailedContentRetrieval:
     """Test integrated detailed content retrieval."""
 
@@ -781,6 +787,7 @@ class TestDetailedContentRetrieval:
             assert tracks[1].title == "Top Track 2"
 
 
+@pytest.mark.integration
 class TestUserProfileIntegration:
     """Test integrated user profile functionality."""
 
@@ -799,6 +806,7 @@ class TestUserProfileIntegration:
         assert profile["subscription"]["valid"] is True
 
 
+@pytest.mark.integration
 class TestErrorHandlingAndRecovery:
     """Test integrated error handling and recovery scenarios."""
 
@@ -885,6 +893,7 @@ class TestErrorHandlingAndRecovery:
         assert results[0].title == "Test Track"
 
 
+@pytest.mark.integration
 class TestConcurrentOperations:
     """Test concurrent operations and thread safety."""
 

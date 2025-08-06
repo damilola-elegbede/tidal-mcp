@@ -13,6 +13,7 @@ import pytest
 from tidal_mcp.models import Album, Artist, Playlist, SearchResults, Track
 
 
+@pytest.mark.unit
 class TestArtist:
     """Test Artist model."""
 
@@ -123,6 +124,7 @@ class TestArtist:
         assert result == expected
 
 
+@pytest.mark.unit
 class TestAlbum:
     """Test Album model."""
 
@@ -239,6 +241,7 @@ class TestAlbum:
         assert result["explicit"] is True
 
 
+@pytest.mark.unit
 class TestTrack:
     """Test Track model."""
 
@@ -397,6 +400,7 @@ class TestTrack:
         assert result["album"] is None
 
 
+@pytest.mark.unit
 class TestPlaylist:
     """Test Playlist model."""
 
@@ -577,6 +581,7 @@ class TestPlaylist:
         assert result["updated_at"] is None
 
 
+@pytest.mark.unit
 class TestSearchResults:
     """Test SearchResults model."""
 
@@ -663,6 +668,7 @@ class TestSearchResults:
         assert result_dict["playlists"] == []
 
 
+@pytest.mark.unit
 class TestModelEdgeCases:
     """Test edge cases and error conditions."""
 

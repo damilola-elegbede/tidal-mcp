@@ -24,6 +24,7 @@ from tidal_mcp.utils import (
 )
 
 
+@pytest.mark.unit
 class TestSanitizeQuery:
     """Test query sanitization function."""
 
@@ -60,6 +61,7 @@ class TestSanitizeQuery:
         assert sanitize_query("中文音乐") == "中文音乐"
 
 
+@pytest.mark.unit
 class TestFormatDuration:
     """Test duration formatting function."""
 
@@ -90,6 +92,7 @@ class TestFormatDuration:
         assert format_duration(-10) == "0:00"
 
 
+@pytest.mark.unit
 class TestParseDuration:
     """Test duration parsing function."""
 
@@ -122,6 +125,7 @@ class TestParseDuration:
         assert parse_duration("1:-5") == 0
 
 
+@pytest.mark.unit
 class TestFormatFileSize:
     """Test file size formatting function."""
 
@@ -154,6 +158,7 @@ class TestFormatFileSize:
         assert format_file_size(1099511627776) == "1.0 TB"
 
 
+@pytest.mark.unit
 class TestSafeGet:
     """Test safe dictionary access function."""
 
@@ -198,6 +203,7 @@ class TestSafeGet:
         assert safe_get(data, "user.name") is None
 
 
+@pytest.mark.unit
 class TestTruncateText:
     """Test text truncation function."""
 
@@ -229,6 +235,7 @@ class TestTruncateText:
         assert truncate_text("12345", 5) == "12345"
 
 
+@pytest.mark.unit
 class TestValidateTidalId:
     """Test Tidal ID validation function."""
 
@@ -249,6 +256,7 @@ class TestValidateTidalId:
         assert validate_tidal_id("123 456") is False
 
 
+@pytest.mark.unit
 class TestExtractTidalIdFromUrl:
     """Test Tidal ID extraction from URLs."""
 
@@ -311,6 +319,7 @@ class TestExtractTidalIdFromUrl:
             assert extract_tidal_id_from_url(url) is None
 
 
+@pytest.mark.unit
 class TestNormalizeQualityString:
     """Test audio quality normalization function."""
 
@@ -341,6 +350,7 @@ class TestNormalizeQualityString:
         assert normalize_quality_string("WEIRD_QUALITY") == "WEIRD_QUALITY"
 
 
+@pytest.mark.unit
 class TestBuildSearchUrl:
     """Test search URL building function."""
 
@@ -399,6 +409,7 @@ class TestBuildSearchUrl:
         assert "existing=param&query=" in url
 
 
+@pytest.mark.unit
 class TestFilterExplicitContent:
     """Test explicit content filtering function."""
 
@@ -433,6 +444,7 @@ class TestFilterExplicitContent:
         assert result == []
 
 
+@pytest.mark.unit
 class TestMergeArtistNames:
     """Test artist name merging function."""
 
@@ -479,6 +491,7 @@ class TestMergeArtistNames:
         assert merge_artist_names(artists) == "Unknown Artist"
 
 
+@pytest.mark.unit
 class TestCalculatePlaylistStats:
     """Test playlist statistics calculation function."""
 
@@ -568,6 +581,7 @@ class TestCalculatePlaylistStats:
         assert stats["unique_albums"] == 0
 
 
+@pytest.mark.unit
 class TestUtilsIntegration:
     """Test integration between utility functions."""
 

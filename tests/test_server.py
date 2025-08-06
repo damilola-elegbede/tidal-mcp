@@ -84,6 +84,7 @@ def mock_service():
     return service
 
 
+@pytest.mark.unit
 class TestEnsureService:
     """Test ensure_service function."""
 
@@ -179,6 +180,7 @@ class TestEnsureService:
         assert result == mock_service
 
 
+@pytest.mark.unit
 class TestTidalLogin:
     """Test tidal_login tool."""
 
@@ -226,6 +228,7 @@ class TestTidalLogin:
             assert "Network error" in result["message"]
 
 
+@pytest.mark.unit
 class TestTidalSearch:
     """Test tidal_search tool."""
 
@@ -339,6 +342,7 @@ class TestTidalSearch:
             assert "Search failed" in result["error"]
 
 
+@pytest.mark.unit
 class TestPlaylistTools:
     """Test playlist management tools."""
 
@@ -467,6 +471,7 @@ class TestPlaylistTools:
             mock_service.get_user_playlists.assert_called_once_with(30, 5)
 
 
+@pytest.mark.unit
 class TestFavoritesTools:
     """Test favorites management tools."""
 
@@ -536,6 +541,7 @@ class TestFavoritesTools:
             )
 
 
+@pytest.mark.unit
 class TestRecommendationTools:
     """Test recommendation and radio tools."""
 
@@ -583,6 +589,7 @@ class TestRecommendationTools:
             mock_service.get_track_radio.assert_called_once_with("seed123", 30)
 
 
+@pytest.mark.unit
 class TestDetailedItemRetrieval:
     """Test detailed item retrieval tools."""
 
@@ -640,6 +647,7 @@ class TestDetailedItemRetrieval:
             mock_service.get_artist.assert_called_once_with("artist789")
 
 
+@pytest.mark.unit
 class TestErrorHandling:
     """Test comprehensive error handling across all tools."""
 
@@ -697,6 +705,7 @@ class TestErrorHandling:
             assert "Failed to create playlist" in result["error"]
 
 
+@pytest.mark.unit
 class TestParameterValidation:
     """Test parameter validation and edge cases."""
 

@@ -158,6 +158,7 @@ def sample_tidal_playlist():
     return playlist
 
 
+@pytest.mark.unit
 class TestTidalService:
     """Test cases for TidalService class."""
 
@@ -190,6 +191,7 @@ class TestTidalService:
         mock_auth.get_tidal_session.assert_called_once()
 
 
+@pytest.mark.unit
 class TestSearchFunctionality:
     """Test search functionality."""
 
@@ -369,6 +371,7 @@ class TestSearchFunctionality:
         assert results == []
 
 
+@pytest.mark.unit
 class TestPlaylistManagement:
     """Test playlist management functionality."""
 
@@ -568,6 +571,7 @@ class TestPlaylistManagement:
             )
 
 
+@pytest.mark.unit
 class TestFavoritesManagement:
     """Test favorites management functionality."""
 
@@ -635,6 +639,7 @@ class TestFavoritesManagement:
             favorites.remove_track.assert_called_once_with(sample_tidal_track)
 
 
+@pytest.mark.unit
 class TestRecommendationsAndRadio:
     """Test recommendations and radio functionality."""
 
@@ -745,6 +750,7 @@ class TestRecommendationsAndRadio:
             assert all(track == mock_track for track in results)
 
 
+@pytest.mark.unit
 class TestDetailedItemRetrieval:
     """Test detailed item retrieval functionality."""
 
@@ -893,6 +899,7 @@ class TestDetailedItemRetrieval:
                 assert results[0] == mock_track
 
 
+@pytest.mark.unit
 class TestUserProfile:
     """Test user profile functionality."""
 
@@ -921,6 +928,7 @@ class TestUserProfile:
         assert result is None
 
 
+@pytest.mark.unit
 class TestConversionMethods:
     """Test conversion methods for Tidal objects."""
 
@@ -1018,6 +1026,7 @@ class TestConversionMethods:
         assert service._is_uuid(empty_string) is False
 
 
+@pytest.mark.unit
 class TestErrorHandling:
     """Test error handling scenarios."""
 
@@ -1063,6 +1072,7 @@ class TestErrorHandling:
         assert result is None
 
 
+@pytest.mark.unit
 class TestAsyncToSyncDecorator:
     """Test the async_to_sync decorator."""
 

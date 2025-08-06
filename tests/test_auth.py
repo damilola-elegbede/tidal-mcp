@@ -48,6 +48,7 @@ def mock_tidal_session():
     return session
 
 
+@pytest.mark.unit
 class TestTidalAuth:
     """Test cases for TidalAuth class."""
 
@@ -455,6 +456,7 @@ class TestTidalAuth:
         assert result["subscription"]["valid"] is True
 
 
+@pytest.mark.unit
 class TestSessionManagement:
     """Test session file management."""
 
@@ -551,6 +553,7 @@ class TestSessionManagement:
         auth_with_session._clear_session_file()
 
 
+@pytest.mark.unit
 class TestOAuth2Flow:
     """Test OAuth2 PKCE flow components."""
 
@@ -640,6 +643,7 @@ class TestOAuth2Flow:
             assert auth_code is None
 
 
+@pytest.mark.unit
 class TestErrorHandling:
     """Test error handling scenarios."""
 
@@ -711,6 +715,7 @@ class TestErrorHandling:
         assert result is None
 
 
+@pytest.mark.unit
 class TestEdgeCases:
     """Test edge cases and boundary conditions."""
 
