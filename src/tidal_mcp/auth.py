@@ -39,9 +39,10 @@ class TidalAuth:
     """
 
     # OAuth2 endpoints for Tidal
-    OAUTH_BASE_URL = "https://login.tidal.com/oauth2"
+    OAUTH_BASE_URL = "https://login.tidal.com"  # Fixed: removed /oauth2
     TOKEN_URL = "https://auth.tidal.com/v1/oauth2/token"
-    CLIENT_ID = "zU4XHVVkc2tDPo4t"  # Tidal's public client ID
+    # Default client ID (can be overridden by environment variable)
+    CLIENT_ID = "pFz3lGCm2Vv80RNJ"  # Your Tidal app client ID
     REDIRECT_URI = "http://localhost:8080/callback"
 
     def __init__(self, client_id: str | None = None, client_secret: str | None = None):
@@ -187,25 +188,32 @@ class TidalAuth:
             # Initialize tidalapi session
             self.tidal_session = tidalapi.Session()
 
-            # Try to load session using access token
-            if self.tidal_session.load_oauth_session(
-                token_type="Bearer",
-                access_token=self.access_token,
-                refresh_token=self.refresh_token,
-            ):
-                # Verify session is valid by making a test reques
-                try:
-                    user = self.tidal_session.user
-                    if user and user.id:
-                        self.user_id = str(user.id)
-                        self.country_code = user.country_code or "US"
-                        logger.info(
-                            "Successfully loaded existing session for user "
-                            f"{self.user_id}"
-                        )
-                        return True
-                except Exception:
-                    logger.warning("Existing session token is invalid")
+            # Directly set the OAuth tokens instead of using load_oauth_session
+            # which tries to call /sessions endpoint that returns 403
+            self.tidal_session.access_token = self.access_token
+            self.tidal_session.refresh_token = self.refresh_token
+            self.tidal_session.token_type = "Bearer"
+            self.tidal_session.session_id = self.session_id
+            
+            # Set expiry time if available
+            if self.token_expires_at:
+                # Convert datetime to seconds since epoch
+                import time
+                self.tidal_session.expiry_time = time.mktime(self.token_expires_at.timetuple())
+            
+            # Verify session is valid by making a test request
+            try:
+                user = self.tidal_session.user
+                if user and user.id:
+                    self.user_id = str(user.id)
+                    self.country_code = user.country_code or "US"
+                    logger.info(
+                        "Successfully loaded existing session for user "
+                        f"{self.user_id}"
+                    )
+                    return True
+            except Exception as e:
+                logger.warning(f"Existing session token is invalid: {e}")
 
             return False
 
@@ -219,18 +227,17 @@ class TidalAuth:
             # Generate PKCE parameters
             code_verifier, code_challenge = self._generate_pkce_params()
 
-            # Generate authorization URL
+            # Generate authorization URL - minimal params for compatibility
             auth_params = {
                 "response_type": "code",
                 "client_id": self.client_id,
                 "redirect_uri": self.REDIRECT_URI,
-                "scope": "r_usr w_usr w_sub",
                 "code_challenge": code_challenge,
                 "code_challenge_method": "S256",
                 "state": secrets.token_urlsafe(32),
             }
 
-            auth_url = f"{self.OAUTH_BASE_URL}/auth?{urlencode(auth_params)}"
+            auth_url = f"{self.OAUTH_BASE_URL}/authorize?{urlencode(auth_params)}"
 
             print("\nOpening browser for Tidal authentication...")
             print("If the browser doesn't open automatically, visit:")
@@ -353,24 +360,33 @@ class TidalAuth:
             # Initialize Tidal session with new tokens
             self.tidal_session = tidalapi.Session()
 
-            if self.tidal_session.load_oauth_session(
-                token_type="Bearer",
-                access_token=self.access_token,
-                refresh_token=self.refresh_token,
-            ):
-                # Get user information
+            # Directly set the OAuth tokens instead of using load_oauth_session
+            self.tidal_session.access_token = self.access_token
+            self.tidal_session.refresh_token = self.refresh_token
+            self.tidal_session.token_type = "Bearer"
+            
+            # Set expiry time if available
+            if self.token_expires_at:
+                import time
+                self.tidal_session.expiry_time = time.mktime(self.token_expires_at.timetuple())
+            
+            # Verify and get user information
+            try:
                 user = self.tidal_session.user
                 if user:
                     self.user_id = str(user.id)
                     self.country_code = user.country_code or "US"
 
-                # Save session
-                self._save_session()
+                    # Save session
+                    self._save_session()
 
-                logger.info(f"Authentication successful for user {self.user_id}")
-                return True
-            else:
-                error_msg = "Failed to initialize Tidal session with tokens"
+                    logger.info(f"Authentication successful for user {self.user_id}")
+                    return True
+                else:
+                    error_msg = "Failed to get user information with new tokens"
+                    raise TidalAuthError(error_msg)
+            except Exception as e:
+                error_msg = f"Failed to initialize Tidal session: {e}"
                 raise TidalAuthError(error_msg)
 
         except Exception as e:
@@ -448,11 +464,13 @@ class TidalAuth:
 
             # Update tidalapi session
             if self.tidal_session:
-                self.tidal_session.load_oauth_session(
-                    token_type="Bearer",
-                    access_token=self.access_token,
-                    refresh_token=self.refresh_token,
-                )
+                self.tidal_session.access_token = self.access_token
+                self.tidal_session.refresh_token = self.refresh_token
+                self.tidal_session.token_type = "Bearer"
+                
+                if self.token_expires_at:
+                    import time
+                    self.tidal_session.expiry_time = time.mktime(self.token_expires_at.timetuple())
 
             # Save updated session
             self._save_session()
