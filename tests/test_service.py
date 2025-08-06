@@ -133,8 +133,8 @@ def sample_tidal_artist():
 def sample_tidal_playlist():
     """Create a sample tidalapi playlist for testing."""
     playlist = Mock()
-    playlist.uuid = "playlist-uuid-123"
-    playlist.id = "playlist-uuid-123"
+    playlist.uuid = "12345678-1234-1234-1234-123456789abc"
+    playlist.id = "12345678-1234-1234-1234-123456789abc"
     playlist.name = "Test Playlist"
     playlist.description = "A test playlist"
     playlist.num_tracks = 10
@@ -309,7 +309,7 @@ class TestSearchFunctionality:
             service, "_convert_tidal_playlist", new_callable=AsyncMock
         ) as mock_convert:
             mock_playlist = Playlist(
-                id="playlist-uuid-123",
+                id="12345678-1234-1234-1234-123456789abc",
                 title="Test Playlist",
                 creator="Test User",
             )
@@ -386,14 +386,14 @@ class TestPlaylistManagement:
             service, "_convert_tidal_playlist", new_callable=AsyncMock
         ) as mock_convert:
             mock_playlist = Playlist(
-                id="playlist-uuid-123", title="Test Playlist", tracks=[]
+                id="12345678-1234-1234-1234-123456789abc", title="Test Playlist", tracks=[]
             )
             mock_convert.return_value = mock_playlist
 
-            result = await service.get_playlist("playlist-uuid-123")
+            result = await service.get_playlist("12345678-1234-1234-1234-123456789abc")
 
             assert result == mock_playlist
-            mock_tidal_session.playlist.assert_called_once_with("playlist-uuid-123")
+            mock_tidal_session.playlist.assert_called_once_with("12345678-1234-1234-1234-123456789abc")
             mock_convert.assert_called_once_with(
                 sample_tidal_playlist, include_tracks=True
             )
@@ -436,7 +436,7 @@ class TestPlaylistManagement:
             )
             mock_convert.return_value = mock_track
 
-            results = await service.get_playlist_tracks("playlist-uuid-123")
+            results = await service.get_playlist_tracks("12345678-1234-1234-1234-123456789abc")
 
             assert len(results) == 1
             assert results[0] == mock_track
@@ -452,7 +452,7 @@ class TestPlaylistManagement:
             service, "_convert_tidal_playlist", new_callable=AsyncMock
         ) as mock_convert:
             mock_playlist = Playlist(
-                id="playlist-uuid-123",
+                id="12345678-1234-1234-1234-123456789abc",
                 title="My New Playlist",
                 description="Test description",
             )
@@ -491,7 +491,7 @@ class TestPlaylistManagement:
 
         with patch("tidal_mcp.utils.validate_tidal_id", return_value=True):
             result = await service.add_tracks_to_playlist(
-                "playlist-uuid-123", ["123456"]
+                "12345678-1234-1234-1234-123456789abc", ["123456"]
             )
 
             assert result is True
@@ -512,7 +512,7 @@ class TestPlaylistManagement:
     @pytest.mark.asyncio
     async def test_add_tracks_to_playlist_no_tracks(self, service):
         """Test adding empty track list to playlist."""
-        result = await service.add_tracks_to_playlist("playlist-uuid-123", [])
+        result = await service.add_tracks_to_playlist("12345678-1234-1234-1234-123456789abc", [])
         assert result is False
 
     @pytest.mark.asyncio
@@ -525,7 +525,7 @@ class TestPlaylistManagement:
 
         with patch("tidal_mcp.utils.validate_tidal_id", return_value=True):
             result = await service.remove_tracks_from_playlist(
-                "playlist-uuid-123", [0, 2, 1]
+                "12345678-1234-1234-1234-123456789abc", [0, 2, 1]
             )
 
             assert result is True
@@ -544,7 +544,7 @@ class TestPlaylistManagement:
         sample_tidal_playlist.delete.return_value = True
 
         with patch("tidal_mcp.utils.validate_tidal_id", return_value=True):
-            result = await service.delete_playlist("playlist-uuid-123")
+            result = await service.delete_playlist("12345678-1234-1234-1234-123456789abc")
 
             assert result is True
             sample_tidal_playlist.delete.assert_called_once()
@@ -559,7 +559,7 @@ class TestPlaylistManagement:
         with patch.object(
             service, "_convert_tidal_playlist", new_callable=AsyncMock
         ) as mock_convert:
-            mock_playlist = Playlist(id="playlist-uuid-123", title="Test Playlist")
+            mock_playlist = Playlist(id="12345678-1234-1234-1234-123456789abc", title="Test Playlist")
             mock_convert.return_value = mock_playlist
 
             results = await service.get_user_playlists()
@@ -1006,7 +1006,7 @@ class TestConversionMethods:
         )
 
         assert isinstance(result, Playlist)
-        assert result.id == "playlist-uuid-123"
+        assert result.id == "12345678-1234-1234-1234-123456789abc"
         assert result.title == "Test Playlist"
         assert result.description == "A test playlist"
         assert result.creator == "Test User"

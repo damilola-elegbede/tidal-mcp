@@ -31,6 +31,15 @@ from tidal_mcp.utils import sanitize_query, validate_tidal_id
 
 
 @pytest.fixture
+def mock_auth():
+    """Create a mock TidalAuth instance."""
+    auth = Mock(spec=TidalAuth)
+    auth.ensure_valid_token = AsyncMock(return_value=True)
+    auth.get_tidal_session = Mock()
+    return auth
+
+
+@pytest.fixture
 def temp_session_file():
     """Create a temporary session file for testing."""
     with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
@@ -296,18 +305,18 @@ class TestServerToolErrors:
         with patch("tidal_mcp.server.ensure_service") as mock_ensure:
             mock_ensure.side_effect = TidalAuthError("Authentication required")
 
-            # Test various tools
-            result = await tidal_search("query", "tracks")
+            # Test various tools - access the actual function via .fn
+            result = await tidal_search.fn("query", "tracks")
             assert "error" in result
             assert "Authentication required" in result["error"]
 
-            result = await tidal_get_playlist("playlist123")
+            result = await tidal_get_playlist.fn("playlist123")
             assert "error" in result
 
-            result = await tidal_create_playlist("New Playlist")
+            result = await tidal_create_playlist.fn("New Playlist")
             assert "error" in result
 
-            result = await tidal_get_favorites("tracks")
+            result = await tidal_get_favorites.fn("tracks")
             assert "error" in result
 
     @pytest.mark.asyncio
@@ -319,15 +328,15 @@ class TestServerToolErrors:
         mock_service.get_user_favorites.side_effect = Exception("Favorites error")
 
         with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
-            result = await tidal_search("query", "tracks")
+            result = await tidal_search.fn("query", "tracks")
             assert "error" in result
             assert "Search failed" in result["error"]
 
-            result = await tidal_create_playlist("Test")
+            result = await tidal_create_playlist.fn("Test")
             assert "error" in result
             assert "Failed to create playlist" in result["error"]
 
-            result = await tidal_get_favorites("tracks")
+            result = await tidal_get_favorites.fn("tracks")
             assert "error" in result
             assert "Failed to get favorites" in result["error"]
 
@@ -339,12 +348,12 @@ class TestServerToolErrors:
 
         with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
             # Test with empty track list
-            result = await tidal_add_to_playlist("playlist123", [])
+            result = await tidal_add_to_playlist.fn("playlist123", [])
             assert result["success"] is False
             assert "No track IDs provided" in result["error"]
 
             # Test with empty indices list
-            result = await tidal_remove_from_playlist("playlist123", [])
+            result = await tidal_remove_from_playlist.fn("playlist123", [])
             assert result["success"] is False
             assert "No track indices provided" in result["error"]
 
@@ -478,7 +487,7 @@ class TestConcurrencyErrors:
         async def failing_operation():
             with patch("tidal_mcp.server.ensure_service") as mock_ensure:
                 mock_ensure.side_effect = TidalAuthError("Auth failed")
-                return await tidal_search("query", "tracks")
+                return await tidal_search.fn("query", "tracks")
 
         # Run 10 concurrent failing operations
         tasks = [failing_operation() for _ in range(10)]
@@ -497,7 +506,7 @@ class TestConcurrencyErrors:
 
         async def failing_search():
             with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
-                return await tidal_search("query", "tracks")
+                return await tidal_search.fn("query", "tracks")
 
         # Run concurrent failing searches
         tasks = [failing_search() for _ in range(5)]
@@ -525,7 +534,7 @@ class TestConcurrencyErrors:
 
         async def search_operation():
             with patch("tidal_mcp.server.ensure_service", return_value=mock_service):
-                return await tidal_search("query", "tracks")
+                return await tidal_search.fn("query", "tracks")
 
         # Run multiple operations
         tasks = [search_operation() for _ in range(6)]
