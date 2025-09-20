@@ -12,15 +12,11 @@ All tests are fast, isolated, and use mocked external dependencies.
 """
 
 import json
-import os
-import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, Mock, patch, mock_open
-from urllib.parse import parse_qs, urlparse
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
-import pytest_asyncio
 from aioresponses import aioresponses
 
 from src.tidal_mcp.auth import TidalAuth, TidalAuthError
@@ -324,7 +320,7 @@ class TestCallbackCapture:
     @pytest.mark.asyncio
     async def test_capture_auth_code_success(self, mock_env_vars):
         """Test successful auth code capture."""
-        auth = TidalAuth()
+        TidalAuth()
 
         # Mock aiohttp components
         mock_request = Mock()
@@ -344,7 +340,7 @@ class TestCallbackCapture:
     @pytest.mark.asyncio
     async def test_capture_auth_code_error(self, mock_env_vars):
         """Test auth code capture with OAuth error."""
-        auth = TidalAuth()
+        TidalAuth()
 
         mock_request = Mock()
         mock_request.query = {"error": "access_denied", "error_description": "User denied"}
@@ -356,7 +352,7 @@ class TestCallbackCapture:
     @pytest.mark.asyncio
     async def test_capture_auth_code_timeout(self, mock_env_vars):
         """Test auth code capture timeout."""
-        auth = TidalAuth()
+        TidalAuth()
 
         with patch('asyncio.sleep', new_callable=AsyncMock), \
              patch('asyncio.get_event_loop') as mock_loop:
@@ -726,7 +722,7 @@ class TestErrorHandling:
             session_file.chmod(0o000)  # Remove all permissions
 
             # Should handle permission error gracefully
-            auth = TidalAuth()
+            TidalAuth()
 
             # Reset permissions for cleanup
             session_file.chmod(0o644)

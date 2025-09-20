@@ -1,0 +1,11 @@
+Key test patterns that need fixing:
+
+1. Conversion methods tests - these should test the real conversion logic using tidal_service fixture
+2. Utility method tests - need proper return value configuration
+3. Remaining playlist operation tests - simplify to just test mock returns
+4. Favorites, radio, detail retrieval tests - simplify to test mock returns
+5. Error handling tests - configure proper side effects
+
+The main issue is tests are mixing real service testing with mock service testing.
+Tests using mock_service should only test the interface, not the implementation.
+Tests using tidal_service should test real logic with mocked external dependencies.

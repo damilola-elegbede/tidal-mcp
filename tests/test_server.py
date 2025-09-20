@@ -5,16 +5,14 @@ Tests all MCP tool implementations in server.py to achieve 40%+ coverage.
 Focuses on tool registration, parameter validation, error handling, and response structure.
 """
 
-import os
-import pytest
 from unittest.mock import AsyncMock, Mock, patch
-from datetime import datetime
+
+import pytest
 
 # Always import the real server module for testing
 from src.tidal_mcp import server
-
 from src.tidal_mcp.auth import TidalAuthError
-from src.tidal_mcp.models import Track, Album, Artist, Playlist, SearchResults
+from src.tidal_mcp.models import SearchResults
 
 
 class TestMCPToolRegistration:
@@ -272,7 +270,7 @@ class TestTidalSearch:
 
         with patch('src.tidal_mcp.server.ensure_service', return_value=mock_service):
             # Test limit clamping (max 50)
-            result = await server.tidal_search("test", "tracks", 100, 0)
+            await server.tidal_search("test", "tracks", 100, 0)
 
             # Verify service was called with clamped limit
             mock_service.search_tracks.assert_called_with("test", 50, 0)

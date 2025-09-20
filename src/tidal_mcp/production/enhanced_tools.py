@@ -37,7 +37,7 @@ mcp = FastMCP(
 
 async def initialize_production_components():
     """Initialize production components including middleware and health checking."""
-    global auth_manager, tidal_service, middleware_stack, health_checker
+    global auth_manager, middleware_stack, health_checker
 
     # Initialize auth manager
     client_id = os.getenv("TIDAL_CLIENT_ID")
@@ -61,7 +61,7 @@ async def initialize_production_components():
 
 async def ensure_service() -> TidalService:
     """Ensure Tidal service is initialized and authenticated."""
-    global auth_manager, tidal_service
+    global tidal_service
 
     if not auth_manager:
         await initialize_production_components()
@@ -334,7 +334,7 @@ async def refresh_session() -> dict[str, Any]:
 
     @middleware_stack.middleware(endpoint_name="auth_refresh", require_auth=False)
     async def _refresh_with_middleware():
-        global auth_manager
+        # Note: auth_manager is accessed but not assigned in this scope
 
         try:
             if not auth_manager:

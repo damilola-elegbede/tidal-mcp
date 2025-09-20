@@ -6,6 +6,7 @@ Supports OAuth2 flow with PKCE and token management for secure API
 interactions.
 """
 
+import asyncio
 import base64
 import hashlib
 import json
@@ -13,6 +14,7 @@ import logging
 import os
 import secrets
 import webbrowser
+import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -20,6 +22,7 @@ from urllib.parse import urlencode
 
 import aiohttp
 import tidalapi
+from aiohttp import web
 from dotenv import load_dotenv
 
 # Load environment variables from .env.local if it exists
@@ -38,7 +41,7 @@ class TidalAuth:
     """
     Manages authentication and authorization for Tidal API.
 
-    Handles OAuth2 flow with PKCE, token refresh, and session managemen
+    Handles OAuth2 flow with PKCE, token refresh, and session management
     to ensure secure and persistent access to Tidal services.
     """
 
@@ -83,7 +86,7 @@ class TidalAuth:
         self.session_file = Path.home() / ".tidal-mcp" / "session.json"
         self.session_file.parent.mkdir(parents=True, exist_ok=True)
 
-        # Tidal API clien
+        # Tidal API client
         self.tidal_session: tidalapi.Session | None = None
 
         # Load existing session if available
@@ -184,7 +187,7 @@ class TidalAuth:
         try:
             logger.info("Starting Tidal OAuth2 authentication...")
 
-            # Try to use existing session firs
+            # Try to use existing session first
             if await self._try_existing_session():
                 return True
 
@@ -214,7 +217,7 @@ class TidalAuth:
             # Set expiry time if available
             if self.token_expires_at:
                 # Convert datetime to seconds since epoch
-                import time
+
 
                 self.tidal_session.expiry_time = time.mktime(
                     self.token_expires_at.timetuple()
@@ -279,9 +282,9 @@ class TidalAuth:
 
     async def _capture_auth_code(self) -> str | None:
         """Start local server to capture OAuth2 callback."""
-        import asyncio
 
-        from aiohttp import web
+
+
 
         auth_code = None
 
@@ -385,7 +388,7 @@ class TidalAuth:
 
             # Set expiry time if available
             if self.token_expires_at:
-                import time
+
 
                 self.tidal_session.expiry_time = time.mktime(
                     self.token_expires_at.timetuple()
@@ -490,7 +493,7 @@ class TidalAuth:
                 self.tidal_session.token_type = "Bearer"
 
                 if self.token_expires_at:
-                    import time
+
 
                     self.tidal_session.expiry_time = time.mktime(
                         self.token_expires_at.timetuple()
@@ -516,7 +519,7 @@ class TidalAuth:
         if self.is_authenticated():
             return True
 
-        # Try to refresh token firs
+        # Try to refresh token first
         if self.refresh_token:
             if await self.refresh_access_token():
                 return True
@@ -545,7 +548,7 @@ class TidalAuth:
         Get the tidalapi Session object.
 
         Returns:
-            tidalapi Session objec
+            tidalapi Session object
 
         Raises:
             TidalAuthError: If not authenticated

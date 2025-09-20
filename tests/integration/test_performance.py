@@ -8,7 +8,7 @@ rate limiting behavior, and system resource usage under load.
 import asyncio
 import os
 import time
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
@@ -23,7 +23,7 @@ try:
 except ImportError:
     enhanced_tools = None
 
-from tests.integration.test_helpers import simulate_api_latency, TestAssertion
+from tests.integration.test_helpers import TestAssertion, simulate_api_latency
 
 
 class TestPerformanceBaselines:
@@ -307,7 +307,6 @@ class TestConcurrentRequestHandling:
         tidal_service.search_tracks = AsyncMock(side_effect=mock_search)
 
         # Mock the middleware decorator to actually work
-        original_middleware = middleware_stack.middleware
 
         def mock_middleware(endpoint_name="unknown", require_auth=True):
             def decorator(func):
@@ -430,8 +429,9 @@ class TestMemoryAndResourceUsage:
     async def test_memory_usage_under_load(self, tidal_service, track_factory):
         """Test memory usage during sustained load."""
         import gc
-        import psutil
         import os
+
+        import psutil
 
         # Get initial memory usage
         process = psutil.Process(os.getpid())

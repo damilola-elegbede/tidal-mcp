@@ -14,11 +14,8 @@ All tests are fast, isolated, and don't require external dependencies.
 
 import json
 from datetime import datetime
-from typing import Any, Dict
 
-import pytest
-
-from src.tidal_mcp.models import Artist, Album, Track, Playlist, SearchResults
+from src.tidal_mcp.models import Album, Artist, Playlist, SearchResults, Track
 
 
 class TestArtistModel:

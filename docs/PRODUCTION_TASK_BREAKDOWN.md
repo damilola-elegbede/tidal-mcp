@@ -374,7 +374,7 @@ Comprehensive task breakdown for making the Tidal MCP server production-ready ov
 
 ## Dependencies Graph
 
-```
+```mermaid
 Phase 1: Production Hardening
 ├── PR 1.1: Test Infrastructure ──┐
 ├── PR 1.3: Error Handling        ├──> PR 1.2: Core Tests

@@ -5,27 +5,22 @@ Provides comprehensive test fixtures, mock data factories, and helper functions
 for integration testing of the Tidal MCP server.
 """
 
-import asyncio
-import json
 import os
 import uuid
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
 import fakeredis.aioredis
-from fastmcp import FastMCP
+import pytest
 from freezegun import freeze_time
 
 from tidal_mcp.auth import TidalAuth
 from tidal_mcp.models import Album, Artist, Playlist, SearchResults, Track
+from tidal_mcp.production.middleware import HealthChecker, MiddlewareStack
 from tidal_mcp.service import TidalService
-from tidal_mcp.production.middleware import MiddlewareStack, HealthChecker
-
 
 # Test Configuration - Using obviously fake IDs to prevent production access
-import uuid
 _test_uuid = uuid.uuid4().hex
 TEST_USER_ID = f"fake_test_user_{_test_uuid[:8]}"
 TEST_SESSION_ID = f"fake_test_session_{_test_uuid[8:16]}"
@@ -548,7 +543,7 @@ def search_results_factory(track_factory, album_factory, artist_factory, playlis
 @pytest.fixture
 def mock_successful_response():
     """Mock successful API response format."""
-    def create_response(data: Any, success: bool = True, **metadata) -> Dict[str, Any]:
+    def create_response(data: Any, success: bool = True, **metadata) -> dict[str, Any]:
         response = {
             "success": success,
             "data": data,
@@ -569,9 +564,9 @@ def mock_error_response():
     def create_error(
         error_code: str,
         message: str,
-        details: Optional[Dict[str, Any]] = None,
-        request_id: Optional[str] = None
-    ) -> Dict[str, Any]:
+        details: dict[str, Any] | None = None,
+        request_id: str | None = None
+    ) -> dict[str, Any]:
         response = {
             "error": error_code,
             "message": message,
@@ -640,11 +635,11 @@ class MockTidalResponse:
 
     @staticmethod
     def create_search_response(
-        tracks: List[Any] = None,
-        albums: List[Any] = None,
-        artists: List[Any] = None,
-        playlists: List[Any] = None
-    ) -> Dict[str, List[Any]]:
+        tracks: list[Any] = None,
+        albums: list[Any] = None,
+        artists: list[Any] = None,
+        playlists: list[Any] = None
+    ) -> dict[str, list[Any]]:
         return {
             "tracks": tracks or [],
             "albums": albums or [],
@@ -657,7 +652,7 @@ class MockTidalResponse:
         limit: int = 20,
         offset: int = 0,
         total: int = 100
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         return {
             "limit": limit,
             "offset": offset,

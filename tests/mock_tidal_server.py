@@ -6,9 +6,7 @@ of the real server but without any network initialization or FastMCP startup.
 All tools are Mock objects with .fn() methods to prevent actual API calls.
 """
 
-import asyncio
 import logging
-from typing import Any
 from unittest.mock import AsyncMock, Mock
 
 # Mock auth manager and service to prevent real initialization
@@ -77,7 +75,7 @@ async def mock_tidal_search_fn(query: str, content_type: str = "all", limit: int
                 tracks = await tracks_result
             elif hasattr(tracks_result, 'return_value'):
                 tracks = tracks_result.return_value
-            elif hasattr(tracks_result, '__call__'):
+            elif callable(tracks_result):
                 tracks = await tracks_result
             else:
                 tracks = tracks_result
@@ -100,7 +98,7 @@ async def mock_tidal_search_fn(query: str, content_type: str = "all", limit: int
                 albums = await albums_result
             elif hasattr(albums_result, 'return_value'):
                 albums = albums_result.return_value
-            elif hasattr(albums_result, '__call__'):
+            elif callable(albums_result):
                 albums = await albums_result
             else:
                 albums = albums_result
@@ -122,7 +120,7 @@ async def mock_tidal_search_fn(query: str, content_type: str = "all", limit: int
                 artists = await artists_result
             elif hasattr(artists_result, 'return_value'):
                 artists = artists_result.return_value
-            elif hasattr(artists_result, '__call__'):
+            elif callable(artists_result):
                 artists = await artists_result
             else:
                 artists = artists_result
@@ -144,7 +142,7 @@ async def mock_tidal_search_fn(query: str, content_type: str = "all", limit: int
                 playlists = await playlists_result
             elif hasattr(playlists_result, 'return_value'):
                 playlists = playlists_result.return_value
-            elif hasattr(playlists_result, '__call__'):
+            elif callable(playlists_result):
                 playlists = await playlists_result
             else:
                 playlists = playlists_result
@@ -166,7 +164,7 @@ async def mock_tidal_search_fn(query: str, content_type: str = "all", limit: int
                 search_results = await search_results_obj
             elif hasattr(search_results_obj, 'return_value'):
                 search_results = search_results_obj.return_value
-            elif hasattr(search_results_obj, '__call__'):
+            elif callable(search_results_obj):
                 search_results = await search_results_obj
             else:
                 search_results = search_results_obj
@@ -217,7 +215,7 @@ async def mock_tidal_get_track_fn(track_id: str):
             track = await track_result
         elif hasattr(track_result, 'return_value'):
             track = track_result.return_value
-        elif hasattr(track_result, '__call__'):
+        elif callable(track_result):
             track = await track_result
         else:
             track = track_result
@@ -318,7 +316,7 @@ async def mock_tidal_add_favorite_fn(item_id: str, item_type: str):
             success = await success_result
         elif hasattr(success_result, 'return_value'):
             success = success_result.return_value
-        elif hasattr(success_result, '__call__'):
+        elif callable(success_result):
             success = await success_result
         else:
             success = success_result
@@ -351,7 +349,7 @@ async def mock_tidal_remove_favorite_fn(item_id: str, item_type: str):
             success = await success_result
         elif hasattr(success_result, 'return_value'):
             success = success_result.return_value
-        elif hasattr(success_result, '__call__'):
+        elif callable(success_result):
             success = await success_result
         else:
             success = success_result
@@ -387,7 +385,7 @@ async def mock_tidal_get_favorites_fn(content_type: str = "tracks", limit: int =
             favorites = await favorites_result
         elif hasattr(favorites_result, 'return_value'):
             favorites = favorites_result.return_value
-        elif hasattr(favorites_result, '__call__'):
+        elif callable(favorites_result):
             favorites = await favorites_result
         else:
             favorites = favorites_result
@@ -423,7 +421,7 @@ async def mock_tidal_add_to_playlist_fn(playlist_id: str, track_ids: list):
             success = await success_result
         elif hasattr(success_result, 'return_value'):
             success = success_result.return_value
-        elif hasattr(success_result, '__call__'):
+        elif callable(success_result):
             success = await success_result
         else:
             success = success_result
@@ -461,7 +459,7 @@ async def mock_tidal_remove_from_playlist_fn(playlist_id: str, track_indices: li
             success = await success_result
         elif hasattr(success_result, 'return_value'):
             success = success_result.return_value
-        elif hasattr(success_result, '__call__'):
+        elif callable(success_result):
             success = await success_result
         else:
             success = success_result
@@ -533,7 +531,7 @@ async def mock_tidal_get_recommendations_fn(limit: int = 50):
             recommendations = await recommendations_result
         elif hasattr(recommendations_result, 'return_value'):
             recommendations = recommendations_result.return_value
-        elif hasattr(recommendations_result, '__call__'):
+        elif callable(recommendations_result):
             recommendations = await recommendations_result
         else:
             recommendations = recommendations_result
@@ -605,7 +603,7 @@ async def mock_tidal_create_playlist_fn(title: str, description: str = ""):
             playlist = await playlist_result
         elif hasattr(playlist_result, 'return_value'):
             playlist = playlist_result.return_value
-        elif hasattr(playlist_result, '__call__'):
+        elif callable(playlist_result):
             playlist = await playlist_result
         else:
             playlist = playlist_result

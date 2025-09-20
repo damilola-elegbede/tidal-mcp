@@ -6,8 +6,9 @@ authentication → search → playlist creation → favorites management.
 """
 
 import os
+from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 # Conditional import based on testing environment
 if os.getenv('TESTING') == '1':
@@ -288,8 +289,8 @@ class TestFavoritesManagementFlow:
         """Test flow: add to favorites → get favorites → remove from favorites."""
         # Setup items to favorite
         track = track_factory(track_id="fav-track", title="Favorite Track")
-        album = album_factory(album_id="fav-album", title="Favorite Album")
-        artist = artist_factory(artist_id="fav-artist", name="Favorite Artist")
+        album_factory(album_id="fav-album", title="Favorite Album")
+        artist_factory(artist_id="fav-artist", name="Favorite Artist")
 
         # Setup favorites operations
         tidal_service.add_to_favorites = AsyncMock(return_value=True)

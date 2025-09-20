@@ -5,18 +5,13 @@ These tests use the actual TidalService class with mocked external dependencies.
 Focus on testing business logic, error handling, and data conversion.
 """
 
-import asyncio
-import uuid
-from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
-import tidalapi
 
-from src.tidal_mcp.auth import TidalAuth, TidalAuthError
+from src.tidal_mcp.auth import TidalAuth
 from src.tidal_mcp.models import Album, Artist, Playlist, SearchResults, Track
-from src.tidal_mcp.service import TidalService, async_to_sync
+from src.tidal_mcp.service import TidalService
 
 
 class TestRealTidalServiceImplementation:

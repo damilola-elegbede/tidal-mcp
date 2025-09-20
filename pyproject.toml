@@ -68,23 +68,6 @@ test = [
 [project.scripts]
 tidal-mcp = "tidal_mcp.server:main"
 
-[tool.uv]
-dev-dependencies = [
-    "ruff>=0.1.0",
-    "black>=23.0.0",
-    "flake8>=6.0.0",
-    "mypy>=1.5.0",
-    "pytest>=7.4.0",
-    "pytest-asyncio>=0.21.0",
-    "pytest-cov>=4.1.0",
-    "pytest-mock>=3.11.0",
-    "pytest-timeout>=2.1.0",
-    "aioresponses>=0.7.4",
-    "fakeredis>=2.18.0",
-    "responses>=0.23.0",
-    "freezegun>=1.2.0",
-    "factory-boy>=3.3.0"
-]
 
 [project.urls]
 Homepage = "https://github.com/tidal-mcp/tidal-mcp"
@@ -226,37 +209,3 @@ output = "coverage.xml"
 [tool.coverage.json]
 output = "coverage.json"
 
-[tool.pytest.ini_options]
-minversion = "7.0"
-addopts = [
-    "-ra",
-    "--strict-markers",
-    "--strict-config",
-    "--cov=src/tidal_mcp",
-    "--cov-report=term-missing",
-    "--cov-report=html",
-    "--cov-report=xml",
-    "--timeout=300",  # 5 minute global timeout
-    "--tb=short"
-]
-testpaths = ["tests"]
-python_files = ["test_*.py", "*_test.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]
-markers = [
-    "integration: Integration tests (may be slow)",
-    "auth: Authentication related tests",
-    "search: Search functionality tests",
-    "playlist: Playlist management tests",
-    "favorites: Favorites management tests",
-    "slow: Slow tests that may take longer",
-    "redis: Tests that require Redis",
-    "unit: Unit tests (fast)"
-]
-filterwarnings = [
-    "ignore::DeprecationWarning",
-    "ignore::PendingDeprecationWarning",
-    "ignore:.*unclosed.*:ResourceWarning"
-]
-asyncio_mode = "auto"
-timeout = 60  # Default 60 second timeout per test

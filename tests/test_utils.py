@@ -13,23 +13,21 @@ Tests cover:
 All tests are fast, isolated, and focus on utility function correctness.
 """
 
-import pytest
-from typing import Any, Dict, List
 
 from src.tidal_mcp.utils import (
-    sanitize_query,
+    build_search_url,
+    calculate_playlist_stats,
+    extract_tidal_id_from_url,
+    filter_explicit_content,
     format_duration,
-    parse_duration,
     format_file_size,
+    merge_artist_names,
+    normalize_quality_string,
+    parse_duration,
     safe_get,
+    sanitize_query,
     truncate_text,
     validate_tidal_id,
-    extract_tidal_id_from_url,
-    normalize_quality_string,
-    build_search_url,
-    filter_explicit_content,
-    merge_artist_names,
-    calculate_playlist_stats
 )
 
 

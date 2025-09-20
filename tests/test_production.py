@@ -12,32 +12,31 @@ Coverage Areas:
 - Request/response handling
 """
 
-import asyncio
-import json
 import time
 import uuid
 from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 import pytest_asyncio
-from aioresponses import aioresponses
 from fakeredis.aioredis import FakeRedis as AsyncFakeRedis
+from pydantic import ValidationError
 
+from src.tidal_mcp.auth import TidalAuthError
+from src.tidal_mcp.production import enhanced_tools
 from src.tidal_mcp.production.middleware import (
     ErrorHandler,
     HealthChecker,
     MiddlewareStack,
     ObservabilityMiddleware,
     RateLimitConfig,
-    RateLimitError,
     RateLimiter,
+    RateLimitError,
     RateLimitTiers,
     RequestContext,
     RequestValidator,
     SecurityMiddleware,
 )
-from src.tidal_mcp.production import enhanced_tools
 
 
 # Test Fixtures
@@ -268,14 +267,14 @@ class TestRequestValidator:
 
     def test_validate_search_query_empty(self):
         """Test empty search query validation."""
-        with pytest.raises(Exception):  # ValidationError
+        with pytest.raises(ValidationError):
             RequestValidator.validate_search_query("")
 
     def test_validate_search_query_too_long(self):
         """Test overly long search query validation."""
         long_query = "a" * 501  # Over 500 character limit
 
-        with pytest.raises(Exception):  # ValidationError
+        with pytest.raises(ValidationError):
             RequestValidator.validate_search_query(long_query)
 
     def test_validate_track_id_valid(self):
@@ -284,7 +283,7 @@ class TestRequestValidator:
 
     def test_validate_track_id_invalid(self):
         """Test invalid track ID validation."""
-        with pytest.raises(Exception):  # ValidationError
+        with pytest.raises(ValidationError):
             RequestValidator.validate_track_id("abc123")
 
     def test_validate_limit_valid(self):
@@ -293,12 +292,12 @@ class TestRequestValidator:
 
     def test_validate_limit_too_low(self):
         """Test limit too low validation."""
-        with pytest.raises(Exception):  # ValidationError
+        with pytest.raises(ValidationError):
             RequestValidator.validate_limit(0)
 
     def test_validate_limit_too_high(self):
         """Test limit too high validation."""
-        with pytest.raises(Exception):  # ValidationError
+        with pytest.raises(ValidationError):
             RequestValidator.validate_limit(101)
 
     def test_validate_offset_valid(self):
@@ -308,7 +307,7 @@ class TestRequestValidator:
 
     def test_validate_offset_negative(self):
         """Test negative offset validation."""
-        with pytest.raises(Exception):  # ValidationError
+        with pytest.raises(ValidationError):
             RequestValidator.validate_offset(-1)
 
 
@@ -382,7 +381,7 @@ class TestSecurityMiddleware:
         middleware = SecurityMiddleware(mock_auth_manager)
         auth_header = "Invalid format"
 
-        with pytest.raises(Exception):  # ValidationError
+        with pytest.raises(ValidationError):
             await middleware.authenticate_request(auth_header)
 
 
@@ -711,12 +710,12 @@ class TestEnhancedTools:
     async def test_get_stream_url_success(self, mock_tidal_service):
         """Test successful streaming URL generation."""
         with patch('src.tidal_mcp.production.enhanced_tools.middleware_stack') as mock_stack, \
-             patch('src.tidal_mcp.production.enhanced_tools.ensure_service') as mock_ensure, \
-             patch('src.tidal_mcp.production.enhanced_tools._generate_streaming_url') as mock_generate:
+             patch('src.tidal_mcp.production.enhanced_tools.ensure_service'), \
+             patch('src.tidal_mcp.production.enhanced_tools._generate_streaming_url'):
 
             # Setup mocks
-            mock_ensure = AsyncMock(return_value=mock_tidal_service)
-            mock_generate = AsyncMock(return_value={
+            AsyncMock(return_value=mock_tidal_service)
+            AsyncMock(return_value={
                 "url": "https://streaming.tidal.com/track/12345",
                 "quality": "HIGH",
                 "format": "AAC",
@@ -742,11 +741,11 @@ class TestEnhancedTools:
     async def test_tidal_search_advanced_success(self, mock_tidal_service):
         """Test successful advanced search."""
         with patch('src.tidal_mcp.production.enhanced_tools.middleware_stack') as mock_stack, \
-             patch('src.tidal_mcp.production.enhanced_tools.ensure_service') as mock_ensure, \
+             patch('src.tidal_mcp.production.enhanced_tools.ensure_service'), \
              patch('src.tidal_mcp.production.enhanced_tools._enhance_track_result') as mock_enhance:
 
             # Setup mocks
-            mock_ensure = AsyncMock(return_value=mock_tidal_service)
+            AsyncMock(return_value=mock_tidal_service)
             mock_enhance.return_value = {
                 "id": "12345",
                 "title": "Test Song",
@@ -785,8 +784,8 @@ class TestEnhancedTools:
 
             mock_auth.is_authenticated.return_value = False
 
-            with pytest.raises(Exception):  # TidalAuthError
-                await ensure_service()
+            with pytest.raises(TidalAuthError):
+                await enhanced_tools.ensure_service()
 
     @pytest.mark.asyncio
     async def test_ensure_service_success(self, mock_tidal_service):
@@ -1084,10 +1083,10 @@ class TestProductionIntegration:
     async def test_end_to_end_search_flow(self, mock_tidal_service):
         """Test complete search flow with production features."""
         with patch('src.tidal_mcp.production.enhanced_tools.middleware_stack') as mock_stack, \
-             patch('src.tidal_mcp.production.enhanced_tools.ensure_service') as mock_ensure:
+             patch('src.tidal_mcp.production.enhanced_tools.ensure_service'):
 
             # Setup service mock
-            mock_ensure = AsyncMock(return_value=mock_tidal_service)
+            AsyncMock(return_value=mock_tidal_service)
 
             # Mock middleware to pass through
             mock_middleware = Mock()

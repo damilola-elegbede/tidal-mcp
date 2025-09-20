@@ -5,14 +5,11 @@ Provides helper functions, mock data generators, and test utilities
 for comprehensive integration testing of the Tidal MCP server.
 """
 
-import json
 import random
 import uuid
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any
 from unittest.mock import MagicMock
-
-from tidal_mcp.models import Album, Artist, Playlist, SearchResults, Track
 
 
 class TidalMockDataGenerator:
@@ -123,10 +120,10 @@ class MockTidalObjects:
 
     @staticmethod
     def create_mock_track(
-        track_id: Optional[str] = None,
-        title: Optional[str] = None,
-        artist_name: Optional[str] = None,
-        album_title: Optional[str] = None,
+        track_id: str | None = None,
+        title: str | None = None,
+        artist_name: str | None = None,
+        album_title: str | None = None,
         **kwargs
     ) -> MagicMock:
         """Create a mock Tidal track object."""
@@ -172,9 +169,9 @@ class MockTidalObjects:
 
     @staticmethod
     def create_mock_album(
-        album_id: Optional[str] = None,
-        title: Optional[str] = None,
-        artist_name: Optional[str] = None,
+        album_id: str | None = None,
+        title: str | None = None,
+        artist_name: str | None = None,
         **kwargs
     ) -> MagicMock:
         """Create a mock Tidal album object."""
@@ -206,8 +203,8 @@ class MockTidalObjects:
 
     @staticmethod
     def create_mock_artist(
-        artist_id: Optional[str] = None,
-        name: Optional[str] = None,
+        artist_id: str | None = None,
+        name: str | None = None,
         **kwargs
     ) -> MagicMock:
         """Create a mock Tidal artist object."""
@@ -228,8 +225,8 @@ class MockTidalObjects:
 
     @staticmethod
     def create_mock_playlist(
-        playlist_id: Optional[str] = None,
-        title: Optional[str] = None,
+        playlist_id: str | None = None,
+        title: str | None = None,
         **kwargs
     ) -> MagicMock:
         """Create a mock Tidal playlist object."""
@@ -266,7 +263,7 @@ class TestDataFactories:
         album_count: int = 2,
         artist_count: int = 2,
         playlist_count: int = 1
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Create a complete search scenario with mock data."""
         scenario = {
             "query": query,
@@ -314,7 +311,7 @@ class TestDataFactories:
         album_count: int = 3,
         artist_count: int = 4,
         playlist_count: int = 6
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Create a user library scenario with favorites and playlists."""
         scenario = {
             "favorite_tracks": [],
@@ -361,7 +358,7 @@ class TestDataFactories:
     def create_recommendation_scenario(
         recommended_count: int = 10,
         radio_count: int = 15
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Create a recommendation scenario with various recommendation types."""
         scenario = {
             "recommended_tracks": [],
@@ -397,13 +394,13 @@ class ResponseValidators:
     """Validators for ensuring response format compliance."""
 
     @staticmethod
-    def validate_search_response(response: Dict[str, Any]) -> bool:
+    def validate_search_response(response: dict[str, Any]) -> bool:
         """Validate search response format."""
         required_fields = ["query", "content_type", "results", "total_results"]
         return all(field in response for field in required_fields)
 
     @staticmethod
-    def validate_track_response(response: Dict[str, Any]) -> bool:
+    def validate_track_response(response: dict[str, Any]) -> bool:
         """Validate track response format."""
         if "success" not in response:
             return False
@@ -414,7 +411,7 @@ class ResponseValidators:
             return "error" in response
 
     @staticmethod
-    def validate_playlist_response(response: Dict[str, Any]) -> bool:
+    def validate_playlist_response(response: dict[str, Any]) -> bool:
         """Validate playlist response format."""
         if "success" not in response:
             return False
@@ -425,13 +422,13 @@ class ResponseValidators:
             return "error" in response
 
     @staticmethod
-    def validate_favorites_response(response: Dict[str, Any]) -> bool:
+    def validate_favorites_response(response: dict[str, Any]) -> bool:
         """Validate favorites response format."""
         required_fields = ["content_type", "favorites", "total_results"]
         return all(field in response for field in required_fields)
 
     @staticmethod
-    def validate_boolean_operation_response(response: Dict[str, Any]) -> bool:
+    def validate_boolean_operation_response(response: dict[str, Any]) -> bool:
         """Validate boolean operation response format."""
         if "success" not in response:
             return False
@@ -442,7 +439,7 @@ class ResponseValidators:
             return "error" in response
 
     @staticmethod
-    def validate_enhanced_response(response: Dict[str, Any]) -> bool:
+    def validate_enhanced_response(response: dict[str, Any]) -> bool:
         """Validate enhanced tool response format."""
         if "success" not in response:
             return False
@@ -455,7 +452,7 @@ class TestAssertion:
     """Custom assertions for test validation."""
 
     @staticmethod
-    def assert_valid_track_data(track_data: Dict[str, Any]):
+    def assert_valid_track_data(track_data: dict[str, Any]):
         """Assert that track data is valid and complete."""
         required_fields = ["id", "title", "artists"]
         for field in required_fields:
@@ -469,7 +466,7 @@ class TestAssertion:
             assert "name" in artist, "Artist missing name"
 
     @staticmethod
-    def assert_valid_album_data(album_data: Dict[str, Any]):
+    def assert_valid_album_data(album_data: dict[str, Any]):
         """Assert that album data is valid and complete."""
         required_fields = ["id", "title", "artists"]
         for field in required_fields:
@@ -479,14 +476,14 @@ class TestAssertion:
         assert len(album_data["artists"]) > 0, "Album must have at least one artist"
 
     @staticmethod
-    def assert_valid_artist_data(artist_data: Dict[str, Any]):
+    def assert_valid_artist_data(artist_data: dict[str, Any]):
         """Assert that artist data is valid and complete."""
         required_fields = ["id", "name"]
         for field in required_fields:
             assert field in artist_data, f"Artist missing required field: {field}"
 
     @staticmethod
-    def assert_valid_playlist_data(playlist_data: Dict[str, Any]):
+    def assert_valid_playlist_data(playlist_data: dict[str, Any]):
         """Assert that playlist data is valid and complete."""
         required_fields = ["id", "title"]
         for field in required_fields:
@@ -501,7 +498,7 @@ class TestAssertion:
         assert response_time <= max_seconds, f"Response time {response_time:.2f}s exceeds limit {max_seconds}s"
 
     @staticmethod
-    def assert_pagination_valid(response: Dict[str, Any], expected_limit: int, expected_offset: int):
+    def assert_pagination_valid(response: dict[str, Any], expected_limit: int, expected_offset: int):
         """Assert that pagination information is valid."""
         if "pagination" in response:
             pagination = response["pagination"]
@@ -511,7 +508,7 @@ class TestAssertion:
 
 
 # Integration test utilities
-def create_test_suite_data() -> Dict[str, Any]:
+def create_test_suite_data() -> dict[str, Any]:
     """Create a comprehensive test suite data set."""
     return {
         "search_scenarios": [

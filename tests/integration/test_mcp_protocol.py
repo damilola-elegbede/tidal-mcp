@@ -7,11 +7,9 @@ and error handling according to MCP standards.
 """
 
 import os
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
-from typing import Any, Dict
 
-from fastmcp import FastMCP
+import pytest
 
 # Conditional import based on testing environment
 if os.getenv('TESTING') == '1':
@@ -94,7 +92,7 @@ class TestMCPToolRegistration:
                 # For mock tools, just verify they exist and are callable
                 assert tool_func is not None, f"{tool_name} tool not found"
                 assert hasattr(tool_func, 'fn'), f"{tool_name} missing fn attribute"
-                assert hasattr(tool_func.fn, '__call__'), f"{tool_name}.fn not callable"
+                assert callable(tool_func.fn), f"{tool_name}.fn not callable"
             else:
                 # For real tools, check docstring and annotations
                 # Check docstring exists (either on function or FunctionTool description)
@@ -153,12 +151,12 @@ class TestMCPParameterHandling:
 
         with patch.object(server, 'ensure_service', return_value=tidal_service):
             # Test limit parameter bounds checking
-            result = await server.tidal_search.fn("test", "tracks", 100)  # Over max
+            await server.tidal_search.fn("test", "tracks", 100)  # Over max
             # Should clamp to maximum allowed
             tidal_service.search_tracks.assert_called_with("test", 50, 0)
 
             # Test negative offset handling
-            result = await server.tidal_search.fn("test", "tracks", 10, -5)
+            await server.tidal_search.fn("test", "tracks", 10, -5)
             # Should clamp to minimum (0)
             tidal_service.search_tracks.assert_called_with("test", 10, 0)
 

@@ -9,6 +9,8 @@ management, and playback control.
 import asyncio
 import functools
 import logging
+import random
+import re
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
@@ -30,7 +32,7 @@ def async_to_sync(func):
         with ThreadPoolExecutor() as executor:
             # run_in_executor doesn't support kwargs, so we use partial
             if kwargs:
-                import functools
+
 
                 partial_func = functools.partial(func, **kwargs)
                 return await loop.run_in_executor(executor, partial_func, *args)
@@ -82,7 +84,7 @@ class TidalService:
         Args:
             query: Search query string
             limit: Maximum number of results (1-50)
-            offset: Pagination offsett
+            offset: Pagination offset
 
         Returns:
             List of Track objects
@@ -1028,7 +1030,7 @@ class TidalService:
                     tracks = session.user.favorites.tracks()
                     if tracks:
                         # Get radio from a random favorite track
-                        import random
+
 
                         seed_track = random.choice(
                             tracks[:10]
@@ -1565,7 +1567,7 @@ class TidalService:
 
     def _is_uuid(self, value: str) -> bool:
         """Check if value is a valid UUID format."""
-        import re
+
 
         uuid_pattern = re.compile(
             r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",

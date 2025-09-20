@@ -5,14 +5,15 @@ Tests the enhanced production tools including rate limiting, streaming URLs,
 health checks, and middleware integration.
 """
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+
+from tidal_mcp.production import enhanced_tools
 
 # Skip entire module - tests need refactoring for proper MCP integration
 pytestmark = pytest.mark.skip(reason="Production MCP tool integration tests need refactoring")
 
-from tidal_mcp.production import enhanced_tools
-from tidal_mcp.production.middleware import RateLimitError
 
 
 class TestHealthAndStatusTools:

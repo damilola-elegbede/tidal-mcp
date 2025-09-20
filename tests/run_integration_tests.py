@@ -22,7 +22,7 @@ def run_command(cmd: list, description: str) -> bool:
 
     start_time = time.time()
     try:
-        result = subprocess.run(cmd, check=True, capture_output=False)
+        subprocess.run(cmd, check=True, capture_output=False)
         end_time = time.time()
         print(f"\n✅ {description} completed successfully in {end_time - start_time:.2f}s")
         return True

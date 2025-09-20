@@ -155,7 +155,7 @@ def truncate_text(text: str, max_length: int = 100, suffix: str = "...") -> str:
 
     Args:
         text: Text to truncate
-        max_length: Maximum length of resul
+        max_length: Maximum length of result
         suffix: Suffix to add if truncated
 
     Returns:
@@ -181,7 +181,7 @@ def validate_tidal_id(tidal_id: str) -> bool:
         tidal_id: Tidal ID to validate
 
     Returns:
-        True if valid Tidal ID forma
+        True if valid Tidal ID format
     """
     if not tidal_id or not isinstance(tidal_id, str):
         return False
@@ -265,8 +265,8 @@ def build_search_url(
         base_url: Base API URL
         query: Search query
         content_types: List of content types to search
-        limit: Result limi
-        offset: Result offse
+        limit: Result limit
+        offset: Result offset
         country_code: Country code for results
 
     Returns:
@@ -297,7 +297,7 @@ def filter_explicit_content(
 
     Args:
         items: List of content items
-        allow_explicit: Whether to include explicit conten
+        allow_explicit: Whether to include explicit content
 
     Returns:
         Filtered list of items

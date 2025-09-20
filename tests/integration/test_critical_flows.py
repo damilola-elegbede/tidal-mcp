@@ -7,9 +7,9 @@ validating data consistency and state persistence across operations.
 
 import asyncio
 import os
-import pytest
-from typing import Dict, List, Any
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from src.tidal_mcp.auth import TidalAuth, TidalAuthError
 from src.tidal_mcp.service import TidalService
@@ -22,8 +22,8 @@ if os.getenv('TESTING') == '1':
     auth_manager = server_module.auth_manager
     tidal_service = server_module.tidal_service
 else:
-    from src.tidal_mcp.server import mcp, ensure_service, auth_manager, tidal_service
-from src.tidal_mcp.models import Track, Album, Artist, Playlist, SearchResults
+    from src.tidal_mcp.server import mcp
+from src.tidal_mcp.models import Album, Artist, Playlist, SearchResults, Track
 
 
 @pytest.fixture
@@ -161,7 +161,7 @@ async def test_auth_search_playlist_flow(test_server_instance, sample_search_dat
     server_ctx = test_server_instance
     service = server_ctx['service']
     auth = server_ctx['auth']
-    session = server_ctx['session']
+    server_ctx['session']
 
     # Mock service methods for this flow
     with patch.object(service, 'search_all', new_callable=AsyncMock) as mock_search, \

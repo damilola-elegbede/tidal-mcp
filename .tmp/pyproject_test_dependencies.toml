@@ -1,0 +1,77 @@
+# Add these sections to pyproject.toml for comprehensive testing
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "aioresponses>=0.7.4",
+    "pytest-mock>=3.11.0",
+    "faker>=19.0.0",
+    "freezegun>=1.2.0",
+    "pytest-xdist>=3.3.0",  # For parallel execution
+    "pytest-timeout>=2.1.0",  # For timeout control
+    "pytest-benchmark>=4.0.0",  # For performance testing
+    "httpx>=0.24.0",  # For async HTTP testing
+    "respx>=0.20.0",  # HTTP mocking for httpx
+]
+
+# Update dev dependencies to include test dependencies
+[tool.uv]
+dev-dependencies = [
+    "ruff>=0.1.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "mypy>=1.5.0",
+    # Test dependencies
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "aioresponses>=0.7.4",
+    "pytest-mock>=3.11.0",
+    "faker>=19.0.0",
+    "freezegun>=1.2.0",
+    "pytest-xdist>=3.3.0",
+    "pytest-timeout>=2.1.0",
+    "pytest-benchmark>=4.0.0",
+    "httpx>=0.24.0",
+    "respx>=0.20.0",
+]
+
+[tool.coverage.run]
+source = ["src/tidal_mcp"]
+omit = [
+    "src/tidal_mcp/__main__.py",
+    "src/tidal_mcp/production/middleware.py",  # Complex external dependency
+    "tests/*",
+    "examples/*",
+    ".venv/*",
+    "*/__pycache__/*",
+]
+branch = true
+concurrency = ["thread", "multiprocessing"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+    "except ImportError:",
+    "except ModuleNotFoundError:",
+]
+show_missing = true
+skip_covered = false
+precision = 2
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.coverage.xml]
+output = "coverage.xml"

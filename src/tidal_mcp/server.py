@@ -8,6 +8,7 @@ for music discovery, playlist management, and user library operations.
 
 import logging
 import os
+import sys
 from typing import Any
 
 from fastmcp import FastMCP
@@ -55,7 +56,7 @@ async def ensure_service() -> TidalService:
 
     if not auth_manager:
         # Check for custom client credentials in environment
-        import os
+
 
         client_id = os.getenv("TIDAL_CLIENT_ID")
         client_secret = os.getenv("TIDAL_CLIENT_SECRET")
@@ -629,7 +630,7 @@ async def tidal_get_artist(artist_id: str) -> dict[str, Any]:
 
 def main():
     """Main entry point for the Tidal MCP server."""
-    import sys
+
 
     logging.basicConfig(
         level=logging.INFO,

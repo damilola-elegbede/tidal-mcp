@@ -7,22 +7,18 @@ all test modules for consistent testing environment.
 
 import asyncio
 import json
-import os
 import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, Mock
-from typing import Any, Dict
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 import pytest_asyncio
 from aioresponses import aioresponses
-from fakeredis import FakeRedis
-from unittest.mock import patch
 
 from src.tidal_mcp.auth import TidalAuth
+from src.tidal_mcp.models import Album, Artist, Playlist, Track
 from src.tidal_mcp.service import TidalService
-from src.tidal_mcp.models import Artist, Album, Track, Playlist
 
 
 @pytest.fixture
@@ -419,6 +415,7 @@ def mock_redis():
 async def mock_async_redis():
     """Provide a completely isolated async fake Redis instance for testing."""
     import uuid
+
     from fakeredis.aioredis import FakeRedis as AsyncFakeRedis
 
     # Create isolated async fake Redis with test-only database

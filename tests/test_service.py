@@ -14,17 +14,13 @@ All external dependencies are mocked for fast, isolated tests.
 """
 
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
-from typing import Any, Dict, List
+from unittest.mock import Mock, patch
 
 import pytest
-import pytest_asyncio
-import tidalapi
 
-from src.tidal_mcp.auth import TidalAuth, TidalAuthError
+from src.tidal_mcp.auth import TidalAuthError
+from src.tidal_mcp.models import Album, Artist, Playlist, SearchResults, Track
 from src.tidal_mcp.service import TidalService, async_to_sync
-from src.tidal_mcp.models import Artist, Album, Track, Playlist, SearchResults
 
 
 class TestAsyncToSyncDecorator:
