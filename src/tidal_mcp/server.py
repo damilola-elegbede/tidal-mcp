@@ -7,6 +7,7 @@ for music discovery, playlist management, and user library operations.
 """
 
 import logging
+import os
 from typing import Any
 
 from fastmcp import FastMCP
@@ -18,8 +19,29 @@ from .service import TidalService
 
 logger = logging.getLogger(__name__)
 
-# Initialize FastMCP server
-mcp = FastMCP("Tidal Music Integration")
+# Only initialize FastMCP server if not in testing mode
+if os.getenv('TESTING') != '1':
+    mcp = FastMCP("Tidal Music Integration")
+else:
+    # In testing mode, create a mock object to prevent server initialization
+    from unittest.mock import Mock
+
+    class MockMCP:
+        def __init__(self):
+            self.name = "Tidal Music Integration"
+
+        def tool(self):
+            """Mock tool decorator that returns the function unchanged."""
+            def decorator(func):
+                return func  # Return the original function unchanged
+            return decorator
+
+        def run(self, show_banner=True):
+            """Mock run method for testing."""
+            pass
+
+    mcp = MockMCP()
+    logger.info("Testing mode detected - using mock FastMCP instance")
 
 # Global instances
 auth_manager: TidalAuth | None = None
@@ -613,6 +635,11 @@ def main():
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         stream=sys.stderr,  # Ensure logs go to stderr, not stdout
     )
+
+    # Check if we're in testing mode
+    if os.getenv('TESTING') == '1':
+        logger.info("Testing mode detected - not starting actual MCP server")
+        return
 
     logger.info("Starting Tidal MCP Server with FastMCP")
 

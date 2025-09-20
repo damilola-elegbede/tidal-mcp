@@ -28,7 +28,13 @@ def async_to_sync(func):
     async def wrapper(*args, **kwargs):
         loop = asyncio.get_event_loop()
         with ThreadPoolExecutor() as executor:
-            return await loop.run_in_executor(executor, func, *args, **kwargs)
+            # run_in_executor doesn't support kwargs, so we use partial
+            if kwargs:
+                import functools
+                partial_func = functools.partial(func, **kwargs)
+                return await loop.run_in_executor(executor, partial_func, *args)
+            else:
+                return await loop.run_in_executor(executor, func, *args)
 
     return wrapper
 
