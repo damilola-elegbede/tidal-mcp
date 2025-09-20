@@ -1,0 +1,633 @@
+openapi: 3.0.3
+info:
+  title: Tidal MCP Error Taxonomy
+  version: 1.0.0
+  description: |
+    Comprehensive error taxonomy and standardized error response patterns
+    for the Tidal MCP Server API.
+
+    This specification defines error codes, messages, recovery strategies,
+    and observability patterns for consistent error handling across all
+    API endpoints.
+
+components:
+  schemas:
+    StandardErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+        - timestamp
+        - request_id
+      properties:
+        error:
+          type: string
+          description: Machine-readable error code
+          pattern: '^[A-Z_]+$'
+          example: "AUTHENTICATION_REQUIRED"
+        message:
+          type: string
+          description: Human-readable error message
+          maxLength: 500
+          example: "Authentication token is required for this operation"
+        details:
+          type: object
+          description: Additional error context (optional)
+          additionalProperties: true
+        timestamp:
+          type: string
+          format: date-time
+          description: Error occurrence timestamp (ISO 8601)
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request identifier for tracing
+        recovery_hints:
+          type: array
+          items:
+            type: string
+            maxLength: 200
+          description: Actionable suggestions for error resolution
+          maxItems: 5
+        error_category:
+          type: string
+          enum:
+            - authentication
+            - authorization
+            - validation
+            - not_found
+            - rate_limit
+            - tidal_api
+            - internal
+            - network
+          description: High-level error classification
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+          description: Error severity level
+        retryable:
+          type: boolean
+          description: Whether the operation can be safely retried
+        retry_after:
+          type: integer
+          minimum: 0
+          description: Recommended retry delay in seconds
+        correlation_id:
+          type: string
+          description: Correlation ID for distributed tracing
+
+# Error Code Taxonomy
+x-error-codes:
+  # Authentication Errors (1000-1099)
+  AUTHENTICATION_REQUIRED:
+    code: 1001
+    http_status: 401
+    category: authentication
+    severity: medium
+    retryable: false
+    message: "Authentication token is required for this operation"
+    recovery_hints:
+      - "Obtain a valid access token via /auth/login"
+      - "Include the token in the Authorization header"
+
+  INVALID_TOKEN:
+    code: 1002
+    http_status: 401
+    category: authentication
+    severity: medium
+    retryable: false
+    message: "The provided authentication token is invalid"
+    recovery_hints:
+      - "Verify the token format and content"
+      - "Obtain a new token if this one is corrupted"
+
+  TOKEN_EXPIRED:
+    code: 1003
+    http_status: 401
+    category: authentication
+    severity: low
+    retryable: true
+    message: "The authentication token has expired"
+    recovery_hints:
+      - "Refresh the token using /auth/refresh"
+      - "Re-authenticate via /auth/login if refresh fails"
+
+  TOKEN_REFRESH_FAILED:
+    code: 1004
+    http_status: 401
+    category: authentication
+    severity: medium
+    retryable: false
+    message: "Failed to refresh the authentication token"
+    recovery_hints:
+      - "Re-authenticate via /auth/login"
+      - "Verify your refresh token is valid"
+
+  INVALID_CREDENTIALS:
+    code: 1005
+    http_status: 401
+    category: authentication
+    severity: medium
+    retryable: false
+    message: "The provided credentials are invalid"
+    recovery_hints:
+      - "Verify your Tidal username and password"
+      - "Check if your account is active"
+
+  # Authorization Errors (1100-1199)
+  INSUFFICIENT_PERMISSIONS:
+    code: 1101
+    http_status: 403
+    category: authorization
+    severity: medium
+    retryable: false
+    message: "Insufficient permissions for this operation"
+    recovery_hints:
+      - "Verify your account has the required subscription level"
+      - "Contact support if you believe this is an error"
+
+  SUBSCRIPTION_REQUIRED:
+    code: 1102
+    http_status: 403
+    category: authorization
+    severity: medium
+    retryable: false
+    message: "A valid Tidal subscription is required"
+    recovery_hints:
+      - "Upgrade to a Tidal Premium or HiFi subscription"
+      - "Verify your subscription status"
+
+  REGION_RESTRICTED:
+    code: 1103
+    http_status: 403
+    category: authorization
+    severity: medium
+    retryable: false
+    message: "This content is not available in your region"
+    recovery_hints:
+      - "Try different content available in your region"
+      - "Contact support for region availability information"
+
+  QUALITY_NOT_AVAILABLE:
+    code: 1104
+    http_status: 403
+    category: authorization
+    severity: low
+    retryable: false
+    message: "The requested audio quality is not available with your subscription"
+    recovery_hints:
+      - "Request a lower quality (HIGH or LOW)"
+      - "Upgrade to Tidal HiFi for lossless quality"
+
+  # Validation Errors (1200-1299)
+  INVALID_REQUEST_FORMAT:
+    code: 1201
+    http_status: 400
+    category: validation
+    severity: low
+    retryable: false
+    message: "The request format is invalid"
+    recovery_hints:
+      - "Verify the request body is valid JSON"
+      - "Check the Content-Type header"
+
+  MISSING_REQUIRED_FIELD:
+    code: 1202
+    http_status: 400
+    category: validation
+    severity: low
+    retryable: false
+    message: "A required field is missing from the request"
+    recovery_hints:
+      - "Include all required fields in your request"
+      - "Check the API documentation for required parameters"
+
+  INVALID_FIELD_VALUE:
+    code: 1203
+    http_status: 400
+    category: validation
+    severity: low
+    retryable: false
+    message: "One or more field values are invalid"
+    recovery_hints:
+      - "Verify field values match the expected format"
+      - "Check field constraints (min/max values, patterns)"
+
+  INVALID_TRACK_ID:
+    code: 1204
+    http_status: 400
+    category: validation
+    severity: low
+    retryable: false
+    message: "The provided track ID is invalid"
+    recovery_hints:
+      - "Verify the track ID is a valid numeric string"
+      - "Ensure the ID was copied correctly"
+
+  INVALID_PLAYLIST_ID:
+    code: 1205
+    http_status: 400
+    category: validation
+    severity: low
+    retryable: false
+    message: "The provided playlist ID is invalid"
+    recovery_hints:
+      - "Verify the playlist ID format (UUID or numeric)"
+      - "Ensure the ID was copied correctly"
+
+  SEARCH_QUERY_TOO_SHORT:
+    code: 1206
+    http_status: 400
+    category: validation
+    severity: low
+    retryable: false
+    message: "Search query is too short"
+    recovery_hints:
+      - "Provide a search query with at least 1 character"
+      - "Use more specific search terms"
+
+  SEARCH_QUERY_TOO_LONG:
+    code: 1207
+    http_status: 400
+    category: validation
+    severity: low
+    retryable: false
+    message: "Search query exceeds maximum length"
+    recovery_hints:
+      - "Limit search query to 500 characters or less"
+      - "Use more concise search terms"
+
+  INVALID_LIMIT_VALUE:
+    code: 1208
+    http_status: 400
+    category: validation
+    severity: low
+    retryable: false
+    message: "The limit parameter value is invalid"
+    recovery_hints:
+      - "Use a limit value between 1 and 100"
+      - "Omit the parameter to use the default value"
+
+  INVALID_OFFSET_VALUE:
+    code: 1209
+    http_status: 400
+    category: validation
+    severity: low
+    retryable: false
+    message: "The offset parameter value is invalid"
+    recovery_hints:
+      - "Use a non-negative offset value"
+      - "Ensure offset is within the result range"
+
+  # Resource Not Found Errors (1300-1399)
+  TRACK_NOT_FOUND:
+    code: 1301
+    http_status: 404
+    category: not_found
+    severity: low
+    retryable: false
+    message: "The requested track could not be found"
+    recovery_hints:
+      - "Verify the track ID is correct"
+      - "Check if the track is available in your region"
+
+  ALBUM_NOT_FOUND:
+    code: 1302
+    http_status: 404
+    category: not_found
+    severity: low
+    retryable: false
+    message: "The requested album could not be found"
+    recovery_hints:
+      - "Verify the album ID is correct"
+      - "Check if the album is available in your region"
+
+  ARTIST_NOT_FOUND:
+    code: 1303
+    http_status: 404
+    category: not_found
+    severity: low
+    retryable: false
+    message: "The requested artist could not be found"
+    recovery_hints:
+      - "Verify the artist ID is correct"
+      - "Try searching for the artist by name"
+
+  PLAYLIST_NOT_FOUND:
+    code: 1304
+    http_status: 404
+    category: not_found
+    severity: low
+    retryable: false
+    message: "The requested playlist could not be found"
+    recovery_hints:
+      - "Verify the playlist ID is correct"
+      - "Check if you have access to this playlist"
+
+  USER_NOT_FOUND:
+    code: 1305
+    http_status: 404
+    category: not_found
+    severity: medium
+    retryable: false
+    message: "User profile could not be found"
+    recovery_hints:
+      - "Verify your authentication token"
+      - "Re-authenticate if the issue persists"
+
+  # Rate Limiting Errors (1400-1499)
+  RATE_LIMIT_EXCEEDED:
+    code: 1401
+    http_status: 429
+    category: rate_limit
+    severity: medium
+    retryable: true
+    message: "API rate limit exceeded"
+    recovery_hints:
+      - "Wait until the rate limit resets"
+      - "Consider upgrading to a higher tier for increased limits"
+
+  QUOTA_EXCEEDED:
+    code: 1402
+    http_status: 429
+    category: rate_limit
+    severity: medium
+    retryable: false
+    message: "Daily API quota exceeded"
+    recovery_hints:
+      - "Wait until tomorrow for quota reset"
+      - "Upgrade to a plan with higher quotas"
+
+  CONCURRENT_REQUEST_LIMIT:
+    code: 1403
+    http_status: 429
+    category: rate_limit
+    severity: medium
+    retryable: true
+    message: "Too many concurrent requests"
+    recovery_hints:
+      - "Reduce the number of concurrent requests"
+      - "Implement request queuing in your application"
+
+  # Tidal API Errors (1500-1599)
+  TIDAL_API_UNAVAILABLE:
+    code: 1501
+    http_status: 503
+    category: tidal_api
+    severity: high
+    retryable: true
+    message: "Tidal API is temporarily unavailable"
+    recovery_hints:
+      - "Try again in a few moments"
+      - "Check Tidal's service status page"
+
+  TIDAL_API_ERROR:
+    code: 1502
+    http_status: 502
+    category: tidal_api
+    severity: high
+    retryable: true
+    message: "Error communicating with Tidal API"
+    recovery_hints:
+      - "Retry the request"
+      - "Contact support if the issue persists"
+
+  TIDAL_AUTHENTICATION_FAILED:
+    code: 1503
+    http_status: 401
+    category: tidal_api
+    severity: high
+    retryable: false
+    message: "Authentication with Tidal failed"
+    recovery_hints:
+      - "Re-authenticate with Tidal"
+      - "Check your Tidal account status"
+
+  TIDAL_CONTENT_RESTRICTED:
+    code: 1504
+    http_status: 403
+    category: tidal_api
+    severity: medium
+    retryable: false
+    message: "Content is restricted by Tidal"
+    recovery_hints:
+      - "Try different content"
+      - "Check content availability in your region"
+
+  STREAMING_URL_GENERATION_FAILED:
+    code: 1505
+    http_status: 500
+    category: tidal_api
+    severity: high
+    retryable: true
+    message: "Failed to generate streaming URL"
+    recovery_hints:
+      - "Try again with a different quality setting"
+      - "Verify the track supports streaming"
+
+  # Internal Server Errors (1600-1699)
+  INTERNAL_SERVER_ERROR:
+    code: 1601
+    http_status: 500
+    category: internal
+    severity: critical
+    retryable: true
+    message: "An unexpected error occurred while processing your request"
+    recovery_hints:
+      - "Please try again in a few moments"
+      - "Contact support if the problem persists"
+
+  DATABASE_ERROR:
+    code: 1602
+    http_status: 500
+    category: internal
+    severity: critical
+    retryable: true
+    message: "Database operation failed"
+    recovery_hints:
+      - "Try the request again"
+      - "Contact support if errors continue"
+
+  CACHE_ERROR:
+    code: 1603
+    http_status: 500
+    category: internal
+    severity: medium
+    retryable: true
+    message: "Cache operation failed"
+    recovery_hints:
+      - "The request will be processed without cache"
+      - "Try again for better performance"
+
+  CONFIGURATION_ERROR:
+    code: 1604
+    http_status: 500
+    category: internal
+    severity: critical
+    retryable: false
+    message: "Server configuration error"
+    recovery_hints:
+      - "Contact support immediately"
+      - "This indicates a server misconfiguration"
+
+  # Network Errors (1700-1799)
+  NETWORK_TIMEOUT:
+    code: 1701
+    http_status: 504
+    category: network
+    severity: medium
+    retryable: true
+    message: "Network operation timed out"
+    recovery_hints:
+      - "Retry the request"
+      - "Check your network connection"
+
+  CONNECTION_FAILED:
+    code: 1702
+    http_status: 503
+    category: network
+    severity: medium
+    retryable: true
+    message: "Failed to establish network connection"
+    recovery_hints:
+      - "Check network connectivity"
+      - "Try again in a few moments"
+
+  UPSTREAM_SERVICE_ERROR:
+    code: 1703
+    http_status: 502
+    category: network
+    severity: high
+    retryable: true
+    message: "Upstream service error"
+    recovery_hints:
+      - "Try the request again"
+      - "Contact support if the issue persists"
+
+# Error Response Examples
+x-error-examples:
+  authentication_required:
+    summary: Authentication token required
+    value:
+      error: "AUTHENTICATION_REQUIRED"
+      message: "Authentication token is required for this operation"
+      timestamp: "2024-01-15T10:30:00Z"
+      request_id: "550e8400-e29b-41d4-a716-446655440000"
+      error_category: "authentication"
+      severity: "medium"
+      retryable: false
+      recovery_hints:
+        - "Obtain a valid access token via /auth/login"
+        - "Include the token in the Authorization header"
+
+  validation_error:
+    summary: Field validation failed
+    value:
+      error: "INVALID_FIELD_VALUE"
+      message: "One or more field values are invalid"
+      details:
+        validation_errors:
+          - field: "limit"
+            code: "VALUE_OUT_OF_RANGE"
+            message: "Must be between 1 and 100"
+          - field: "track_id"
+            code: "INVALID_FORMAT"
+            message: "Must be a numeric string"
+      timestamp: "2024-01-15T10:30:00Z"
+      request_id: "550e8400-e29b-41d4-a716-446655440000"
+      error_category: "validation"
+      severity: "low"
+      retryable: false
+      recovery_hints:
+        - "Verify field values match the expected format"
+        - "Check field constraints (min/max values, patterns)"
+
+  rate_limit_exceeded:
+    summary: API rate limit exceeded
+    value:
+      error: "RATE_LIMIT_EXCEEDED"
+      message: "API rate limit exceeded. Please retry after the reset time."
+      timestamp: "2024-01-15T10:30:00Z"
+      request_id: "550e8400-e29b-41d4-a716-446655440000"
+      error_category: "rate_limit"
+      severity: "medium"
+      retryable: true
+      retry_after: 60
+      recovery_hints:
+        - "Wait until the rate limit resets"
+        - "Consider upgrading to a higher tier for increased limits"
+
+  tidal_api_error:
+    summary: Tidal API communication error
+    value:
+      error: "TIDAL_API_ERROR"
+      message: "Error communicating with Tidal API"
+      details:
+        upstream_status: 503
+        upstream_message: "Service temporarily unavailable"
+      timestamp: "2024-01-15T10:30:00Z"
+      request_id: "550e8400-e29b-41d4-a716-446655440000"
+      error_category: "tidal_api"
+      severity: "high"
+      retryable: true
+      retry_after: 30
+      recovery_hints:
+        - "Retry the request"
+        - "Contact support if the issue persists"
+
+  internal_server_error:
+    summary: Unexpected server error
+    value:
+      error: "INTERNAL_SERVER_ERROR"
+      message: "An unexpected error occurred while processing your request"
+      timestamp: "2024-01-15T10:30:00Z"
+      request_id: "550e8400-e29b-41d4-a716-446655440000"
+      error_category: "internal"
+      severity: "critical"
+      retryable: true
+      correlation_id: "trace-abc123def456"
+      recovery_hints:
+        - "Please try again in a few moments"
+        - "Contact support if the problem persists"
+
+# Error Mapping Guidelines
+x-error-mapping-guidelines:
+  http_status_mapping:
+    description: |
+      Standard HTTP status codes mapped to error categories:
+      - 400: Validation errors, malformed requests
+      - 401: Authentication errors
+      - 403: Authorization/permission errors
+      - 404: Resource not found errors
+      - 429: Rate limiting errors
+      - 500: Internal server errors
+      - 502: Upstream service errors
+      - 503: Service unavailable
+      - 504: Timeout errors
+
+  error_logging:
+    description: |
+      Error logging guidelines:
+      - All errors must include request_id for tracing
+      - Critical/High severity errors require immediate alerting
+      - Include correlation_id for distributed tracing
+      - Log additional context in details field
+      - Never log sensitive information (tokens, passwords)
+
+  client_handling:
+    description: |
+      Client error handling recommendations:
+      - Implement exponential backoff for retryable errors
+      - Respect retry_after values for rate limiting
+      - Display user-friendly messages based on error_category
+      - Use recovery_hints to guide user actions
+      - Log request_id for support inquiries
+
+  monitoring_metrics:
+    description: |
+      Key metrics to monitor:
+      - Error rate by category and severity
+      - Most frequent error codes
+      - Response time for error scenarios
+      - Retry success rates
+      - Error distribution by endpoint

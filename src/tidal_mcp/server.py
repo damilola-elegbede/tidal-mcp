@@ -7,6 +7,8 @@ for music discovery, playlist management, and user library operations.
 """
 
 import logging
+import os
+import sys
 from typing import Any
 
 from fastmcp import FastMCP
@@ -18,8 +20,30 @@ from .service import TidalService
 
 logger = logging.getLogger(__name__)
 
-# Initialize FastMCP server
-mcp = FastMCP("Tidal Music Integration")
+# Only initialize FastMCP server if not in testing mode
+if os.getenv("TESTING") != "1":
+    mcp = FastMCP("Tidal Music Integration")
+else:
+    # In testing mode, create a mock object to prevent server initialization
+
+    class MockMCP:
+        def __init__(self):
+            self.name = "Tidal Music Integration"
+
+        def tool(self):
+            """Mock tool decorator that returns the function unchanged."""
+
+            def decorator(func):
+                return func  # Return the original function unchanged
+
+            return decorator
+
+        def run(self, show_banner=True):
+            """Mock run method for testing."""
+            pass
+
+    mcp = MockMCP()
+    logger.info("Testing mode detected - using mock FastMCP instance")
 
 # Global instances
 auth_manager: TidalAuth | None = None
@@ -32,7 +56,7 @@ async def ensure_service() -> TidalService:
 
     if not auth_manager:
         # Check for custom client credentials in environment
-        import os
+
 
         client_id = os.getenv("TIDAL_CLIENT_ID")
         client_secret = os.getenv("TIDAL_CLIENT_SECRET")
@@ -606,13 +630,18 @@ async def tidal_get_artist(artist_id: str) -> dict[str, Any]:
 
 def main():
     """Main entry point for the Tidal MCP server."""
-    import sys
+
 
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         stream=sys.stderr,  # Ensure logs go to stderr, not stdout
     )
+
+    # Check if we're in testing mode
+    if os.getenv("TESTING") == "1":
+        logger.info("Testing mode detected - not starting actual MCP server")
+        return
 
     logger.info("Starting Tidal MCP Server with FastMCP")
 

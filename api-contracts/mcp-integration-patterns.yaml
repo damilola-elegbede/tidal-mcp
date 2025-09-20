@@ -1,0 +1,537 @@
+openapi: 3.0.3
+info:
+  title: MCP Integration Patterns for Tidal API
+  version: 1.0.0
+  description: |
+    Integration patterns and best practices for Model Context Protocol (MCP)
+    integration with the Tidal MCP Server API.
+
+    Defines session management, tool orchestration, rate limit handling,
+    and performance optimization strategies specific to MCP environments.
+
+components:
+  schemas:
+    MCPSession:
+      type: object
+      required:
+        - session_id
+        - client_info
+        - capabilities
+      properties:
+        session_id:
+          type: string
+          format: uuid
+          description: Unique MCP session identifier
+        client_info:
+          $ref: '#/components/schemas/ClientInfo'
+        capabilities:
+          $ref: '#/components/schemas/MCPCapabilities'
+        authentication:
+          $ref: '#/components/schemas/SessionAuthentication'
+        rate_limit_context:
+          $ref: '#/components/schemas/RateLimitContext'
+        created_at:
+          type: string
+          format: date-time
+        last_activity:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+          additionalProperties: true
+
+    ClientInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Client application name
+          example: "Claude Desktop"
+        version:
+          type: string
+          description: Client version
+          example: "2.1.0"
+        platform:
+          type: string
+          description: Operating system or platform
+          example: "macOS"
+        user_agent:
+          type: string
+          description: Detailed client user agent string
+
+    MCPCapabilities:
+      type: object
+      properties:
+        tools:
+          type: array
+          items:
+            type: string
+          description: List of supported tool names
+        sampling:
+          type: boolean
+          description: Supports sampling/streaming responses
+          default: false
+        progress_reporting:
+          type: boolean
+          description: Supports progress updates for long operations
+          default: false
+        batch_operations:
+          type: boolean
+          description: Supports batched tool calls
+          default: false
+        resource_streaming:
+          type: boolean
+          description: Supports streaming large resources
+          default: false
+
+    SessionAuthentication:
+      type: object
+      properties:
+        user_id:
+          type: string
+          description: Authenticated user identifier
+        tier:
+          type: string
+          enum: [free, basic, premium, enterprise]
+        subscription_level:
+          type: string
+          enum: [FREE, PREMIUM, HIFI]
+        country_code:
+          type: string
+          pattern: '^[A-Z]{2}$'
+        expires_at:
+          type: string
+          format: date-time
+
+    RateLimitContext:
+      type: object
+      properties:
+        session_limits:
+          $ref: '#/components/schemas/SessionLimits'
+        tool_usage:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ToolUsageStats'
+        burst_allowance_used:
+          type: integer
+          minimum: 0
+
+    SessionLimits:
+      type: object
+      properties:
+        max_concurrent_tools:
+          type: integer
+          minimum: 1
+          default: 3
+        session_duration_hours:
+          type: integer
+          minimum: 1
+          default: 24
+        tools_per_session:
+          type: integer
+          minimum: 1
+          default: 1000
+
+    ToolUsageStats:
+      type: object
+      properties:
+        calls_count:
+          type: integer
+          minimum: 0
+        last_called:
+          type: string
+          format: date-time
+        avg_response_time:
+          type: number
+          minimum: 0
+        error_count:
+          type: integer
+          minimum: 0
+
+    MCPToolCall:
+      type: object
+      required:
+        - tool_name
+        - parameters
+      properties:
+        tool_name:
+          type: string
+          description: Name of the MCP tool to call
+        parameters:
+          type: object
+          description: Tool-specific parameters
+        call_id:
+          type: string
+          description: Unique identifier for this tool call
+        priority:
+          type: string
+          enum: [low, normal, high, urgent]
+          default: normal
+        timeout_seconds:
+          type: integer
+          minimum: 1
+          maximum: 300
+          default: 30
+        retry_policy:
+          $ref: '#/components/schemas/RetryPolicy'
+
+    RetryPolicy:
+      type: object
+      properties:
+        max_retries:
+          type: integer
+          minimum: 0
+          maximum: 5
+          default: 3
+        base_delay_ms:
+          type: integer
+          minimum: 100
+          default: 1000
+        max_delay_ms:
+          type: integer
+          minimum: 1000
+          default: 30000
+        exponential_backoff:
+          type: boolean
+          default: true
+        retry_on_rate_limit:
+          type: boolean
+          default: true
+
+    MCPToolResponse:
+      type: object
+      required:
+        - success
+        - tool_name
+        - call_id
+      properties:
+        success:
+          type: boolean
+        tool_name:
+          type: string
+        call_id:
+          type: string
+        result:
+          type: object
+          description: Tool-specific result data
+        error:
+          $ref: '#/components/schemas/MCPError'
+        execution_metadata:
+          $ref: '#/components/schemas/ExecutionMetadata'
+
+    MCPError:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Standardized error code
+        message:
+          type: string
+          description: Human-readable error message
+        retryable:
+          type: boolean
+          description: Whether the operation can be retried
+        retry_after:
+          type: integer
+          description: Seconds to wait before retry
+        context:
+          type: object
+          description: Additional error context
+        recovery_suggestions:
+          type: array
+          items:
+            type: string
+
+    ExecutionMetadata:
+      type: object
+      properties:
+        execution_time_ms:
+          type: integer
+          minimum: 0
+        rate_limit_consumed:
+          type: integer
+          minimum: 0
+        tidal_api_calls:
+          type: integer
+          minimum: 0
+        cache_hit:
+          type: boolean
+        warnings:
+          type: array
+          items:
+            type: string
+
+# MCP-Specific Integration Patterns
+x-mcp-integration-patterns:
+  session_management:
+    description: "MCP session lifecycle management"
+    initialization:
+      - "Establish MCP transport (stdio, HTTP, WebSocket)"
+      - "Exchange capability information"
+      - "Authenticate user and establish rate limit context"
+      - "Initialize session-scoped caching"
+
+    maintenance:
+      - "Track tool usage and performance metrics"
+      - "Monitor rate limit consumption across session"
+      - "Handle token refresh transparently"
+      - "Manage concurrent tool execution limits"
+
+    termination:
+      - "Clean up session resources"
+      - "Log session analytics"
+      - "Release rate limit reservations"
+      - "Archive session data for debugging"
+
+  tool_orchestration:
+    description: "Coordinating multiple tool calls within MCP context"
+    patterns:
+      sequential_execution:
+        use_case: "Dependent operations (search -> get details -> stream)"
+        implementation: "Chain tool calls with result passing"
+        rate_limit_strategy: "Accumulate rate limit costs"
+
+      parallel_execution:
+        use_case: "Independent operations (multiple searches)"
+        implementation: "Concurrent tool execution with semaphore"
+        rate_limit_strategy: "Reserve capacity upfront"
+
+      streaming_operations:
+        use_case: "Large playlist processing"
+        implementation: "Chunked processing with progress updates"
+        rate_limit_strategy: "Throttled execution with backpressure"
+
+  error_handling:
+    description: "Error handling strategies for MCP environments"
+    graceful_degradation:
+      - "Return partial results when possible"
+      - "Fallback to cached data for non-critical failures"
+      - "Progressive quality reduction for streaming"
+
+    retry_strategies:
+      - "Exponential backoff for rate limit errors"
+      - "Linear retry for transient network issues"
+      - "No retry for authentication/authorization errors"
+
+    context_preservation:
+      - "Maintain session state across retries"
+      - "Preserve user context in error responses"
+      - "Log correlation IDs for debugging"
+
+  performance_optimization:
+    description: "Performance optimization techniques for MCP"
+    caching_strategies:
+      session_cache:
+        description: "Cache results within MCP session"
+        ttl: "5 minutes for dynamic content"
+        key_strategy: "Tool name + parameter hash"
+
+      user_cache:
+        description: "Cache user-specific data across sessions"
+        ttl: "1 hour for user playlists/favorites"
+        invalidation: "On user-initiated changes"
+
+      global_cache:
+        description: "Cache public data across all users"
+        ttl: "24 hours for track/album metadata"
+        warming: "Background refresh for popular content"
+
+    request_batching:
+      - "Batch multiple track detail requests"
+      - "Combine search operations where possible"
+      - "Aggregate rate limit checks"
+
+    preloading:
+      - "Preload related content (album tracks for track requests)"
+      - "Anticipatory caching based on usage patterns"
+      - "Background refresh of expiring cache entries"
+
+# Tool-Specific Patterns
+x-tool-patterns:
+  search_operations:
+    pattern: "Search -> Filter -> Details -> Stream"
+    optimization:
+      - "Cache search results for pagination"
+      - "Preload first page of details"
+      - "Batch detail requests for displayed results"
+    rate_limit_management:
+      - "Search operations consume higher rate limit"
+      - "Detail requests are cheaper and can be batched"
+      - "Streaming URLs have separate quota"
+
+  playlist_management:
+    pattern: "List -> Select -> Modify -> Verify"
+    optimization:
+      - "Cache playlist metadata"
+      - "Batch track additions/removals"
+      - "Optimistic updates with rollback"
+    consistency:
+      - "Validate operations against current state"
+      - "Handle concurrent modifications gracefully"
+      - "Provide clear error messages for conflicts"
+
+  discovery_workflows:
+    pattern: "Seed -> Generate -> Filter -> Present"
+    optimization:
+      - "Cache recommendation engines results"
+      - "Precompute popular recommendation seeds"
+      - "Progressive loading of recommendation details"
+    personalization:
+      - "Track user preferences within session"
+      - "Adapt recommendations based on session behavior"
+      - "Respect user privacy preferences"
+
+# Rate Limiting in MCP Context
+x-mcp-rate-limiting:
+  session_aware_limiting:
+    description: "Rate limiting that considers MCP session context"
+    implementation:
+      - "Track rate limits per MCP session, not just user"
+      - "Allow burst capacity for tool orchestration"
+      - "Provide rate limit visibility to MCP client"
+
+    session_quotas:
+      - "Tools per session (prevent runaway scripts)"
+      - "Concurrent tools per session (resource protection)"
+      - "Session duration limits (prevent long-lived sessions)"
+
+  tool_cost_calculation:
+    description: "Calculate rate limit costs for complex tool operations"
+    factors:
+      search_operations:
+        base_cost: 2
+        multipliers:
+          - "Content type 'all': 2x"
+          - "Large limits: 1.5x"
+          - "Complex queries: 1.2x"
+
+      streaming_operations:
+        base_cost: 5
+        multipliers:
+          - "Lossless quality: 2x"
+          - "Hi-res quality: 3x"
+
+      batch_operations:
+        calculation: "Sum of individual operations with 10% batch discount"
+
+  adaptive_throttling:
+    description: "Intelligent throttling based on session behavior"
+    strategies:
+      - "Slow down aggressive clients automatically"
+      - "Prioritize interactive vs batch operations"
+      - "Provide clear throttling feedback to clients"
+
+# Client Library Integration
+x-client-integration:
+  mcp_client_patterns:
+    description: "Patterns for MCP client implementation"
+    connection_management:
+      - "Maintain persistent MCP connection"
+      - "Handle connection failures gracefully"
+      - "Implement reconnection with exponential backoff"
+
+    tool_abstraction:
+      - "Provide high-level methods wrapping MCP tools"
+      - "Handle parameter validation client-side"
+      - "Implement client-side caching where appropriate"
+
+    error_handling:
+      - "Translate MCP errors to client-specific exceptions"
+      - "Provide retry mechanisms for transient errors"
+      - "Surface rate limit information to applications"
+
+  sdk_features:
+    description: "Features to include in official SDKs"
+    core_features:
+      - "Automatic session management"
+      - "Built-in rate limit handling"
+      - "Response caching and optimization"
+      - "Comprehensive error handling"
+
+    advanced_features:
+      - "Tool orchestration helpers"
+      - "Streaming response support"
+      - "Progress reporting for long operations"
+      - "Metrics and observability hooks"
+
+# Monitoring and Observability
+x-mcp-observability:
+  session_metrics:
+    description: "Metrics specific to MCP session management"
+    key_metrics:
+      - "Session duration distribution"
+      - "Tools per session histogram"
+      - "Session error rates by client type"
+      - "Concurrent sessions by user tier"
+
+    alerting:
+      - "Alert on unusually high session creation rate"
+      - "Monitor for sessions with high error rates"
+      - "Track resource usage per session"
+
+  tool_performance:
+    description: "Performance monitoring for MCP tools"
+    metrics:
+      - "Response time percentiles per tool"
+      - "Rate limit hit rates by tool"
+      - "Tool usage patterns and trends"
+      - "Error rates and retry patterns"
+
+    optimization:
+      - "Identify bottleneck tools for optimization"
+      - "Track cache hit rates and effectiveness"
+      - "Monitor rate limit efficiency"
+
+  client_analytics:
+    description: "Analytics for MCP client behavior"
+    tracking:
+      - "Client version distribution"
+      - "Feature usage patterns"
+      - "Error patterns by client type"
+      - "Performance characteristics by platform"
+
+    insights:
+      - "Identify popular tool combinations"
+      - "Understand typical session workflows"
+      - "Optimize for common usage patterns"
+
+# Protocol Extensions
+x-protocol-extensions:
+  streaming_support:
+    description: "Extensions for streaming large responses"
+    implementation:
+      - "Chunked response delivery"
+      - "Progress reporting during streaming"
+      - "Graceful handling of stream interruption"
+
+    use_cases:
+      - "Large playlist retrieval"
+      - "Comprehensive search results"
+      - "User library synchronization"
+
+  batch_operations:
+    description: "Extensions for batched tool execution"
+    benefits:
+      - "Reduced rate limit consumption"
+      - "Improved performance for bulk operations"
+      - "Atomic transaction support"
+
+    implementation:
+      - "Batch request format"
+      - "Partial success handling"
+      - "Transaction rollback support"
+
+  real_time_updates:
+    description: "Extensions for real-time updates"
+    scenarios:
+      - "Playlist modifications by other users"
+      - "New track releases from followed artists"
+      - "Rate limit status changes"
+
+    implementation:
+      - "WebSocket-based notifications"
+      - "Server-sent events for HTTP clients"
+      - "Subscription management"

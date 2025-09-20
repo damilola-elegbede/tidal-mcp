@@ -1,0 +1,467 @@
+openapi: 3.0.3
+info:
+  title: Tidal MCP Rate Limiting Strategy
+  version: 1.0.0
+  description: |
+    Comprehensive rate limiting strategy for the Tidal MCP Server API.
+
+    Defines rate limit tiers, algorithm implementations, quota management,
+    and enforcement policies to ensure fair resource allocation and
+    system stability.
+
+components:
+  schemas:
+    RateLimitTier:
+      type: object
+      required:
+        - name
+        - requests_per_minute
+        - requests_per_hour
+        - requests_per_day
+        - concurrent_requests
+      properties:
+        name:
+          type: string
+          enum: [free, basic, premium, enterprise]
+        requests_per_minute:
+          type: integer
+          minimum: 1
+          description: Maximum requests per minute
+        requests_per_hour:
+          type: integer
+          minimum: 1
+          description: Maximum requests per hour
+        requests_per_day:
+          type: integer
+          minimum: 1
+          description: Maximum requests per day
+        concurrent_requests:
+          type: integer
+          minimum: 1
+          description: Maximum concurrent requests
+        burst_allowance:
+          type: integer
+          minimum: 0
+          description: Additional requests allowed in burst scenarios
+        streaming_requests_per_hour:
+          type: integer
+          minimum: 0
+          description: Special limit for streaming URL requests
+        search_requests_per_minute:
+          type: integer
+          minimum: 1
+          description: Specific limit for search operations
+
+    RateLimitStatus:
+      type: object
+      required:
+        - tier
+        - limits
+        - current
+        - reset_times
+      properties:
+        tier:
+          type: string
+          enum: [free, basic, premium, enterprise]
+        limits:
+          $ref: '#/components/schemas/RateLimitLimits'
+        current:
+          $ref: '#/components/schemas/CurrentUsage'
+        reset_times:
+          $ref: '#/components/schemas/ResetTimes'
+        quota_remaining:
+          type: object
+          properties:
+            daily:
+              type: integer
+              minimum: 0
+            monthly:
+              type: integer
+              minimum: 0
+
+    RateLimitLimits:
+      type: object
+      properties:
+        per_minute:
+          type: integer
+        per_hour:
+          type: integer
+        per_day:
+          type: integer
+        concurrent:
+          type: integer
+        streaming_per_hour:
+          type: integer
+        search_per_minute:
+          type: integer
+
+    CurrentUsage:
+      type: object
+      properties:
+        per_minute:
+          type: integer
+        per_hour:
+          type: integer
+        per_day:
+          type: integer
+        concurrent:
+          type: integer
+        streaming_per_hour:
+          type: integer
+        search_per_minute:
+          type: integer
+
+    ResetTimes:
+      type: object
+      properties:
+        per_minute:
+          type: string
+          format: date-time
+        per_hour:
+          type: string
+          format: date-time
+        per_day:
+          type: string
+          format: date-time
+
+    RateLimitHeaders:
+      type: object
+      description: Standard rate limit headers to include in responses
+      properties:
+        X-Rate-Limit-Limit:
+          type: integer
+          description: Rate limit ceiling for current window
+        X-Rate-Limit-Remaining:
+          type: integer
+          description: Requests remaining in current window
+        X-Rate-Limit-Reset:
+          type: string
+          format: date-time
+          description: When the rate limit window resets
+        X-Rate-Limit-Tier:
+          type: string
+          description: Current user's rate limit tier
+        X-Rate-Limit-Retry-After:
+          type: integer
+          description: Seconds to wait before retry (when limit exceeded)
+
+# Rate Limiting Tiers Configuration
+x-rate-limit-tiers:
+  free:
+    name: "Free Tier"
+    description: "Default rate limits for unauthenticated or free accounts"
+    requests_per_minute: 10
+    requests_per_hour: 100
+    requests_per_day: 1000
+    concurrent_requests: 2
+    burst_allowance: 5
+    streaming_requests_per_hour: 10
+    search_requests_per_minute: 5
+    features:
+      - "Basic search functionality"
+      - "Limited streaming URL generation"
+      - "Public playlist access"
+    restrictions:
+      - "No high-quality streaming URLs"
+      - "Limited concurrent operations"
+      - "Basic error recovery"
+
+  basic:
+    name: "Basic Tier"
+    description: "Enhanced limits for authenticated users"
+    requests_per_minute: 60
+    requests_per_hour: 1000
+    requests_per_day: 10000
+    concurrent_requests: 5
+    burst_allowance: 20
+    streaming_requests_per_hour: 100
+    search_requests_per_minute: 30
+    features:
+      - "Full search capabilities"
+      - "Standard streaming URL generation"
+      - "Playlist management"
+      - "Favorites management"
+    restrictions:
+      - "Standard quality streaming only"
+      - "Basic analytics"
+
+  premium:
+    name: "Premium Tier"
+    description: "High-volume limits for premium users"
+    requests_per_minute: 300
+    requests_per_hour: 5000
+    requests_per_day: 50000
+    concurrent_requests: 15
+    burst_allowance: 100
+    streaming_requests_per_hour: 1000
+    search_requests_per_minute: 150
+    features:
+      - "All basic features"
+      - "High-quality streaming URLs"
+      - "Advanced search filters"
+      - "Extended recommendations"
+      - "Priority support"
+    restrictions:
+      - "Lossless quality requires HiFi subscription"
+
+  enterprise:
+    name: "Enterprise Tier"
+    description: "Maximum limits for enterprise integrations"
+    requests_per_minute: 1000
+    requests_per_hour: 20000
+    requests_per_day: 200000
+    concurrent_requests: 50
+    burst_allowance: 500
+    streaming_requests_per_hour: 10000
+    search_requests_per_minute: 500
+    features:
+      - "All premium features"
+      - "Unlimited quality streaming URLs"
+      - "Dedicated support"
+      - "Custom rate limits available"
+      - "SLA guarantees"
+      - "Advanced analytics"
+    restrictions:
+      - "None (subject to fair use policy)"
+
+# Algorithm Implementations
+x-rate-limiting-algorithms:
+  token_bucket:
+    description: |
+      Primary algorithm for per-minute and per-hour limits.
+      Allows burst traffic up to bucket capacity.
+    implementation:
+      bucket_size: "requests_per_minute + burst_allowance"
+      refill_rate: "requests_per_minute / 60 tokens per second"
+      token_consumption: 1 # per request
+    advantages:
+      - "Handles traffic bursts gracefully"
+      - "Smooth traffic distribution"
+      - "Configurable burst capacity"
+    use_cases:
+      - "General API rate limiting"
+      - "Search endpoint protection"
+      - "User-facing operations"
+
+  sliding_window_log:
+    description: |
+      Used for daily quotas and precise time-based limits.
+      Maintains accurate request history.
+    implementation:
+      window_size: "24 hours for daily limits"
+      precision: "1 minute granularity"
+      cleanup_interval: "Every hour"
+    advantages:
+      - "Precise rate limiting"
+      - "No burst spillover between windows"
+      - "Accurate quota tracking"
+    use_cases:
+      - "Daily quota enforcement"
+      - "Streaming URL generation limits"
+      - "Compliance requirements"
+
+  fixed_window_counter:
+    description: |
+      Simple implementation for concurrent request limits.
+      Fast and memory-efficient.
+    implementation:
+      window_size: "Real-time tracking"
+      counter_increment: "On request start"
+      counter_decrement: "On request completion"
+    advantages:
+      - "Low latency"
+      - "Minimal memory usage"
+      - "Simple implementation"
+    use_cases:
+      - "Concurrent request limiting"
+      - "Resource protection"
+      - "Connection pooling"
+
+# Endpoint-Specific Rate Limits
+x-endpoint-rate-limits:
+  authentication:
+    endpoints:
+      - "POST /auth/login"
+      - "POST /auth/callback"
+      - "POST /auth/refresh"
+    special_limits:
+      per_ip_per_hour: 20
+      per_user_per_hour: 10
+    reasoning: "Prevent brute force attacks and abuse"
+
+  search:
+    endpoints:
+      - "GET /search"
+    rate_limit_key: "search_requests_per_minute"
+    cost_factors:
+      - query_complexity: "1-3x multiplier"
+      - result_limit: "Linear scaling"
+      - content_type_all: "2x multiplier"
+    reasoning: "Expensive operations requiring special protection"
+
+  streaming:
+    endpoints:
+      - "GET /tracks/{trackId}/stream-url"
+    rate_limit_key: "streaming_requests_per_hour"
+    cost_factors:
+      - quality_lossless: "2x multiplier"
+      - quality_hi_res: "3x multiplier"
+    reasoning: "High-value endpoints with licensing implications"
+
+  playlist_modification:
+    endpoints:
+      - "POST /playlists"
+      - "POST /playlists/{id}/tracks"
+      - "DELETE /playlists/{id}/tracks"
+    special_limits:
+      per_user_per_hour: 100
+    reasoning: "Prevent spam and abuse of user content"
+
+  bulk_operations:
+    endpoints:
+      - "GET /favorites/*"
+      - "GET /playlists"
+    cost_factors:
+      - result_count: "0.1 per item returned"
+      - include_tracks: "Additional 0.1 per track"
+    reasoning: "Operations that return large datasets"
+
+# Rate Limit Enforcement Policies
+x-enforcement-policies:
+  enforcement_order:
+    description: "Order of rate limit checks"
+    steps:
+      1: "Check concurrent request limit"
+      2: "Check per-minute limit (token bucket)"
+      3: "Check per-hour limit (sliding window)"
+      4: "Check daily quota (sliding window)"
+      5: "Check endpoint-specific limits"
+
+  response_behavior:
+    limit_exceeded:
+      http_status: 429
+      headers:
+        required:
+          - "X-Rate-Limit-Limit"
+          - "X-Rate-Limit-Remaining"
+          - "X-Rate-Limit-Reset"
+          - "Retry-After"
+        optional:
+          - "X-Rate-Limit-Tier"
+          - "X-Rate-Limit-Retry-After"
+      body:
+        error_code: "RATE_LIMIT_EXCEEDED"
+        include_upgrade_info: true
+
+  bypass_conditions:
+    description: "Conditions where rate limits may be bypassed"
+    health_checks:
+      endpoint: "/health"
+      bypass: true
+    internal_services:
+      header: "X-Internal-Service"
+      verification: "JWT signature required"
+    emergency_mode:
+      activation: "Manual operator intervention"
+      duration: "Maximum 1 hour"
+
+# Monitoring and Alerting
+x-monitoring:
+  metrics:
+    core_metrics:
+      - "rate_limit_hits_total" # Counter
+      - "rate_limit_remaining" # Gauge
+      - "rate_limit_tier_distribution" # Histogram
+      - "concurrent_requests_active" # Gauge
+      - "quota_utilization_percent" # Gauge
+
+    performance_metrics:
+      - "rate_limit_check_duration_ms" # Histogram
+      - "token_bucket_refill_rate" # Gauge
+      - "sliding_window_cleanup_duration_ms" # Histogram
+
+    business_metrics:
+      - "tier_upgrade_triggers" # Counter
+      - "rate_limit_abuse_incidents" # Counter
+      - "streaming_quota_exhausted" # Counter
+
+  alerts:
+    high_priority:
+      - name: "Rate Limit System Failure"
+        condition: "rate_limit_check_duration_ms > 100ms"
+        action: "Page on-call engineer"
+
+      - name: "Concurrent Request Limit Abuse"
+        condition: "concurrent_requests_active > tier_limit * 0.9"
+        action: "Alert security team"
+
+    medium_priority:
+      - name: "High Rate Limit Hit Rate"
+        condition: "rate_limit_hits_total > 1000/hour"
+        action: "Review rate limit policies"
+
+      - name: "Token Bucket Depletion"
+        condition: "avg(rate_limit_remaining) < 10% for 5m"
+        action: "Consider tier recommendations"
+
+# Integration Patterns
+x-integration_patterns:
+  mcp_protocol:
+    description: "Rate limiting in MCP context"
+    considerations:
+      - "MCP tool calls may generate multiple API requests"
+      - "Rate limit context should span MCP session"
+      - "Provide rate limit status in MCP responses"
+    implementation:
+      session_tracking: "Map MCP session to API user"
+      tool_cost_calculation: "Pre-calculate rate limit cost"
+      graceful_degradation: "Return partial results when limits approached"
+
+  client_libraries:
+    description: "SDK integration patterns"
+    features:
+      automatic_retry:
+        algorithm: "Exponential backoff with jitter"
+        max_retries: 3
+        base_delay: 1000 # milliseconds
+
+      rate_limit_awareness:
+        header_parsing: "Parse rate limit headers"
+        preemptive_throttling: "Slow down before hitting limits"
+        queue_management: "Internal request queuing"
+
+  load_balancing:
+    description: "Rate limiting in distributed environments"
+    strategies:
+      user_affinity: "Route users to same backend for consistent limits"
+      shared_state: "Redis-based rate limit sharing"
+      approximate_counting: "Eventually consistent rate limit tracking"
+
+# Configuration Examples
+x-configuration-examples:
+  redis_config:
+    description: "Redis configuration for distributed rate limiting"
+    example:
+      host: "redis-cluster.internal"
+      port: 6379
+      key_prefix: "tidal_mcp:rate_limit:"
+      ttl_seconds: 3600
+      connection_pool_size: 10
+
+  application_config:
+    description: "Application-level rate limiting configuration"
+    example:
+      enabled: true
+      default_tier: "basic"
+      tier_upgrade_threshold: 0.8 # Trigger upgrade at 80% usage
+      cleanup_interval: "5m"
+      header_trust_proxy: true # Trust X-Forwarded-For headers
+
+  tier_assignment:
+    description: "Logic for determining user's rate limit tier"
+    factors:
+      - subscription_level: "Maps to tier directly"
+      - authentication_status: "Authenticated users get basic minimum"
+      - api_key_type: "Service accounts may get enterprise"
+      - historical_usage: "High-usage users eligible for upgrades"
+      - abuse_score: "Problematic users get restricted"

@@ -6,6 +6,7 @@ Supports OAuth2 flow with PKCE and token management for secure API
 interactions.
 """
 
+import asyncio
 import base64
 import hashlib
 import json
@@ -13,6 +14,7 @@ import logging
 import os
 import secrets
 import webbrowser
+import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -20,6 +22,11 @@ from urllib.parse import urlencode
 
 import aiohttp
 import tidalapi
+from aiohttp import web
+from dotenv import load_dotenv
+
+# Load environment variables from .env.local if it exists
+load_dotenv(".env.local")
 
 logger = logging.getLogger(__name__)
 
@@ -34,40 +41,52 @@ class TidalAuth:
     """
     Manages authentication and authorization for Tidal API.
 
-    Handles OAuth2 flow with PKCE, token refresh, and session managemen
+    Handles OAuth2 flow with PKCE, token refresh, and session management
     to ensure secure and persistent access to Tidal services.
     """
 
     # OAuth2 endpoints for Tidal
     OAUTH_BASE_URL = "https://login.tidal.com"  # Fixed: removed /oauth2
     TOKEN_URL = "https://auth.tidal.com/v1/oauth2/token"
-    # Default client ID (can be overridden by environment variable)
-    CLIENT_ID = "pFz3lGCm2Vv80RNJ"  # Your Tidal app client ID
-    REDIRECT_URI = "http://localhost:8080/callback"
+    # Default redirect URI (can be overridden by environment variable)
+    DEFAULT_REDIRECT_URI = "http://localhost:8080/callback"
 
     def __init__(self, client_id: str | None = None, client_secret: str | None = None):
         """
         Initialize Tidal authentication manager.
 
         Args:
-            client_id: Tidal API client ID (optional, uses default if no
-                      provided)
-            client_secret: Tidal API client secret (not needed for PKCE flow)
+            client_id: Tidal API client ID (optional, uses environment variable if not provided)
+            client_secret: Tidal API client secret (optional, uses environment variable if not provided)
         """
-        self.client_id = client_id or self.CLIENT_ID
-        self.client_secret = client_secret
+        # Get client ID from environment or parameter
+        self.client_id = client_id or os.getenv("TIDAL_CLIENT_ID")
+        if not self.client_id:
+            raise ValueError(
+                "TIDAL_CLIENT_ID is required. Set it in .env.local or pass as parameter.\n"
+                "Get your client ID from https://developer.tidal.com/"
+            )
+
+        # Get client secret from environment or parameter (optional for PKCE flow)
+        self.client_secret = client_secret or os.getenv("TIDAL_CLIENT_SECRET")
+
+        # Get redirect URI from environment or use default
+        self.redirect_uri = os.getenv("TIDAL_REDIRECT_URI", self.DEFAULT_REDIRECT_URI)
+
         self.access_token: str | None = None
         self.refresh_token: str | None = None
         self.token_expires_at: datetime | None = None
         self.session_id: str | None = None
-        self.country_code: str = "US"  # Default country code
+        self.country_code: str = os.getenv(
+            "TIDAL_COUNTRY_CODE", "US"
+        )  # Default country code from env
         self.user_id: str | None = None
 
         # Session file path
         self.session_file = Path.home() / ".tidal-mcp" / "session.json"
         self.session_file.parent.mkdir(parents=True, exist_ok=True)
 
-        # Tidal API clien
+        # Tidal API client
         self.tidal_session: tidalapi.Session | None = None
 
         # Load existing session if available
@@ -168,7 +187,7 @@ class TidalAuth:
         try:
             logger.info("Starting Tidal OAuth2 authentication...")
 
-            # Try to use existing session firs
+            # Try to use existing session first
             if await self._try_existing_session():
                 return True
 
@@ -198,7 +217,7 @@ class TidalAuth:
             # Set expiry time if available
             if self.token_expires_at:
                 # Convert datetime to seconds since epoch
-                import time
+
 
                 self.tidal_session.expiry_time = time.mktime(
                     self.token_expires_at.timetuple()
@@ -233,7 +252,7 @@ class TidalAuth:
             auth_params = {
                 "response_type": "code",
                 "client_id": self.client_id,
-                "redirect_uri": self.REDIRECT_URI,
+                "redirect_uri": self.redirect_uri,
                 "code_challenge": code_challenge,
                 "code_challenge_method": "S256",
                 "state": secrets.token_urlsafe(32),
@@ -263,9 +282,9 @@ class TidalAuth:
 
     async def _capture_auth_code(self) -> str | None:
         """Start local server to capture OAuth2 callback."""
-        import asyncio
 
-        from aiohttp import web
+
+
 
         auth_code = None
 
@@ -333,7 +352,7 @@ class TidalAuth:
                 "grant_type": "authorization_code",
                 "client_id": self.client_id,
                 "code": auth_code,
-                "redirect_uri": self.REDIRECT_URI,
+                "redirect_uri": self.redirect_uri,
                 "code_verifier": code_verifier,
             }
 
@@ -369,7 +388,7 @@ class TidalAuth:
 
             # Set expiry time if available
             if self.token_expires_at:
-                import time
+
 
                 self.tidal_session.expiry_time = time.mktime(
                     self.token_expires_at.timetuple()
@@ -474,7 +493,7 @@ class TidalAuth:
                 self.tidal_session.token_type = "Bearer"
 
                 if self.token_expires_at:
-                    import time
+
 
                     self.tidal_session.expiry_time = time.mktime(
                         self.token_expires_at.timetuple()
@@ -500,7 +519,7 @@ class TidalAuth:
         if self.is_authenticated():
             return True
 
-        # Try to refresh token firs
+        # Try to refresh token first
         if self.refresh_token:
             if await self.refresh_access_token():
                 return True
@@ -529,7 +548,7 @@ class TidalAuth:
         Get the tidalapi Session object.
 
         Returns:
-            tidalapi Session objec
+            tidalapi Session object
 
         Raises:
             TidalAuthError: If not authenticated

@@ -52,17 +52,22 @@ dev = [
     "flake8>=6.0.0",
     "mypy>=1.5.0"
 ]
+test = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.11.0",
+    "pytest-timeout>=2.1.0",
+    "aioresponses>=0.7.4",
+    "fakeredis>=2.18.0",
+    "responses>=0.23.0",
+    "freezegun>=1.2.0",
+    "factory-boy>=3.3.0"
+]
 
 [project.scripts]
 tidal-mcp = "tidal_mcp.server:main"
 
-[tool.uv]
-dev-dependencies = [
-    "ruff>=0.1.0",
-    "black>=23.0.0",
-    "flake8>=6.0.0",
-    "mypy>=1.5.0"
-]
 
 [project.urls]
 Homepage = "https://github.com/tidal-mcp/tidal-mcp"
@@ -162,3 +167,45 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
+
+[tool.coverage.run]
+source = ["src/tidal_mcp"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+    "*/.*",
+    "*/venv/*",
+    "*/.venv/*",
+    "src/tidal_mcp/__main__.py",
+    "*/examples/*",
+    "*/docs/*"
+]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod"
+]
+show_missing = true
+skip_covered = false
+precision = 2
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.coverage.xml]
+output = "coverage.xml"
+
+[tool.coverage.json]
+output = "coverage.json"
+
