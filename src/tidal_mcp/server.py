@@ -20,11 +20,10 @@ from .service import TidalService
 logger = logging.getLogger(__name__)
 
 # Only initialize FastMCP server if not in testing mode
-if os.getenv('TESTING') != '1':
+if os.getenv("TESTING") != "1":
     mcp = FastMCP("Tidal Music Integration")
 else:
     # In testing mode, create a mock object to prevent server initialization
-    from unittest.mock import Mock
 
     class MockMCP:
         def __init__(self):
@@ -32,8 +31,10 @@ else:
 
         def tool(self):
             """Mock tool decorator that returns the function unchanged."""
+
             def decorator(func):
                 return func  # Return the original function unchanged
+
             return decorator
 
         def run(self, show_banner=True):
@@ -637,7 +638,7 @@ def main():
     )
 
     # Check if we're in testing mode
-    if os.getenv('TESTING') == '1':
+    if os.getenv("TESTING") == "1":
         logger.info("Testing mode detected - not starting actual MCP server")
         return
 

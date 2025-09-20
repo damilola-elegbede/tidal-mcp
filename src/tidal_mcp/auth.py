@@ -23,7 +23,7 @@ import tidalapi
 from dotenv import load_dotenv
 
 # Load environment variables from .env.local if it exists
-load_dotenv('.env.local')
+load_dotenv(".env.local")
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +57,7 @@ class TidalAuth:
             client_secret: Tidal API client secret (optional, uses environment variable if not provided)
         """
         # Get client ID from environment or parameter
-        self.client_id = client_id or os.getenv('TIDAL_CLIENT_ID')
+        self.client_id = client_id or os.getenv("TIDAL_CLIENT_ID")
         if not self.client_id:
             raise ValueError(
                 "TIDAL_CLIENT_ID is required. Set it in .env.local or pass as parameter.\n"
@@ -65,16 +65,18 @@ class TidalAuth:
             )
 
         # Get client secret from environment or parameter (optional for PKCE flow)
-        self.client_secret = client_secret or os.getenv('TIDAL_CLIENT_SECRET')
+        self.client_secret = client_secret or os.getenv("TIDAL_CLIENT_SECRET")
 
         # Get redirect URI from environment or use default
-        self.redirect_uri = os.getenv('TIDAL_REDIRECT_URI', self.DEFAULT_REDIRECT_URI)
+        self.redirect_uri = os.getenv("TIDAL_REDIRECT_URI", self.DEFAULT_REDIRECT_URI)
 
         self.access_token: str | None = None
         self.refresh_token: str | None = None
         self.token_expires_at: datetime | None = None
         self.session_id: str | None = None
-        self.country_code: str = os.getenv('TIDAL_COUNTRY_CODE', 'US')  # Default country code from env
+        self.country_code: str = os.getenv(
+            "TIDAL_COUNTRY_CODE", "US"
+        )  # Default country code from env
         self.user_id: str | None = None
 
         # Session file path

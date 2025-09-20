@@ -5,17 +5,15 @@ Comprehensive middleware stack providing rate limiting, request validation,
 error handling, observability, and security features for production deployment.
 """
 
-import asyncio
-import hashlib
-import json
 import logging
 import time
 import uuid
 from collections import defaultdict
+from collections.abc import Callable
 from contextlib import asynccontextmanager
-from datetime import datetime, timedelta
+from datetime import datetime
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any
 
 import redis.asyncio as redis
 from pydantic import BaseModel, ValidationError
@@ -29,9 +27,9 @@ class RequestContext:
     def __init__(self, request_id: str = None):
         self.request_id = request_id or str(uuid.uuid4())
         self.start_time = time.time()
-        self.user_id: Optional[str] = None
+        self.user_id: str | None = None
         self.tier: str = "basic"
-        self.metadata: Dict[str, Any] = {}
+        self.metadata: dict[str, Any] = {}
 
     @property
     def elapsed_time(self) -> float:
@@ -105,7 +103,7 @@ class RateLimiter:
 
     async def check_rate_limit(
         self, user_id: str, tier: str, endpoint: str = "default"
-    ) -> Tuple[bool, Dict[str, Any]]:
+    ) -> tuple[bool, dict[str, Any]]:
         """
         Check if request is within rate limits.
 
@@ -187,7 +185,7 @@ class RateLimiter:
 
     async def _check_token_bucket(
         self, user_id: str, window: str, rate: int, burst: int
-    ) -> Tuple[bool, Dict[str, Any]]:
+    ) -> tuple[bool, dict[str, Any]]:
         """Token bucket algorithm for burst handling."""
         key = f"bucket:{user_id}:{window}"
         bucket_size = rate + burst
@@ -238,7 +236,7 @@ class RateLimiter:
 
     async def _check_sliding_window(
         self, user_id: str, window: str, limit: int, window_size: int
-    ) -> Tuple[bool, Dict[str, Any]]:
+    ) -> tuple[bool, dict[str, Any]]:
         """Sliding window log algorithm for precise limiting."""
         key = f"window:{user_id}:{window}"
         current_time = int(time.time())
@@ -397,9 +395,9 @@ class ErrorHandler:
     def format_error(
         self,
         error_code: str,
-        details: Optional[Dict[str, Any]] = None,
-        request_id: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        details: dict[str, Any] | None = None,
+        request_id: str | None = None,
+    ) -> dict[str, Any]:
         """Format standardized error response."""
         error_info = self.ERROR_CODES.get(error_code, {})
 
@@ -423,7 +421,7 @@ class SecurityMiddleware:
     def __init__(self, auth_manager):
         self.auth_manager = auth_manager
 
-    async def authenticate_request(self, auth_header: Optional[str]) -> Optional[str]:
+    async def authenticate_request(self, auth_header: str | None) -> str | None:
         """Authenticate request and return user ID."""
         if not auth_header:
             return None
@@ -448,7 +446,9 @@ class ObservabilityMiddleware:
         self.metrics = defaultdict(int)
         self.response_times = defaultdict(list)
 
-    def record_request(self, endpoint: str, method: str, status_code: int, duration: float):
+    def record_request(
+        self, endpoint: str, method: str, status_code: int, duration: float
+    ):
         """Record request metrics."""
         metric_key = f"{method}:{endpoint}:{status_code}"
         self.metrics[metric_key] += 1
@@ -460,7 +460,7 @@ class ObservabilityMiddleware:
                 f"Slow request detected: {method} {endpoint} took {duration:.2f}s"
             )
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         """Get current metrics summary."""
         return {
             "request_counts": dict(self.metrics),
@@ -494,7 +494,7 @@ class MiddlewareStack:
 
         def decorator(func: Callable) -> Callable:
             @wraps(func)
-            async def wrapper(*args, **kwargs) -> Dict[str, Any]:
+            async def wrapper(*args, **kwargs) -> dict[str, Any]:
                 request_id = str(uuid.uuid4())
                 context = RequestContext(request_id)
 
@@ -600,7 +600,7 @@ class MiddlewareStack:
 
         return decorator
 
-    async def _validate_request(self, kwargs: Dict[str, Any]):
+    async def _validate_request(self, kwargs: dict[str, Any]):
         """Validate request parameters."""
         # Search query validation
         if "query" in kwargs:
@@ -637,7 +637,7 @@ class HealthChecker:
     def __init__(self, redis_client: redis.Redis):
         self.redis = redis_client
 
-    async def check_redis_health(self) -> Dict[str, Any]:
+    async def check_redis_health(self) -> dict[str, Any]:
         """Check Redis connectivity and performance."""
         try:
             start_time = time.time()
@@ -656,7 +656,7 @@ class HealthChecker:
                 "last_checked": datetime.utcnow().isoformat() + "Z",
             }
 
-    async def check_rate_limiter_health(self) -> Dict[str, Any]:
+    async def check_rate_limiter_health(self) -> dict[str, Any]:
         """Check rate limiter functionality."""
         try:
             test_key = f"health_check:{uuid.uuid4().hex[:8]}"

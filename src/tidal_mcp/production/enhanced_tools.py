@@ -5,17 +5,16 @@ Production-ready MCP tools with comprehensive middleware integration,
 streaming URL generation, health monitoring, and advanced error handling.
 """
 
-import asyncio
 import logging
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import redis.asyncio as redis
 from fastmcp import FastMCP
 
 from ..auth import TidalAuth, TidalAuthError
 from ..service import TidalService
-from .middleware import MiddlewareStack, HealthChecker
+from .middleware import HealthChecker, MiddlewareStack
 
 logger = logging.getLogger(__name__)
 
@@ -24,10 +23,10 @@ REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
 redis_client = redis.from_url(REDIS_URL, decode_responses=True)
 
 # Global instances
-auth_manager: Optional[TidalAuth] = None
-tidal_service: Optional[TidalService] = None
-middleware_stack: Optional[MiddlewareStack] = None
-health_checker: Optional[HealthChecker] = None
+auth_manager: TidalAuth | None = None
+tidal_service: TidalService | None = None
+middleware_stack: MiddlewareStack | None = None
+health_checker: HealthChecker | None = None
 
 # Initialize FastMCP server with enhanced configuration
 mcp = FastMCP(
@@ -79,7 +78,7 @@ async def ensure_service() -> TidalService:
 
 # Health and Status Endpoints
 @mcp.tool()
-async def health_check() -> Dict[str, Any]:
+async def health_check() -> dict[str, Any]:
     """
     Comprehensive health check for the Tidal MCP server.
 
@@ -126,7 +125,9 @@ async def health_check() -> Dict[str, Any]:
         ]
 
         if unhealthy_deps:
-            service_status = "degraded" if len(unhealthy_deps) < len(dependencies) else "unhealthy"
+            service_status = (
+                "degraded" if len(unhealthy_deps) < len(dependencies) else "unhealthy"
+            )
 
         # Get observability metrics
         metrics = {}
@@ -162,7 +163,7 @@ async def health_check() -> Dict[str, Any]:
 
 
 @mcp.tool()
-async def get_system_status() -> Dict[str, Any]:
+async def get_system_status() -> dict[str, Any]:
     """
     Get detailed system status and performance metrics.
 
@@ -196,7 +197,11 @@ async def get_system_status() -> Dict[str, Any]:
         system_metrics = {
             "error_rates": {
                 "last_hour": {"total_requests": 1000, "errors": 5, "error_rate": 0.005},
-                "last_day": {"total_requests": 24000, "errors": 120, "error_rate": 0.005},
+                "last_day": {
+                    "total_requests": 24000,
+                    "errors": 120,
+                    "error_rate": 0.005,
+                },
             },
             "response_times": {
                 "p50": 120,  # milliseconds
@@ -241,7 +246,7 @@ async def get_system_status() -> Dict[str, Any]:
 
 # Enhanced Authentication
 @mcp.tool()
-async def tidal_login() -> Dict[str, Any]:
+async def tidal_login() -> dict[str, Any]:
     """
     Authenticate with Tidal using enhanced OAuth2 flow with monitoring.
 
@@ -314,7 +319,7 @@ async def tidal_login() -> Dict[str, Any]:
 
 
 @mcp.tool()
-async def refresh_session() -> Dict[str, Any]:
+async def refresh_session() -> dict[str, Any]:
     """
     Refresh the current Tidal authentication session.
 
@@ -383,7 +388,7 @@ async def get_stream_url(
     track_id: str,
     quality: str = "HIGH",
     format_preference: str = "AAC",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Generate streaming URL for a track with quality selection.
 
@@ -441,7 +446,9 @@ async def get_stream_url(
             # Generate streaming URL (this would interface with Tidal's streaming API)
             # Note: This is a simplified implementation - actual streaming URL generation
             # would require proper Tidal API integration for playback URLs
-            streaming_info = await _generate_streaming_url(service, track_id, quality, format_preference)
+            streaming_info = await _generate_streaming_url(
+                service, track_id, quality, format_preference
+            )
 
             if not streaming_info:
                 return {
@@ -478,7 +485,9 @@ async def get_stream_url(
                 "security": {
                     "drm_protected": streaming_info.get("drm_protected", True),
                     "https_required": True,
-                    "referrer_restrictions": streaming_info.get("referrer_restrictions"),
+                    "referrer_restrictions": streaming_info.get(
+                        "referrer_restrictions"
+                    ),
                 },
             }
 
@@ -506,8 +515,8 @@ async def tidal_search_advanced(
     content_type: str = "all",
     limit: int = 20,
     offset: int = 0,
-    filters: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
+    filters: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """
     Advanced search for content on Tidal with filtering and enhanced results.
 
@@ -540,16 +549,12 @@ async def tidal_search_advanced(
             # Perform search based on content type
             if content_type == "tracks":
                 tracks = await service.search_tracks(query, limit, offset)
-                results = {
-                    "tracks": [_enhance_track_result(track) for track in tracks]
-                }
+                results = {"tracks": [_enhance_track_result(track) for track in tracks]}
                 total_results = len(tracks)
 
             elif content_type == "albums":
                 albums = await service.search_albums(query, limit, offset)
-                results = {
-                    "albums": [_enhance_album_result(album) for album in albums]
-                }
+                results = {"albums": [_enhance_album_result(album) for album in albums]}
                 total_results = len(albums)
 
             elif content_type == "artists":
@@ -562,17 +567,29 @@ async def tidal_search_advanced(
             elif content_type == "playlists":
                 playlists = await service.search_playlists(query, limit, offset)
                 results = {
-                    "playlists": [_enhance_playlist_result(playlist) for playlist in playlists]
+                    "playlists": [
+                        _enhance_playlist_result(playlist) for playlist in playlists
+                    ]
                 }
                 total_results = len(playlists)
 
             else:  # "all" or any other value
                 search_results = await service.search_all(query, limit)
                 results = {
-                    "tracks": [_enhance_track_result(track) for track in search_results.tracks],
-                    "albums": [_enhance_album_result(album) for album in search_results.albums],
-                    "artists": [_enhance_artist_result(artist) for artist in search_results.artists],
-                    "playlists": [_enhance_playlist_result(playlist) for playlist in search_results.playlists],
+                    "tracks": [
+                        _enhance_track_result(track) for track in search_results.tracks
+                    ],
+                    "albums": [
+                        _enhance_album_result(album) for album in search_results.albums
+                    ],
+                    "artists": [
+                        _enhance_artist_result(artist)
+                        for artist in search_results.artists
+                    ],
+                    "playlists": [
+                        _enhance_playlist_result(playlist)
+                        for playlist in search_results.playlists
+                    ],
                 }
                 total_results = search_results.total_results
 
@@ -617,7 +634,7 @@ async def tidal_search_advanced(
 
 # Rate Limit Status Tool
 @mcp.tool()
-async def get_rate_limit_status() -> Dict[str, Any]:
+async def get_rate_limit_status() -> dict[str, Any]:
     """
     Get current rate limit status for the authenticated user.
 
@@ -632,7 +649,6 @@ async def get_rate_limit_status() -> Dict[str, Any]:
 
     try:
         # This would typically get user info from authentication context
-        user_id = "current_user"  # Would come from auth context
         tier = "basic"  # Would be determined from user subscription
 
         # Get current rate limit status from Redis
@@ -679,11 +695,20 @@ async def get_rate_limit_status() -> Dict[str, Any]:
         # Add recommendations based on usage
         recommendations = []
         if status_info["utilization"]["per_day"] > 0.8:
-            recommendations.append("Consider upgrading to a higher tier for increased daily quota")
+            recommendations.append(
+                "Consider upgrading to a higher tier for increased daily quota"
+            )
         if status_info["utilization"]["per_minute"] > 0.9:
-            recommendations.append("Approaching per-minute rate limit, consider implementing request queuing")
-        if status_info["current_usage"]["concurrent"] >= status_info["limits"]["concurrent"] - 1:
-            recommendations.append("Close to concurrent request limit, avoid parallel operations")
+            recommendations.append(
+                "Approaching per-minute rate limit, consider implementing request queuing"
+            )
+        if (
+            status_info["current_usage"]["concurrent"]
+            >= status_info["limits"]["concurrent"] - 1
+        ):
+            recommendations.append(
+                "Close to concurrent request limit, avoid parallel operations"
+            )
 
         return {
             "success": True,
@@ -694,7 +719,10 @@ async def get_rate_limit_status() -> Dict[str, Any]:
                     "per_minute": 300,
                     "per_hour": 5000,
                     "per_day": 50000,
-                    "additional_features": ["High-quality streaming", "Priority support"],
+                    "additional_features": [
+                        "High-quality streaming",
+                        "Priority support",
+                    ],
                 }
             },
             "timestamp": "2024-01-15T10:30:00Z",
@@ -721,7 +749,7 @@ async def _generate_streaming_url(
     track_id: str,
     quality: str,
     format_preference: str,
-) -> Optional[Dict[str, Any]]:
+) -> dict[str, Any] | None:
     """Generate streaming URL with metadata."""
     # This would interface with Tidal's actual streaming API
     # For now, return a mock response
@@ -737,7 +765,7 @@ async def _generate_streaming_url(
     }
 
 
-def _enhance_track_result(track) -> Dict[str, Any]:
+def _enhance_track_result(track) -> dict[str, Any]:
     """Enhance track result with additional metadata."""
     result = track.to_dict()
     result["relevance_score"] = 0.95  # Would be calculated
@@ -746,7 +774,7 @@ def _enhance_track_result(track) -> Dict[str, Any]:
     return result
 
 
-def _enhance_album_result(album) -> Dict[str, Any]:
+def _enhance_album_result(album) -> dict[str, Any]:
     """Enhance album result with additional metadata."""
     result = album.to_dict()
     result["relevance_score"] = 0.92
@@ -755,7 +783,7 @@ def _enhance_album_result(album) -> Dict[str, Any]:
     return result
 
 
-def _enhance_artist_result(artist) -> Dict[str, Any]:
+def _enhance_artist_result(artist) -> dict[str, Any]:
     """Enhance artist result with additional metadata."""
     result = artist.to_dict()
     result["relevance_score"] = 0.88
@@ -764,7 +792,7 @@ def _enhance_artist_result(artist) -> Dict[str, Any]:
     return result
 
 
-def _enhance_playlist_result(playlist) -> Dict[str, Any]:
+def _enhance_playlist_result(playlist) -> dict[str, Any]:
     """Enhance playlist result with additional metadata."""
     result = playlist.to_dict()
     result["relevance_score"] = 0.85
