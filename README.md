@@ -1,5 +1,25 @@
 # Tidal MCP (Model Context Protocol) Server
 
+## 🚨 CRITICAL SECURITY WARNINGS
+
+### ⚠️ NEVER COMMIT CREDENTIALS TO VERSION CONTROL
+
+**IMMEDIATE ACTION REQUIRED**: Ensure the following are NEVER committed to your repository:
+- Tidal client secrets
+- Authentication tokens
+- Session data
+- Personal access credentials
+
+### 🛡️ Essential Security Setup
+
+1. **Use Environment Variables Only**: Store ALL sensitive data in environment variables
+2. **Configure .gitignore**: Ensure `.env`, `*.session`, and token files are excluded
+3. **Validate Configuration**: Always verify your environment setup before deployment
+
+**See the [Security Guidelines](#-security-guidelines) section below for complete requirements.**
+
+---
+
 ## Overview
 
 Tidal MCP is a high-performance, asynchronous Python library for seamless interaction with the Tidal music streaming service. Built with modern Python async capabilities, it provides a robust, type-safe, and developer-friendly interface for music discovery, playlist management, and personalized music experiences.
@@ -44,6 +64,39 @@ pip install tidal-mcp
 uvx install tidal-mcp
 ```
 
+### 🔐 Secure Environment Setup
+
+**CRITICAL**: Complete this security setup before using Tidal MCP:
+
+1. **Create Environment File**:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Configure Required Variables**:
+   ```bash
+   # Edit .env with your secure credentials
+   TIDAL_CLIENT_ID=your_client_id_here
+   TIDAL_CLIENT_SECRET=your_client_secret_here
+   TIDAL_TOKEN_CACHE_PATH=/secure/path/to/tokens
+   ```
+
+3. **Verify .gitignore Configuration**:
+   Ensure these patterns are in your `.gitignore`:
+   ```
+   .env
+   .env.*
+   *.session
+   tokens/
+   .tidal_cache/
+   ```
+
+4. **Set Secure Permissions**:
+   ```bash
+   chmod 600 .env
+   chmod 700 tokens/
+   ```
+
 ### Basic Authentication
 
 ```python
@@ -69,7 +122,7 @@ from tidal_mcp import tidal_search
 async def search_example():
     # Search for tracks by Daft Punk
     tracks = await tidal_search(query="Daft Punk", content_type="tracks")
-    
+
     # Global search across all content types
     all_results = await tidal_search(query="Radiohead")
 ```
@@ -78,21 +131,21 @@ async def search_example():
 
 ```python
 from tidal_mcp import (
-    tidal_create_playlist, 
-    tidal_add_to_playlist, 
+    tidal_create_playlist,
+    tidal_add_to_playlist,
     tidal_get_playlist
 )
 
 async def playlist_example():
     # Create a new playlist
     playlist = await tidal_create_playlist("My Awesome Playlist")
-    
+
     # Add tracks to playlist
     await tidal_add_to_playlist(
-        playlist_id=playlist['playlist']['id'], 
+        playlist_id=playlist['playlist']['id'],
         track_ids=['123456', '789012']
     )
-    
+
     # Get playlist details
     playlist_details = await tidal_get_playlist(playlist['playlist']['id'])
 ```
@@ -113,9 +166,67 @@ async def recommendations_example():
 
 Configure Tidal MCP using the following environment variables:
 
-- `TIDAL_CLIENT_ID`: Your Tidal API client ID
-- `TIDAL_CLIENT_SECRET`: Your Tidal API client secret
-- `TIDAL_TOKEN_CACHE_PATH`: Custom path for storing authentication tokens
+| Variable | Required | Description | Security Notes |
+|----------|----------|-------------|----------------|
+| `TIDAL_CLIENT_ID` | Yes | Your Tidal API client ID | Store in `.env` only |
+| `TIDAL_CLIENT_SECRET` | Yes | Your Tidal API client secret | **NEVER commit to git** |
+| `TIDAL_TOKEN_CACHE_PATH` | No | Custom path for storing authentication tokens | Use secure directory with restricted permissions |
+
+### 🛡️ Security Guidelines
+
+#### Credential Management
+
+1. **Environment Variables Only**:
+   - Store ALL sensitive data in environment variables
+   - Use `.env` files for local development
+   - Use secure environment management in production
+
+2. **File Permissions**:
+   ```bash
+   # Set restrictive permissions
+   chmod 600 .env
+   chmod 700 $(dirname $TIDAL_TOKEN_CACHE_PATH)
+   ```
+
+3. **Version Control Exclusions**:
+   Ensure your `.gitignore` includes:
+   ```
+   .env
+   .env.*
+   *.session
+   tokens/
+   .tidal_cache/
+   auth_cache/
+   ```
+
+#### Session Security
+
+1. **Token Storage**:
+   - Tokens are automatically cached in a secure location
+   - Never share or commit token files
+   - Use custom `TIDAL_TOKEN_CACHE_PATH` for enhanced security
+
+2. **Session Management**:
+   - Sessions expire automatically for security
+   - Re-authentication may be required periodically
+   - Monitor for unusual authentication requests
+
+#### Production Deployment
+
+1. **Environment Management**:
+   - Use platform-specific secret management (AWS Secrets Manager, Azure Key Vault, etc.)
+   - Never use `.env` files in production
+   - Implement credential rotation policies
+
+2. **Access Control**:
+   - Limit access to credential storage
+   - Use principle of least privilege
+   - Monitor authentication logs
+
+3. **Security Monitoring**:
+   - Implement logging for authentication events
+   - Monitor for failed authentication attempts
+   - Set up alerts for credential-related errors
 
 ## 📋 Available Tools
 
@@ -166,6 +277,8 @@ Tidal MCP provides comprehensive error handling:
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on how to get started.
 
+**Security Requirements for Contributors**: All contributors must follow our [Security Policy](SECURITY.md) and never commit credentials or sensitive data.
+
 ## 📄 License
 
 [Specify your project's license here]
@@ -180,7 +293,9 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 For issues, feature requests, or support, please file an issue on our [GitHub repository](https://github.com/tidal-mcp/tidal-mcp/issues).
 
+**Security Issues**: Report security vulnerabilities through our [Security Policy](SECURITY.md).
+
 ---
 
 **Version**: 0.1.0
-**Last Updated**: 2025-08-05
+**Last Updated**: 2025-09-20

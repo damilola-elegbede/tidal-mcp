@@ -7,7 +7,7 @@ disable-default-queries: false
 queries:
   - name: security-extended
     uses: security-extended
-  - name: security-and-quality  
+  - name: security-and-quality
     uses: security-and-quality
 
 # Path filters
@@ -31,7 +31,7 @@ python:
   include:
     - "src/**/*.py"
     - "tests/**/*.py"
-  
+
   # Exclude generated files and vendor code
   exclude:
     - "**/migrations/**"
@@ -46,7 +46,7 @@ query-filters:
       id: py/path-injection
       # Exclude if we have proper input validation
   - exclude:
-      id: py/code-injection  
+      id: py/code-injection
       # We don't use eval/exec in production code
 
 # Custom queries (if we develop any)

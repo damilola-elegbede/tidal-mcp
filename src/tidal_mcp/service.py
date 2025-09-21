@@ -1540,9 +1540,11 @@ class TidalService:
                 ),
                 title=tidal_playlist.name,
                 description=getattr(tidal_playlist, "description", None),
-                creator=getattr(tidal_playlist, "creator", {}).get("name")
-                if hasattr(tidal_playlist, "creator")
-                else None,
+                creator=(
+                    getattr(tidal_playlist, "creator", {}).get("name")
+                    if hasattr(tidal_playlist, "creator")
+                    else None
+                ),
                 tracks=tracks,
                 number_of_tracks=getattr(tidal_playlist, "num_tracks", len(tracks)),
                 duration=getattr(tidal_playlist, "duration", None),

@@ -51,11 +51,11 @@ When reporting a vulnerability, please include:
 ### For Users
 
 1. **Keep Updated**: Always use the latest version of Tidal MCP
-2. **Secure Configuration**: 
+2. **Secure Configuration**:
    - Use environment variables for sensitive configuration
    - Never commit credentials to version control
    - Use strong, unique API keys
-3. **Network Security**: 
+3. **Network Security**:
    - Use HTTPS for all API communications
    - Implement proper firewall rules
    - Consider using VPN for sensitive environments
@@ -67,7 +67,7 @@ When reporting a vulnerability, please include:
    - Use parameterized queries for database operations
    - Validate all inputs
    - Sanitize outputs
-   
+
 2. **Dependency Management**:
    - Regularly update dependencies
    - Use dependency scanning tools

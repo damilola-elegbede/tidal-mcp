@@ -1,0 +1,12 @@
+# Bandit security scanner configuration
+exclude_dirs:
+  - tests
+  - examples
+  - .venv
+  - venv
+  - node_modules
+  - docs
+
+skips:
+  - B101  # assert_used_in_tests
+  - B601  # shell_command_with_shell_equals_true

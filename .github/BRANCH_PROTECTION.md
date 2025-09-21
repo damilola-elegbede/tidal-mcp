@@ -12,7 +12,7 @@ Apply these settings to the `main` branch:
 
 **Required Checks:**
 - `CI / Test Python 3.10 on ubuntu-latest`
-- `CI / Test Python 3.11 on ubuntu-latest` 
+- `CI / Test Python 3.11 on ubuntu-latest`
 - `CI / Test Python 3.12 on ubuntu-latest`
 - `CI / Security Scan`
 - `CI / Build Package`

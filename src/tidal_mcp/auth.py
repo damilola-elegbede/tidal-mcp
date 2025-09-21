@@ -12,6 +12,7 @@ import json
 import logging
 import os
 import secrets
+import stat
 import webbrowser
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -20,8 +21,25 @@ from urllib.parse import urlencode
 
 import aiohttp
 import tidalapi
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 logger = logging.getLogger(__name__)
+
+# Security-focused logger for authentication events
+security_logger = logging.getLogger(f"{__name__}.security")
+security_logger.setLevel(logging.INFO)
+
+# Ensure security events are logged even if main logger is disabled
+if not security_logger.handlers:
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter(
+        "%(asctime)s - SECURITY - %(levelname)s - %(message)s"
+    )
+    handler.setFormatter(formatter)
+    security_logger.addHandler(handler)
 
 
 class TidalAuthError(Exception):
@@ -38,24 +56,27 @@ class TidalAuth:
     to ensure secure and persistent access to Tidal services.
     """
 
-    # OAuth2 endpoints for Tidal
-    OAUTH_BASE_URL = "https://login.tidal.com"  # Fixed: removed /oauth2
-    TOKEN_URL = "https://auth.tidal.com/v1/oauth2/token"
-    # Default client ID (can be overridden by environment variable)
-    CLIENT_ID = "pFz3lGCm2Vv80RNJ"  # Your Tidal app client ID
-    REDIRECT_URI = "http://localhost:8080/callback"
+    # OAuth2 endpoints for Tidal (configurable via environment variables)
+    OAUTH_BASE_URL = os.getenv("TIDAL_OAUTH_BASE_URL", "https://login.tidal.com")
+    TOKEN_URL = os.getenv("TIDAL_TOKEN_URL", "https://auth.tidal.com/v1/oauth2/token")
 
     def __init__(self, client_id: str | None = None, client_secret: str | None = None):
         """
         Initialize Tidal authentication manager.
 
         Args:
-            client_id: Tidal API client ID (optional, uses default if no
-                      provided)
-            client_secret: Tidal API client secret (not needed for PKCE flow)
+            client_id: Tidal API client ID (optional, loads from environment)
+            client_secret: Tidal API client secret (optional, loads from environment)
         """
-        self.client_id = client_id or self.CLIENT_ID
-        self.client_secret = client_secret
+        # Load credentials from environment variables with fallbacks
+        self.client_id = client_id or os.getenv("TIDAL_CLIENT_ID")
+        if not self.client_id:
+            raise TidalAuthError(
+                "Tidal client ID is required. Set TIDAL_CLIENT_ID environment variable "
+                "or pass client_id parameter."
+            )
+
+        self.client_secret = client_secret or os.getenv("TIDAL_CLIENT_SECRET")
         self.access_token: str | None = None
         self.refresh_token: str | None = None
         self.token_expires_at: datetime | None = None
@@ -63,9 +84,24 @@ class TidalAuth:
         self.country_code: str = "US"  # Default country code
         self.user_id: str | None = None
 
-        # Session file path
-        self.session_file = Path.home() / ".tidal-mcp" / "session.json"
+        # Configure callback port and URI from environment
+        self.callback_port = int(os.getenv("TIDAL_CALLBACK_PORT", "8080"))
+        self.redirect_uri = os.getenv(
+            "TIDAL_CALLBACK_URL", f"http://localhost:{self.callback_port}/callback"
+        )
+
+        # Configure session file path from environment
+        session_path = os.getenv("TIDAL_SESSION_PATH", "~/.tidal-mcp/session.json")
+        self.session_file = Path(session_path).expanduser()
         self.session_file.parent.mkdir(parents=True, exist_ok=True)
+
+        # Secure the session directory with restrictive permissions (0700)
+        self._secure_session_directory()
+
+        # Configure cache directory from environment
+        cache_dir = os.getenv("TIDAL_CACHE_DIR", "~/.tidal-mcp/cache")
+        self.cache_dir = Path(cache_dir).expanduser()
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
 
         # Tidal API clien
         self.tidal_session: tidalapi.Session | None = None
@@ -73,34 +109,121 @@ class TidalAuth:
         # Load existing session if available
         self._load_session()
 
-    def _load_session(self) -> None:
-        """Load saved session from file if it exists."""
+    def _secure_session_directory(self) -> None:
+        """Secure the session directory with restrictive permissions."""
         try:
-            if self.session_file.exists():
-                with open(self.session_file) as f:
-                    session_data = json.load(f)
+            session_dir = self.session_file.parent
+            # Set directory permissions to 0700 (user read/write/execute only)
+            session_dir.chmod(0o700)
+            security_logger.info(f"Secured session directory: {session_dir}")
+        except Exception as e:
+            security_logger.warning(f"Failed to secure session directory: {e}")
 
-                self.access_token = session_data.get("access_token")
-                self.refresh_token = session_data.get("refresh_token")
-                self.session_id = session_data.get("session_id")
-                self.user_id = session_data.get("user_id")
-                self.country_code = session_data.get("country_code", "US")
+    def _is_session_expired(self, session_data: dict) -> bool:
+        """Check if session data represents an expired session."""
+        try:
+            expires_str = session_data.get("expires_at")
+            if not expires_str:
+                return True
 
-                # Parse expiration time
-                expires_str = session_data.get("expires_at")
-                if expires_str:
-                    self.token_expires_at = datetime.fromisoformat(expires_str)
+            expires_at = datetime.fromisoformat(expires_str)
+            if datetime.now() >= expires_at:
+                security_logger.warning("Session expired, rejecting")
+                return True
 
-                logger.info("Loaded existing session from file")
+            return False
+        except (ValueError, TypeError) as e:
+            security_logger.warning(f"Invalid session expiry format: {e}")
+            return True
+
+    def _log_security_event(self, event: str, details: dict | None = None) -> None:
+        """Log security-related events with structured data."""
+        log_data = {
+            "event": event,
+            "timestamp": datetime.now().isoformat(),
+            "user_id": self.user_id,
+            "session_file": str(self.session_file),
+        }
+        if details:
+            log_data.update(details)
+
+        security_logger.info(f"{event}: {log_data}")
+
+    def _invalidate_session(self, reason: str) -> None:
+        """Invalidate current session and clear session data."""
+        self._log_security_event("SESSION_INVALIDATED", {"reason": reason})
+
+        # Clear in-memory session data
+        self.access_token = None
+        self.refresh_token = None
+        self.token_expires_at = None
+        self.session_id = None
+        self.user_id = None
+        self.tidal_session = None
+
+        # Clear session file
+        self._clear_session_file()
+
+    def _load_session(self) -> None:
+        """Load saved session from file if it exists with security validation."""
+        try:
+            if not self.session_file.exists():
+                return
+
+            # Verify session file permissions before loading
+            try:
+                file_stat = self.session_file.stat()
+                file_mode = stat.filemode(file_stat.st_mode)
+                if (
+                    file_stat.st_mode & 0o077
+                ):  # Check if group/other have any permissions
+                    security_logger.warning(
+                        f"Session file has insecure permissions: {file_mode}"
+                    )
+                    self._clear_session_file()
+                    return
+            except Exception as e:
+                security_logger.warning(
+                    f"Failed to check session file permissions: {e}"
+                )
+                return
+
+            # Use secure file opening with proper error handling
+            with open(self.session_file, "r", encoding="utf-8") as f:
+                session_data = json.load(f)
+
+            # Validate session expiry before loading
+            if self._is_session_expired(session_data):
+                self._clear_session_file()
+                self._log_security_event("SESSION_EXPIRED_ON_LOAD")
+                return
+
+            self.access_token = session_data.get("access_token")
+            self.refresh_token = session_data.get("refresh_token")
+            self.session_id = session_data.get("session_id")
+            self.user_id = session_data.get("user_id")
+            self.country_code = session_data.get("country_code", "US")
+
+            # Parse expiration time
+            expires_str = session_data.get("expires_at")
+            if expires_str:
+                self.token_expires_at = datetime.fromisoformat(expires_str)
+
+            self._log_security_event(
+                "SESSION_LOADED", {"user_id": self.user_id, "expires_at": expires_str}
+            )
+            logger.info("Loaded existing session from file")
 
         except (json.JSONDecodeError, KeyError, ValueError) as e:
-            logger.warning(f"Failed to load session file: {e}")
+            security_logger.warning(f"Session file corrupted or invalid: {e}")
             self._clear_session_file()
+            self._log_security_event("SESSION_LOAD_FAILED", {"error": str(e)})
         except (OSError, PermissionError) as e:
-            logger.warning(f"Permission error loading session file: {e}")
+            security_logger.error(f"Permission error loading session file: {e}")
+            self._log_security_event("SESSION_PERMISSION_ERROR", {"error": str(e)})
 
     def _save_session(self) -> None:
-        """Save current session to file."""
+        """Save current session to file with secure permissions and logging."""
         try:
             session_data = {
                 "access_token": self.access_token,
@@ -114,24 +237,60 @@ class TidalAuth:
                 "saved_at": datetime.now().isoformat(),
             }
 
-            with open(self.session_file, "w") as f:
-                json.dump(session_data, f, indent=2)
+            # Create session file with secure permissions from the start
+            # Use os.open with secure flags, then write with json
+            fd = os.open(
+                self.session_file,
+                os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
+                0o600,  # User read/write only
+            )
 
-            # Set restrictive permissions (readable only by owner)
-            os.chmod(self.session_file, 0o600)
-            logger.info("Session saved to file")
+            try:
+                with os.fdopen(fd, "w") as f:
+                    json.dump(session_data, f, indent=2)
+            except:
+                os.close(fd)  # Ensure fd is closed on error
+                raise
+
+            # Verify permissions were set correctly
+            file_stat = self.session_file.stat()
+            if file_stat.st_mode & 0o077:
+                security_logger.error(
+                    "Failed to set secure permissions on session file"
+                )
+                self._clear_session_file()
+                return
+
+            self._log_security_event(
+                "SESSION_SAVED",
+                {
+                    "user_id": self.user_id,
+                    "expires_at": session_data.get("expires_at"),
+                    "file_permissions": oct(file_stat.st_mode)[-3:],
+                },
+            )
+            logger.info("Session saved to file with secure permissions")
 
         except Exception as e:
-            logger.error(f"Failed to save session: {e}")
+            security_logger.error(f"Failed to save session securely: {e}")
+            self._log_security_event("SESSION_SAVE_FAILED", {"error": str(e)})
+            # Clean up any potentially insecure file
+            try:
+                if self.session_file.exists():
+                    self.session_file.unlink()
+            except:
+                pass
 
     def _clear_session_file(self) -> None:
-        """Clear the session file."""
+        """Clear the session file with security logging."""
         try:
             if self.session_file.exists():
                 self.session_file.unlink()
+                self._log_security_event("SESSION_FILE_CLEARED")
                 logger.info("Session file cleared")
         except Exception as e:
-            logger.error(f"Failed to clear session file: {e}")
+            security_logger.error(f"Failed to clear session file: {e}")
+            self._log_security_event("SESSION_CLEAR_FAILED", {"error": str(e)})
 
     def _generate_pkce_params(self) -> tuple[str, str]:
         """
@@ -166,23 +325,44 @@ class TidalAuth:
             True if authentication successful, False otherwise
         """
         try:
+            self._log_security_event("AUTH_ATTEMPT_STARTED")
             logger.info("Starting Tidal OAuth2 authentication...")
 
-            # Try to use existing session firs
+            # Try to use existing session first
             if await self._try_existing_session():
+                self._log_security_event(
+                    "AUTH_SUCCESS_EXISTING_SESSION", {"user_id": self.user_id}
+                )
                 return True
 
             # If no valid session, start OAuth2 flow
-            return await self._oauth2_flow()
+            result = await self._oauth2_flow()
+            if result:
+                self._log_security_event(
+                    "AUTH_SUCCESS_NEW_SESSION", {"user_id": self.user_id}
+                )
+            else:
+                self._log_security_event("AUTH_FAILED_OAUTH_FLOW")
+
+            return result
 
         except Exception as e:
+            self._log_security_event("AUTH_FAILED_EXCEPTION", {"error": str(e)})
             logger.error(f"Authentication failed: {e}")
+            # Invalidate any partial session on authentication failure
+            self._invalidate_session("authentication_exception")
             return False
 
     async def _try_existing_session(self) -> bool:
-        """Try to use existing tidalapi session."""
+        """Try to use existing tidalapi session with enhanced error handling."""
         try:
             if not self.access_token:
+                return False
+
+            # Check if token is expired before attempting to use it
+            if self.token_expires_at and datetime.now() >= self.token_expires_at:
+                self._log_security_event("SESSION_TOKEN_EXPIRED")
+                self._invalidate_session("token_expired")
                 return False
 
             # Initialize tidalapi session
@@ -210,17 +390,29 @@ class TidalAuth:
                 if user and user.id:
                     self.user_id = str(user.id)
                     self.country_code = user.country_code or "US"
+                    self._log_security_event(
+                        "SESSION_VALIDATION_SUCCESS", {"user_id": self.user_id}
+                    )
                     logger.info(
                         f"Successfully loaded existing session for user {self.user_id}"
                     )
                     return True
+                else:
+                    self._log_security_event(
+                        "SESSION_VALIDATION_FAILED", {"reason": "no_user_data"}
+                    )
+                    self._invalidate_session("session_validation_failed")
             except Exception as e:
+                self._log_security_event("SESSION_VALIDATION_ERROR", {"error": str(e)})
                 logger.warning(f"Existing session token is invalid: {e}")
+                self._invalidate_session("session_validation_error")
 
             return False
 
         except Exception as e:
+            self._log_security_event("SESSION_LOAD_ERROR", {"error": str(e)})
             logger.warning(f"Failed to load existing session: {e}")
+            self._invalidate_session("session_load_error")
             return False
 
     async def _oauth2_flow(self) -> bool:
@@ -233,7 +425,7 @@ class TidalAuth:
             auth_params = {
                 "response_type": "code",
                 "client_id": self.client_id,
-                "redirect_uri": self.REDIRECT_URI,
+                "redirect_uri": self.redirect_uri,
                 "code_challenge": code_challenge,
                 "code_challenge_method": "S256",
                 "state": secrets.token_urlsafe(32),
@@ -297,10 +489,12 @@ class TidalAuth:
             # Start server
             runner = web.AppRunner(app)
             await runner.setup()
-            site = web.TCPSite(runner, "localhost", 8080)
+            site = web.TCPSite(runner, "localhost", self.callback_port)
             await site.start()
 
-            logger.info("Local callback server started on http://localhost:8080")
+            logger.info(
+                f"Local callback server started on http://localhost:{self.callback_port}"
+            )
 
             # Wait for callback (with timeout)
             timeout = 300  # 5 minutes
@@ -333,7 +527,7 @@ class TidalAuth:
                 "grant_type": "authorization_code",
                 "client_id": self.client_id,
                 "code": auth_code,
-                "redirect_uri": self.REDIRECT_URI,
+                "redirect_uri": self.redirect_uri,
                 "code_verifier": code_verifier,
             }
 
@@ -400,7 +594,7 @@ class TidalAuth:
 
     def is_authenticated(self) -> bool:
         """
-        Check if current session is authenticated.
+        Check if current session is authenticated with enhanced security validation.
 
         Returns:
             True if authenticated and token is valid
@@ -408,7 +602,10 @@ class TidalAuth:
         if not self.access_token:
             return False
 
+        # Check token expiration
         if self.token_expires_at and datetime.now() >= self.token_expires_at:
+            self._log_security_event("AUTH_CHECK_TOKEN_EXPIRED")
+            self._invalidate_session("token_expired_on_check")
             return False
 
         # Check if tidalapi session is valid
@@ -416,8 +613,16 @@ class TidalAuth:
             try:
                 # Try to access user info to verify session
                 user = self.tidal_session.user
-                return user is not None
-            except Exception:
+                is_valid = user is not None
+
+                if not is_valid:
+                    self._log_security_event("AUTH_CHECK_INVALID_SESSION")
+                    self._invalidate_session("session_invalid_on_check")
+
+                return is_valid
+            except Exception as e:
+                self._log_security_event("AUTH_CHECK_SESSION_ERROR", {"error": str(e)})
+                self._invalidate_session("session_error_on_check")
                 return False
 
         # Without a working session, we're not fully authenticated
@@ -425,16 +630,18 @@ class TidalAuth:
 
     async def refresh_access_token(self) -> bool:
         """
-        Refresh the access token using refresh token.
+        Refresh the access token using refresh token with enhanced security.
 
         Returns:
             True if refresh successful, False otherwise
         """
         if not self.refresh_token:
+            self._log_security_event("TOKEN_REFRESH_NO_REFRESH_TOKEN")
             logger.error("No refresh token available")
             return False
 
         try:
+            self._log_security_event("TOKEN_REFRESH_STARTED")
             logger.info("Refreshing access token...")
 
             token_data = {
@@ -451,7 +658,13 @@ class TidalAuth:
                 ) as response:
                     if response.status != 200:
                         error_text = await response.text()
+                        self._log_security_event(
+                            "TOKEN_REFRESH_FAILED",
+                            {"status_code": response.status, "error": error_text},
+                        )
                         logger.error(f"Token refresh failed: {error_text}")
+                        # Invalidate session on refresh failure
+                        self._invalidate_session("token_refresh_failed")
                         return False
 
                     token_response = await response.json()
@@ -483,11 +696,24 @@ class TidalAuth:
             # Save updated session
             self._save_session()
 
+            self._log_security_event(
+                "TOKEN_REFRESH_SUCCESS",
+                {
+                    "new_expires_at": (
+                        self.token_expires_at.isoformat()
+                        if self.token_expires_at
+                        else None
+                    )
+                },
+            )
             logger.info("Access token refreshed successfully")
             return True
 
         except Exception as e:
+            self._log_security_event("TOKEN_REFRESH_EXCEPTION", {"error": str(e)})
             logger.error(f"Token refresh failed: {e}")
+            # Invalidate session on refresh exception
+            self._invalidate_session("token_refresh_exception")
             return False
 
     async def ensure_valid_token(self) -> bool:
@@ -540,12 +766,15 @@ class TidalAuth:
         return self.tidal_session
 
     async def logout(self) -> None:
-        """Clear authentication tokens and session data."""
+        """Clear authentication tokens and session data with security logging."""
         try:
+            self._log_security_event("LOGOUT_STARTED", {"user_id": self.user_id})
+
             # Revoke tokens if possible
             if self.access_token:
                 await self._revoke_tokens()
         except Exception as e:
+            self._log_security_event("LOGOUT_TOKEN_REVOKE_FAILED", {"error": str(e)})
             logger.warning(f"Failed to revoke tokens: {e}")
 
         # Clear all tokens and session data
@@ -553,12 +782,14 @@ class TidalAuth:
         self.refresh_token = None
         self.token_expires_at = None
         self.session_id = None
+        old_user_id = self.user_id  # Store for logging
         self.user_id = None
         self.tidal_session = None
 
         # Clear session file
         self._clear_session_file()
 
+        self._log_security_event("LOGOUT_COMPLETED", {"user_id": old_user_id})
         logger.info("Logged out from Tidal")
 
     async def _revoke_tokens(self) -> None:
