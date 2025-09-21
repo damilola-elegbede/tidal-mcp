@@ -88,9 +88,9 @@ jobs:
 
           # Patterns that might indicate hardcoded secrets
           patterns = [
-              r'(?i)(password|secret|key|token)\s*=\s*['\''\"]\w{8,}['\''\"']',
-              r'(?i)(api_key|access_key|secret_key)\s*=\s*['\''\"]\w{8,}['\''\"']',
-              r'['\''\"]\w*[A-Z0-9]{32,}['\''\"']',  # Long alphanumeric strings
+              r'(?i)(password|secret|key|token)\s*=\s*[\"\047]\w{8,}[\"\047]',
+              r'(?i)(api_key|access_key|secret_key)\s*=\s*[\"\047]\w{8,}[\"\047]',
+              r'[\"\047]\w*[A-Z0-9]{32,}[\"\047]',  # Long alphanumeric strings
           ]
 
           violations = []
