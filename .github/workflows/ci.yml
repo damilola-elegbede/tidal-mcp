@@ -67,7 +67,7 @@ jobs:
       - name: Install dependencies
         run: |
           uv sync --all-extras --dev
-          uv pip install bandit pytest pytest-cov pytest-asyncio
+          uv pip install bandit pytest pytest-cov pytest-asyncio pytest-timeout
 
       - name: Run security checks with bandit
         run: |
