@@ -1,8 +1,7 @@
 """
+
 Comprehensive tests for utils module to maximize coverage.
 """
-
-import pytest
 
 from tidal_mcp.utils import (
     build_search_url,
@@ -170,7 +169,11 @@ class TestUtilsComprehensive:
 
     def test_merge_artist_names_normal_cases(self):
         """Test merge_artist_names with normal cases."""
-        artists = [{"name": "Artist 1"}, {"name": "Artist 2"}, {"name": "Artist 3"}]
+        artists = [
+            {"name": "Artist 1"},
+            {"name": "Artist 2"},
+            {"name": "Artist 3"},
+        ]
         result = merge_artist_names(artists)
         assert result == "Artist 1, Artist 2, Artist 3"
 

@@ -1,4 +1,5 @@
 """
+
 EMERGENCY SECURITY TEST SUITE for Tidal MCP Server
 
 This test suite validates critical security requirements to ensure:
@@ -18,15 +19,12 @@ import json
 import os
 import stat
 import tempfile
-import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from unittest import TestCase
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import aiohttp
 import pytest
-import tidalapi
 
 from src.tidal_mcp.auth import TidalAuth, TidalAuthError
 
@@ -60,7 +58,9 @@ class TestEnvironmentVariableSecurity(TestCase):
     def test_environment_variable_loading(self):
         """Test successful loading of credentials from environment variables."""
         os.environ["TIDAL_CLIENT_ID"] = "test_client_id"
-        os.environ["TIDAL_CLIENT_SECRET"] = "test_client_secret"
+        os.environ["TIDAL_CLIENT_SECRET"] = (  # pragma: allowlist secret
+            "test_client_secret"  # pragma: allowlist secret
+        )
 
         auth = TidalAuth()
 
@@ -70,10 +70,13 @@ class TestEnvironmentVariableSecurity(TestCase):
     def test_parameter_override_environment(self):
         """Test that constructor parameters override environment variables."""
         os.environ["TIDAL_CLIENT_ID"] = "env_client_id"
-        os.environ["TIDAL_CLIENT_SECRET"] = "env_client_secret"
+        os.environ["TIDAL_CLIENT_SECRET"] = (  # pragma: allowlist secret
+            "env_client_secret"  # pragma: allowlist secret
+        )
 
         auth = TidalAuth(
-            client_id="param_client_id", client_secret="param_client_secret"
+            client_id="param_client_id",
+            client_secret="param_client_secret",  # pragma: allowlist secret
         )
 
         self.assertEqual(auth.client_id, "param_client_id")
@@ -132,7 +135,7 @@ class TestCredentialExposurePrevention(TestCase):
     def setUp(self):
         """Set up test environment."""
         os.environ["TIDAL_CLIENT_ID"] = "test_client_id"
-        os.environ["TIDAL_CLIENT_SECRET"] = (
+        os.environ["TIDAL_CLIENT_SECRET"] = (  # pragma: allowlist secret
             "test_secret  # pragma: allowlist secret_value"
         )
 
@@ -366,7 +369,9 @@ class TestAuthenticationSecurity(TestCase):
     def setUp(self):
         """Set up test environment."""
         os.environ["TIDAL_CLIENT_ID"] = "test_client_id"
-        os.environ["TIDAL_CLIENT_SECRET"] = "test_client_secret"
+        os.environ["TIDAL_CLIENT_SECRET"] = (
+            "test_client_secret"  # pragma: allowlist secret
+        )
 
     def tearDown(self):
         """Clean up environment."""
@@ -658,7 +663,9 @@ class TestIntegratedSecurityScenarios(TestCase):
         self.session_file = Path(self.temp_dir) / "test_session.json"
 
         os.environ["TIDAL_CLIENT_ID"] = "test_client_id"
-        os.environ["TIDAL_CLIENT_SECRET"] = "test_client_secret"
+        os.environ["TIDAL_CLIENT_SECRET"] = (
+            "test_client_secret"  # pragma: allowlist secret
+        )
         os.environ["TIDAL_SESSION_PATH"] = str(self.session_file)
 
     def tearDown(self):

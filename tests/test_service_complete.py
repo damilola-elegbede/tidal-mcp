@@ -1,8 +1,7 @@
-"""Comprehensive tests for TidalService class to achieve high coverage."""
+"""Comprehensive tests for TidalService class to achieve high coverage.."""
 
-import asyncio
-from typing import List, Optional
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from typing import Optional
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
@@ -184,7 +183,13 @@ class TestTidalServiceComprehensive:
 
     @pytest.mark.asyncio
     async def test_search_all_success(
-        self, service, mock_session, mock_track, mock_album, mock_artist, mock_playlist
+        self,
+        service,
+        mock_session,
+        mock_track,
+        mock_album,
+        mock_artist,
+        mock_playlist,
     ):
         """Test successful search all content."""
         search_result = Mock()

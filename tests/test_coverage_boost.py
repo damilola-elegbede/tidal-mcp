@@ -1,13 +1,11 @@
 """
+
 Coverage boost tests - simple tests to quickly increase coverage.
 Focus on exercising code paths rather than comprehensive testing.
 """
 
-import asyncio
-import json
 import os
-import tempfile
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
@@ -37,7 +35,7 @@ class TestCoverageBoostAuth:
             # Exercise properties
             _ = str(auth)
             _ = repr(auth)
-        except:
+        except Exception:
             pass
 
     @patch.dict(os.environ, {"TIDAL_CLIENT_ID": "test_client"})
@@ -57,7 +55,7 @@ class TestCoverageBoostAuth:
             auth._save_session({"test": "data"})
             auth._is_session_expired()
             auth.clear_session()
-        except:
+        except Exception:
             pass
 
     @patch.dict(os.environ, {"TIDAL_CLIENT_ID": "test_client"})
@@ -77,7 +75,7 @@ class TestCoverageBoostAuth:
         try:
             auth = TidalAuth()
             auth.get_tidal_session()
-        except:
+        except Exception:
             pass
 
     @patch.dict(os.environ, {"TIDAL_CLIENT_ID": "test_client"})
@@ -105,7 +103,7 @@ class TestCoverageBoostAuth:
         try:
             auth = TidalAuth()
             auth.authenticate_user()
-        except:
+        except Exception:
             pass
 
     @pytest.mark.asyncio
@@ -122,7 +120,7 @@ class TestCoverageBoostAuth:
         try:
             auth = TidalAuth()
             await auth.ensure_valid_token()
-        except:
+        except Exception:
             pass
 
 
@@ -137,7 +135,7 @@ class TestCoverageBoostService:
             _ = str(service)
             _ = repr(service)
             service.get_session()
-        except:
+        except Exception:
             pass
 
     @pytest.mark.asyncio
@@ -148,7 +146,7 @@ class TestCoverageBoostService:
         try:
             service = TidalService(mock_auth)
             await service.ensure_authenticated()
-        except:
+        except Exception:
             pass
 
     @pytest.mark.asyncio
@@ -165,7 +163,7 @@ class TestCoverageBoostService:
             await service.search_artists("test")
             await service.search_playlists("test")
             await service.search_all("test")
-        except:
+        except Exception:
             pass
 
     @pytest.mark.asyncio
@@ -190,7 +188,7 @@ class TestCoverageBoostService:
             await service.get_playlist("123")
             await service.get_album_tracks("123")
             await service.get_playlist_tracks("123")
-        except:
+        except Exception:
             pass
 
     @pytest.mark.asyncio
@@ -207,7 +205,7 @@ class TestCoverageBoostService:
             await service.add_to_playlist("123", "456")
             await service.remove_from_playlist("123", "456")
             await service.get_user_playlists()
-        except:
+        except Exception:
             pass
 
     @pytest.mark.asyncio
@@ -226,7 +224,7 @@ class TestCoverageBoostService:
             await service.get_recommendations()
             await service.get_track_radio("123")
             await service.get_artist_radio("123")
-        except:
+        except Exception:
             pass
 
 
@@ -250,7 +248,7 @@ class TestCoverageBoostServer:
             server.auth_manager = None
             server.tidal_service = None
             await server.ensure_service()
-        except:
+        except Exception:
             pass
 
     @pytest.mark.asyncio
@@ -292,7 +290,7 @@ class TestCoverageBoostServer:
             await server.tidal_get_track("123")
             await server.tidal_get_album("123")
             await server.tidal_get_artist("123")
-        except:
+        except Exception:
             pass
 
     def test_server_module_attributes(self):
@@ -304,7 +302,7 @@ class TestCoverageBoostServer:
             _ = server.tidal_service
             _ = server.logger
             _ = server.main
-        except:
+        except Exception:
             pass
 
     @pytest.mark.asyncio
@@ -316,7 +314,7 @@ class TestCoverageBoostServer:
             await server.tidal_search("test", ["invalid"])
             await server.tidal_get_playlist("")
             await server.tidal_get_favorites("invalid")
-        except:
+        except Exception:
             pass
 
 
@@ -342,7 +340,7 @@ class TestCoverageBoostMisc:
             # This should create a coroutine
             result = sync_func()
 
-        except:
+        except Exception:
             pass
 
     def test_edge_cases(self):
@@ -355,5 +353,5 @@ class TestCoverageBoostMisc:
             mock_auth = Mock()
             service = TidalService(mock_auth)
 
-        except:
+        except Exception:
             pass

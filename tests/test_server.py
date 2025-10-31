@@ -1,4 +1,5 @@
 """
+
 Comprehensive tests for Tidal MCP Server
 
 Tests FastMCP server functionality, tool implementations, authentication flow,
@@ -10,7 +11,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.tidal_mcp.auth import TidalAuth, TidalAuthError
+from src.tidal_mcp.auth import TidalAuthError
 from src.tidal_mcp.models import Album, Artist, Playlist, SearchResults, Track
 from src.tidal_mcp.server import (
     ensure_service,
@@ -31,7 +32,6 @@ from src.tidal_mcp.server import (
     tidal_remove_from_playlist,
     tidal_search,
 )
-from src.tidal_mcp.service import TidalService
 
 
 class TestServerInitialization:
@@ -42,7 +42,8 @@ class TestServerInitialization:
         assert mcp.name == "Tidal Music Integration"
 
     @patch.dict(
-        os.environ, {"TIDAL_CLIENT_ID": "test_id", "TIDAL_CLIENT_SECRET": "test_secret"}
+        os.environ,
+        {"TIDAL_CLIENT_ID": "test_id", "TIDAL_CLIENT_SECRET": "test_secret"},
     )
     @patch("src.tidal_mcp.server.TidalAuth")
     @patch("src.tidal_mcp.server.TidalService")
@@ -603,7 +604,7 @@ class TestContentDetailTools:
         mock_service.get_album = AsyncMock(return_value=mock_album)
         mock_ensure_service.return_value = mock_service
 
-        result = await tidal_get_album("456")  # Default include_tracks=True
+        _ = await tidal_get_album("456")  # Default include_tracks=True
 
         mock_service.get_album.assert_called_once_with("456", True)
 
@@ -718,7 +719,7 @@ class TestToolParameterValidation:
         mock_service.search_tracks.assert_called_with("query", 1, 0)
 
         # Test with negative offset
-        result = await tidal_search("query", "tracks", 20, -10)
+        _ = await tidal_search("query", "tracks", 20, -10)
         # Should be clamped to 0
         mock_service.search_tracks.assert_called_with("query", 20, 0)
 

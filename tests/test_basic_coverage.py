@@ -1,11 +1,6 @@
-"""Basic tests to boost coverage for simple functions and methods."""
+"""Basic tests to boost coverage for simple functions and methods.."""
 
-import json
-import os
-import tempfile
 from unittest.mock import MagicMock, Mock, patch
-
-import pytest
 
 # Import all modules to test basic functionality
 from tidal_mcp import auth, models, server, service, utils
@@ -103,7 +98,10 @@ class TestBasicCoverage:
         playlist = models.Playlist(id="4", title="Playlist")
 
         results = models.SearchResults(
-            tracks=[track], albums=[album], artists=[artist], playlists=[playlist]
+            tracks=[track],
+            albums=[album],
+            artists=[artist],
+            playlists=[playlist],
         )
 
         assert len(results.tracks) == 1
@@ -176,7 +174,11 @@ class TestBasicCoverage:
         assert album.title == "API Album"
 
         # Test Artist.from_api_data
-        artist_data = {"id": 789, "name": "API Artist", "picture": "artist_pic"}
+        artist_data = {
+            "id": 789,
+            "name": "API Artist",
+            "picture": "artist_pic",
+        }
         artist = models.Artist.from_api_data(artist_data)
         assert artist.id == "789"
         assert artist.name == "API Artist"

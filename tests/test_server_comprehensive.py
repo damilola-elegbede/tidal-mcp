@@ -1,17 +1,16 @@
 """
+
 Comprehensive tests for server module to reach 80% coverage.
 Targets specific uncovered lines identified in coverage report.
 """
 
-import asyncio
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
 from tidal_mcp import server
-from tidal_mcp.auth import TidalAuth, TidalAuthError
-from tidal_mcp.service import TidalService
+from tidal_mcp.auth import TidalAuthError
 
 
 class TestTidalServerFunctions:
@@ -158,7 +157,10 @@ class TestTidalServerFunctions:
         """Test successful playlist retrieval."""
         mock_service = Mock()
         mock_playlist = Mock()
-        mock_playlist.to_dict.return_value = {"id": "123", "title": "Test Playlist"}
+        mock_playlist.to_dict.return_value = {
+            "id": "123",
+            "title": "Test Playlist",
+        }
         mock_service.get_playlist.return_value = mock_playlist
         mock_ensure_service.return_value = mock_service
 
@@ -186,7 +188,10 @@ class TestTidalServerFunctions:
         """Test successful playlist creation."""
         mock_service = Mock()
         mock_playlist = Mock()
-        mock_playlist.to_dict.return_value = {"id": "new123", "title": "New Playlist"}
+        mock_playlist.to_dict.return_value = {
+            "id": "new123",
+            "title": "New Playlist",
+        }
         mock_service.create_playlist.return_value = mock_playlist
         mock_ensure_service.return_value = mock_service
 

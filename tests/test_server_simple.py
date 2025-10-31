@@ -5,6 +5,8 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
+from tidal_mcp import models, utils
+
 
 # Test the server module which has low coverage
 class TestServerModule:

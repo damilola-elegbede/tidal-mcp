@@ -1,16 +1,17 @@
 """
+
 Comprehensive tests for service module to reach 80% coverage.
 Targets specific uncovered lines identified in coverage report.
 """
 
 import asyncio
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
 from tidal_mcp.auth import TidalAuth
-from tidal_mcp.models import Album, Artist, Playlist, SearchResults, Track
+from tidal_mcp.models import Artist, SearchResults
 from tidal_mcp.service import TidalService, async_to_sync
 
 
@@ -226,7 +227,11 @@ class TestTidalServiceComprehensive:
             "albums": [{"id": 2, "title": "Album 1", "artist": {"name": "Artist 1"}}],
             "artists": [{"id": 3, "name": "Artist 1"}],
             "playlists": [
-                {"uuid": "4", "title": "Playlist 1", "creator": {"name": "Creator"}}
+                {
+                    "uuid": "4",
+                    "title": "Playlist 1",
+                    "creator": {"name": "Creator"},
+                }
             ],
         }
         mock_session.search.return_value = mock_search_results
@@ -319,7 +324,11 @@ class TestTidalServiceComprehensive:
         mock_auth.get_tidal_session.return_value = mock_session
 
         mock_artist = Mock()
-        mock_artist_data = {"id": 789, "name": "Test Artist", "picture": "artist_pic"}
+        mock_artist_data = {
+            "id": 789,
+            "name": "Test Artist",
+            "picture": "artist_pic",
+        }
         mock_artist.asdict.return_value = mock_artist_data
         mock_session.artist.return_value = mock_artist
 
@@ -360,7 +369,11 @@ class TestTidalServiceComprehensive:
 
         mock_album = Mock()
         mock_track = Mock()
-        mock_track_data = {"id": 1, "title": "Track 1", "artist": {"name": "Artist 1"}}
+        mock_track_data = {
+            "id": 1,
+            "title": "Track 1",
+            "artist": {"name": "Artist 1"},
+        }
         mock_track.asdict.return_value = mock_track_data
         mock_album.tracks.return_value = [mock_track]
         mock_session.album.return_value = mock_album
@@ -394,7 +407,11 @@ class TestTidalServiceComprehensive:
 
         mock_artist = Mock()
         mock_album = Mock()
-        mock_album_data = {"id": 1, "title": "Album 1", "artist": {"name": "Artist 1"}}
+        mock_album_data = {
+            "id": 1,
+            "title": "Album 1",
+            "artist": {"name": "Artist 1"},
+        }
         mock_album.asdict.return_value = mock_album_data
         mock_artist.get_albums.return_value = [mock_album]
         mock_session.artist.return_value = mock_artist
@@ -415,7 +432,11 @@ class TestTidalServiceComprehensive:
 
         mock_artist = Mock()
         mock_track = Mock()
-        mock_track_data = {"id": 1, "title": "Track 1", "artist": {"name": "Artist 1"}}
+        mock_track_data = {
+            "id": 1,
+            "title": "Track 1",
+            "artist": {"name": "Artist 1"},
+        }
         mock_track.asdict.return_value = mock_track_data
         mock_artist.get_top_tracks.return_value = [mock_track]
         mock_session.artist.return_value = mock_artist
@@ -436,7 +457,11 @@ class TestTidalServiceComprehensive:
 
         mock_playlist = Mock()
         mock_track = Mock()
-        mock_track_data = {"id": 1, "title": "Track 1", "artist": {"name": "Artist 1"}}
+        mock_track_data = {
+            "id": 1,
+            "title": "Track 1",
+            "artist": {"name": "Artist 1"},
+        }
         mock_track.asdict.return_value = mock_track_data
         mock_playlist.tracks.return_value = [mock_track]
         mock_session.playlist.return_value = mock_playlist

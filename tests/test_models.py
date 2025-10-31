@@ -1,4 +1,5 @@
 """
+
 Comprehensive tests for Tidal Data Models
 
 Tests data model creation, serialization, validation, and API data conversion.
@@ -6,9 +7,6 @@ Focuses on achieving high coverage for all model classes and methods.
 """
 
 from datetime import datetime
-from unittest.mock import MagicMock
-
-import pytest
 
 from src.tidal_mcp.models import Album, Artist, Playlist, SearchResults, Track
 

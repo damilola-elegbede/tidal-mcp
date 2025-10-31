@@ -1,12 +1,11 @@
 """
+
 Targeted tests for auth module to increase coverage quickly.
 Focus on simple scenarios that exercise specific uncovered lines.
 """
 
 import json
 import os
-import tempfile
-from pathlib import Path
 from unittest.mock import Mock, mock_open, patch
 
 import pytest
@@ -56,19 +55,28 @@ class TestTidalAuthTargeted:
     def test_init_with_custom_secret(self, mock_load_dotenv):
         """Test initialization with custom client secret."""
         with patch("tidal_mcp.auth.Path"):
-            auth = TidalAuth(client_secret="custom_secret")
-            assert auth.client_secret == "custom_secret"
+            auth = TidalAuth(
+                client_secret="custom_secret"  # pragma: allowlist secret
+            )  # pragma: allowlist secret
+            auth = TidalAuth(
+                client_secret="custom_secret"  # pragma: allowlist secret
+            )  # pragma: allowlist secret
 
     @patch.dict(
         os.environ,
-        {"TIDAL_CLIENT_ID": "test_client", "TIDAL_CLIENT_SECRET": "env_secret"},
+        {
+            "TIDAL_CLIENT_ID": "test_client",
+            "TIDAL_CLIENT_SECRET": "env_secret",  # pragma: allowlist secret
+        },
     )
     @patch("tidal_mcp.auth.load_dotenv")
     def test_init_uses_env_secret(self, mock_load_dotenv):
         """Test initialization uses environment secret."""
         with patch("tidal_mcp.auth.Path"):
             auth = TidalAuth()
-            assert auth.client_secret == "env_secret"
+            assert (
+                auth.client_secret == "env_secret"  # pragma: allowlist secret
+            )  # pragma: allowlist secret
 
     @patch.dict(os.environ, {"TIDAL_CLIENT_ID": "test_client"})
     @patch("tidal_mcp.auth.load_dotenv")

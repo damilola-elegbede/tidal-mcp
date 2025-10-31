@@ -1,12 +1,11 @@
 """
+
 Comprehensive tests for Tidal Service Layer
 
 Tests business logic, API interactions, data conversion, and service operations.
 Focuses on achieving high coverage for the service layer functionality.
 """
 
-import asyncio
-from concurrent.futures import ThreadPoolExecutor
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -869,7 +868,11 @@ class TestUserProfile:
     @pytest.mark.asyncio
     async def test_get_user_profile_success(self):
         """Test getting user profile successfully."""
-        mock_user_info = {"id": "123", "username": "testuser", "country_code": "US"}
+        mock_user_info = {
+            "id": "123",
+            "username": "testuser",
+            "country_code": "US",
+        }
         self.mock_auth.get_user_info.return_value = mock_user_info
 
         result = await self.service.get_user_profile()

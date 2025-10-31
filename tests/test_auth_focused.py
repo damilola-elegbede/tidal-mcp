@@ -80,7 +80,8 @@ class TestTidalAuthFocused:
     def test_auth_init_missing_client_id(self, mock_load_dotenv):
         """Test TidalAuth initialization with missing client ID."""
         with pytest.raises(
-            TidalAuthError, match="TIDAL_CLIENT_ID environment variable is required"
+            TidalAuthError,
+            match="TIDAL_CLIENT_ID environment variable is required",
         ):
             TidalAuth()
 

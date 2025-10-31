@@ -1,11 +1,10 @@
 """
+
 Comprehensive tests for Tidal MCP Utility Functions
 
 Tests utility functions for data processing, formatting, validation, and helper operations.
 Focuses on achieving high coverage for all utility functions and edge cases.
 """
-
-import pytest
 
 from src.tidal_mcp.utils import (
     build_search_url,
@@ -494,7 +493,9 @@ class TestSearchUrlBuilder:
     def test_build_search_url_special_characters(self):
         """Test building search URL with special characters in query."""
         url = build_search_url(
-            "https://api.tidal.com/search", "test & query with spaces", ["tracks"]
+            "https://api.tidal.com/search",
+            "test & query with spaces",
+            ["tracks"],
         )
         assert (
             "test%20%26%20query%20with%20spaces" in url

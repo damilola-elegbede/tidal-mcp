@@ -1,4 +1,5 @@
 """
+
 Simple tests for service module to boost coverage.
 Focus on basic functionality without complex mocking.
 """
@@ -195,7 +196,11 @@ class TestTidalServiceSimple:
 
         mock_session.search.return_value = {
             "albums": [
-                {"id": 456, "title": "Test Album", "artist": {"name": "Test Artist"}}
+                {
+                    "id": 456,
+                    "title": "Test Album",
+                    "artist": {"name": "Test Artist"},
+                }
             ]
         }
 

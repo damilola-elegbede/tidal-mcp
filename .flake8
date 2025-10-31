@@ -1,0 +1,26 @@
+[flake8]
+max-line-length = 120
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    build,
+    dist,
+    *.egg-info,
+    .tox,
+    .pytest_cache
+
+# Per-file ignores for source code - strict
+per-file-ignores =
+    src/*.py:E501
+
+# Ignore specific rules
+ignore =
+    W503,
+    W504,
+    D205,
+    D400,
+    D200,
+    F401,
+    F841

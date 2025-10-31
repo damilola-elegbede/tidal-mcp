@@ -1,24 +1,19 @@
 """
+
 Comprehensive tests for Tidal Authentication Module
 
 Tests OAuth2 flows, session management, token handling, and security features.
 Focuses on achieving high coverage while maintaining security standards.
 """
 
-import asyncio
 import json
 import os
-import stat
 import tempfile
-import time
 from datetime import datetime, timedelta
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, mock_open, patch
-from urllib.parse import parse_qs, urlparse
+from unittest.mock import AsyncMock, MagicMock, patch
 
-import aiohttp
 import pytest
-import tidalapi
 
 from src.tidal_mcp.auth import TidalAuth, TidalAuthError
 
@@ -36,7 +31,7 @@ class TestTidalAuthInitialization:
         """Test initialization with both client ID and secret."""
         auth = TidalAuth(client_id="test_id", client_secret="test_secret")
         assert auth.client_id == "test_id"
-        assert auth.client_secret == "test_secret"
+        assert auth.client_secret == "test_secret"  # pragma: allowlist secret
 
     @patch.dict(os.environ, {"TIDAL_CLIENT_ID": "env_client_id"})
     def test_init_from_environment(self):
@@ -260,14 +255,16 @@ class TestPKCEGeneration:
         assert len(verifier) >= 43  # Minimum length
         assert len(verifier) <= 128  # Maximum length
         assert all(
-            c in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+            c
+            in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"  # pragma: allowlist secret
             for c in verifier
         )
 
         # Challenge should be base64url encoded SHA256 hash
         assert len(challenge) >= 43
         assert all(
-            c in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+            c
+            in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"  # pragma: allowlist secret
             for c in challenge
         )
 
