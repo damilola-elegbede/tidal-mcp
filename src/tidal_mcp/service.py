@@ -1542,7 +1542,7 @@ class TidalService:
                 creator=(
                     getattr(tidal_playlist, "creator", {}).get("name")
                     if hasattr(tidal_playlist, "creator")
-                    and isinstance(getattr(tidal_playlist, "creator"), dict)
+                    and isinstance(tidal_playlist.creator, dict)
                     else None
                 ),
                 tracks=tracks,

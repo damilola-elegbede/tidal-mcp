@@ -1,5 +1,4 @@
-"""
-Tidal Authentication Manager
+"""Tidal Authentication Manager.
 
 Handles authentication and authorization for Tidal API access.
 Supports OAuth2 flow with PKCE and token management for secure API
@@ -189,7 +188,7 @@ class TidalAuth:
                 return
 
             # Use secure file opening with proper error handling
-            with open(self.session_file, "r", encoding="utf-8") as f:
+            with open(self.session_file, encoding="utf-8") as f:
                 session_data = json.load(f)
 
             # Validate session expiry before loading
@@ -248,7 +247,7 @@ class TidalAuth:
             try:
                 with os.fdopen(fd, "w") as f:
                     json.dump(session_data, f, indent=2)
-            except:
+            except Exception:
                 os.close(fd)  # Ensure fd is closed on error
                 raise
 
@@ -278,7 +277,7 @@ class TidalAuth:
             try:
                 if self.session_file.exists():
                     self.session_file.unlink()
-            except:
+            except Exception:
                 pass
 
     def _clear_session_file(self) -> None:
