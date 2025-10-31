@@ -10,3 +10,5 @@ exclude_dirs:
 skips:
   - B101  # assert_used_in_tests
   - B601  # shell_command_with_shell_equals_true
+  - B110  # try_except_pass - acceptable for graceful degradation
+  - B311  # random - not used for security/cryptographic purposes

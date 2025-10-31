@@ -182,8 +182,8 @@ class OAuth2PKCEFlow:
 
     def __init__(self):
         self.client_id = os.getenv("TIDAL_CLIENT_ID")
-        self.client_secret = os.getenv("TIDAL_CLIENT_SECRET")
         self.redirect_uri = os.getenv("TIDAL_REDIRECT_URI")
+        # Note: PKCE flow does not require client_secret for public clients
 
     async def generate_pkce_challenge(self) -> tuple[str, str]:
         """Generate PKCE code verifier and challenge."""
@@ -413,7 +413,7 @@ USER tidal
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8080/health')"
+    CMD python -c "from urllib.request import urlopen; urlopen('http://localhost:8080/health', timeout=2)"
 
 CMD ["uvicorn", "tidal_mcp.main:app", "--host", "0.0.0.0", "--port", "8080"]
 ```

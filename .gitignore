@@ -159,7 +159,7 @@ environment.json
 **/*_secrets.*
 **/*_tokens.*
 **/*_keys.*
-**/auth.*
+**/auth_session.*
 **/api_key*
 **/access_token*
 **/refresh_token*

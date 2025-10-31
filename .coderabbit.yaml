@@ -81,8 +81,7 @@ comment_options:
 
 # Additional configuration for better review quality
 knowledge_base:
-  learnings:
-    enabled: true
+  learnings: true
 
 # Custom instructions for this project
 project_context: |
