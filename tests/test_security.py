@@ -132,7 +132,9 @@ class TestCredentialExposurePrevention(TestCase):
     def setUp(self):
         """Set up test environment."""
         os.environ["TIDAL_CLIENT_ID"] = "test_client_id"
-        os.environ["TIDAL_CLIENT_SECRET"] = "test_secret  # pragma: allowlist secret_value"
+        os.environ["TIDAL_CLIENT_SECRET"] = (
+            "test_secret  # pragma: allowlist secret_value"
+        )
 
     def tearDown(self):
         """Clean up environment."""
