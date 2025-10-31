@@ -76,7 +76,7 @@ jobs:
 
       - name: Run security tests
         run: |
-          uv run python -m pytest tests/test_security.py -v --tb=short --no-cov
+          uv run python -m pytest tests/test_security.py -v --tb=short
 
       - name: Validate no hardcoded secrets
         run: |
@@ -134,7 +134,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install uv
-        uses: actions/setup-uv@v2
+        uses: astral-sh/setup-uv@v2
 
       - name: Build package
         run: |
