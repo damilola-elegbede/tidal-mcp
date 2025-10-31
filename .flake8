@@ -6,21 +6,13 @@ exclude =
     .venv,
     venv,
     build,
-    dist,
-    *.egg-info,
-    .tox,
-    .pytest_cache
+    dist
 
-# Per-file ignores for source code - strict
+# Permissive for test files
 per-file-ignores =
-    src/*.py:E501
+    tests/*.py:E501,D400,D205,F401,F841
 
-# Ignore specific rules
+# Ignore rules globally
 ignore =
     W503,
-    W504,
-    D205,
-    D400,
-    D200,
-    F401,
-    F841
+    W504
