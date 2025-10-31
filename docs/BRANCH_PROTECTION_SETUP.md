@@ -28,7 +28,7 @@ main
   - [x] Require branches to be up to date before merging
   - **Required status checks:** (Add these as they become available)
     - `CI / test (3.10)`
-    - `CI / test (3.11)` 
+    - `CI / test (3.11)`
     - `CI / test (3.12)`
     - `CI / lint-and-format`
     - `Quality Gates / security-scan`
@@ -65,7 +65,7 @@ The following GitHub Actions workflows will provide status checks:
 
 #### Main CI Pipeline (`ci.yml`)
 - `CI / test (3.10)` - Python 3.10 tests
-- `CI / test (3.11)` - Python 3.11 tests  
+- `CI / test (3.11)` - Python 3.11 tests
 - `CI / test (3.12)` - Python 3.12 tests
 - `CI / lint-and-format` - Code style validation
 - `CI / build` - Package build verification

@@ -19,51 +19,129 @@ jobs:
         python-version: ["3.10", "3.11", "3.12"]
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Install uv
-      uses: astral-sh/setup-uv@v2
-      with:
-        enable-cache: true
-        cache-dependency-glob: "uv.lock"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
-    - name: Install dependencies
-      run: |
-        uv sync --all-extras --dev
+      - name: Install dependencies
+        run: |
+          uv sync --all-extras --dev
 
-    - name: Lint and format check with ruff
-      run: |
-        uv run ruff check src examples
-        uv run ruff format --check src examples
+      - name: Lint and format check with ruff
+        run: |
+          uv run ruff check src examples
+          uv run ruff format --check src examples
+
+  security:
+    name: Security Tests Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Install dependencies
+        run: |
+          uv sync --all-extras --dev
+          uv pip install bandit pytest pytest-cov pytest-asyncio pytest-timeout
+
+      - name: Run security checks with bandit
+        run: |
+          uv run bandit -r src/ -f json -o bandit-report.json --exit-zero || true
+          uv run bandit -r src/ --exit-zero
+
+      - name: Run security tests
+        run: |
+          uv run python -m pytest tests/test_security.py -v --tb=short
+
+      - name: Validate no hardcoded secrets
+        run: |
+          uv run python -c "
+          import os
+          import re
+          import sys
+          from pathlib import Path
+
+          # Patterns that might indicate hardcoded secrets
+          patterns = [
+              r'(?i)(password|secret|key|token)\s*=\s*[\"\047]\w{8,}[\"\047]',
+              r'(?i)(api_key|access_key|secret_key)\s*=\s*[\"\047]\w{8,}[\"\047]',
+              r'[\"\047]\w*[A-Z0-9]{32,}[\"\047]',  # Long alphanumeric strings
+          ]
+
+          violations = []
+          src_dir = Path('src')
+
+          for py_file in src_dir.rglob('*.py'):
+              with open(py_file, 'r', encoding='utf-8') as f:
+                  content = f.read()
+                  for i, line in enumerate(content.split('\n'), 1):
+                      for pattern in patterns:
+                          if re.search(pattern, line) and 'example' not in line.lower() and 'test' not in line.lower():
+                              violations.append(f'{py_file}:{i}: {line.strip()}')
+
+          if violations:
+              print('SECURITY VIOLATION: Potential hardcoded secrets found:')
+              for violation in violations:
+                  print(f'  {violation}')
+              sys.exit(1)
+          else:
+              print('✅ No hardcoded secrets detected')
+          "
+
+      - name: Upload security report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-report-py${{ matrix.python-version }}
+          path: bandit-report.json
 
   build:
     name: Build Package
     runs-on: ubuntu-latest
-    needs: [lint]
+    needs: [lint, security]
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.11"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-    - name: Install uv
-      uses: astral-sh/setup-uv@v2
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
 
-    - name: Build package
-      run: |
-        uv build
+      - name: Build package
+        run: |
+          uv build
 
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: dist
-        path: dist/
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/

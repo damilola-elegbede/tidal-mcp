@@ -1,0 +1,18 @@
+[flake8]
+max-line-length = 120
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    build,
+    dist
+
+# Permissive for test files
+per-file-ignores =
+    tests/*.py:E501,D400,D205,F401,F841
+
+# Ignore rules globally
+ignore =
+    W503,
+    W504

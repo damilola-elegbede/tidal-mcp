@@ -48,8 +48,8 @@ To configure this MCP server with Claude Desktop, add the following to your Clau
       "command": "uvx",
       "args": ["--from", "/path/to/tidal-mcp", "tidal-mcp"],
       "env": {
-        "TIDAL_CLIENT_ID": "your-client-id",
-        "TIDAL_CLIENT_SECRET": "your-client-secret"
+        "TIDAL_CLIENT_ID": "your-client-id",  # pragma: allowlist secret
+        "TIDAL_CLIENT_SECRET": "your-client-secret"  # pragma: allowlist secret
       }
     }
   }

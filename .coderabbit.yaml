@@ -34,7 +34,7 @@ reviews:
         - Performance considerations
         - Error handling and edge cases
         - Async/await usage patterns
-    - path: "tests/**/*.py" 
+    - path: "tests/**/*.py"
       instructions: |
         Review test code focusing on:
         - Test coverage and completeness
@@ -73,21 +73,20 @@ tools:
   similar-code: true
   ast: true
   security: true
-  
+
 # Auto-resolve outdated comments as requested
 comment_options:
   auto_resolve_outdated: true
   stale_comment_threshold: 7
-  
-# Additional configuration for better review quality  
+
+# Additional configuration for better review quality
 knowledge_base:
-  learnings:
-    enabled: true
-  
+  learnings: true
+
 # Custom instructions for this project
 project_context: |
   This is a Tidal Music Streaming MCP (Model Context Protocol) server project.
-  
+
   Key aspects to consider:
   - Python async/await patterns for API calls
   - MCP protocol compliance
@@ -98,11 +97,11 @@ project_context: |
   - Type safety and mypy compatibility
   - Comprehensive test coverage
   - Performance optimization for music metadata operations
-  
+
   The project uses:
   - Python 3.10+ with async/await
   - FastMCP for MCP protocol implementation
-  - TidalAPI for Tidal service integration  
+  - TidalAPI for Tidal service integration
   - pytest for testing with async support
   - ruff for linting and formatting
   - UV for dependency management

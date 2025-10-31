@@ -1,5 +1,4 @@
-"""
-Tidal Service Layer
+"""Tidal Service Layer.
 
 Business logic and API interaction layer for Tidal music streaming
 service. Provides high-level methods for music discovery, playlist
@@ -22,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 def async_to_sync(func):
-    """Decorator to run sync tidalapi calls in thread pool."""
+    """Run sync tidalapi calls in thread pool."""
 
     @functools.wraps(func)
     async def wrapper(*args, **kwargs):
@@ -1540,9 +1539,12 @@ class TidalService:
                 ),
                 title=tidal_playlist.name,
                 description=getattr(tidal_playlist, "description", None),
-                creator=getattr(tidal_playlist, "creator", {}).get("name")
-                if hasattr(tidal_playlist, "creator")
-                else None,
+                creator=(
+                    getattr(tidal_playlist, "creator", {}).get("name")
+                    if hasattr(tidal_playlist, "creator")
+                    and isinstance(tidal_playlist.creator, dict)
+                    else None
+                ),
                 tracks=tracks,
                 number_of_tracks=getattr(tidal_playlist, "num_tracks", len(tracks)),
                 duration=getattr(tidal_playlist, "duration", None),

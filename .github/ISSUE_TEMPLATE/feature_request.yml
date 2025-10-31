@@ -111,7 +111,7 @@ body:
       placeholder: |
         # Example usage:
         from tidal_mcp import TidalMCP
-        
+
         client = TidalMCP()
         result = client.new_feature(parameter="value")
 
